@@ -1,0 +1,94 @@
+version: "3.1"
+
+nlu:
+
+- intent: saluer
+  examples: |
+    - bonjour
+    - salut
+    - hello
+    - bonsoir
+
+- intent: demander_bien
+  examples: |
+    - quelles maisons avez-vous ?
+    - je cherche un [appartement](type) à [Casablanca](ville)
+    - avez-vous des [villas](type) à vendre à [Rabat](ville) ?
+    - montre-moi les biens disponibles à [Marrakech](ville)
+    - je veux louer un [studio](type) à [Tanger](ville)
+    - biens à [Agadir](ville)
+    - logements à [Fès](ville)
+    - maisons à [Casablanca](ville)
+    - je veux voir les propriétés
+    - propriétés disponibles
+    - liste des biens
+    - quels sont les biens immobiliers ?
+
+- intent: demander_prix
+  examples: |
+    - quel est le prix de cette maison ?
+    - combien coûte un [appartement](type) ici ?
+    - prix d'une [villa](type) à [Rabat](ville)
+    - combien pour un [studio](type) à [Casablanca](ville) ?
+
+- intent: demander_articles
+  examples: |
+    - quels sont les derniers articles ?
+    - montre-moi les actualités
+    - articles sur [immobilier](categorie)
+    - blog posts
+    - nouvelles publications
+    - je veux un article
+    - donne-moi des articles
+    - lis-moi un article
+
+- intent: aide
+  examples: |
+    - aide-moi
+    - que peux-tu faire ?
+    - comment m'aider ?
+    - j'ai besoin d'aide
+    - assistance
+
+- intent: demander_postulation
+  examples: |
+    - je veux postuler
+    - comment postuler ?
+    - formulaire de postulation
+
+- intent: affirm
+  examples: |
+    - oui
+    - bien sûr
+    - d'accord
+    - ok
+
+- intent: demander_contact
+  examples: |
+    - je veux contacter
+    - comment vous contacter ?
+    - page de contact
+    - formulaire de contact
+    - parler à un agent
+
+- intent: demander_investir
+  examples: |
+    - je veux investir
+    - page d'investissement
+    - devenir investisseur
+    - opportunités d'investissement
+    - investir dans l'immobilier
+
+- intent: planifier_visite
+  examples: |
+    - planifier une visite
+    - je veux visiter
+    - prendre rendez-vous
+    - visite immobilière
+
+- intent: goodbye
+  examples: |
+    - au revoir
+    - bye
+    - à plus tard
+    - merci, ciao

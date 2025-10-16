@@ -139,6 +139,56 @@ const getAllContacts = async (req, res) => {
   }
 };
 
+// UPDATE contact status
+const updateContactStatus = async (req, res) => {
+  try {
+    const contactId = req.params.id;
+    const { status } = req.body;
+
+    // Validation du statut
+    const validStatuses = ['new', 'répondu', 'planifier'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Statut invalide. Utilisez: new, répondu, ou planifier'
+      });
+    }
+
+    console.log(`📝 Mise à jour du statut du contact ${contactId} vers "${status}"...`);
+
+    const result = await mongoose.connection.db.collection('contacts').updateOne(
+      { _id: new mongoose.Types.ObjectId(contactId) },
+      {
+        $set: {
+          status: status,
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact non trouvé'
+      });
+    }
+
+    console.log('✅ Statut du contact mis à jour avec succès');
+    res.status(200).json({
+      success: true,
+      message: `Statut mis à jour vers "${status}"`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('❌ Erreur dans updateContactStatus:', error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur lors de la mise à jour du statut",
+      details: error.message
+    });
+  }
+};
+
 // DELETE contact
 const deleteContact = async (req, res) => {
   try {
@@ -232,14 +282,25 @@ const scheduleVisit = async (req, res) => {
     console.log('📅 Nouvelle demande de planification de visite:', { name, email, meetingType, date, timeSlot });
 
     // Configurer Nodemailer - Mailtrap (Gmail temporairement bloqué)
-    const transporter = nodemailer.createTransport({
+    /*const transporter = nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
       port: 2525,
       auth: {
         user: process.env.MAILTRAP_USER || "91be55e01c3ccf",
         pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
       },
-    });
+    });*/
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
 
     // Contenu de l'email pour la planification de visite
     const mailOptions = {
@@ -341,6 +402,7 @@ Action requise: Confirmer le rendez-vous avec le client
 module.exports = {
   addContact,
   getAllContacts,
+  updateContactStatus,
   deleteContact,
   testEmail,
   scheduleVisit

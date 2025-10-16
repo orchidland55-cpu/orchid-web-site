@@ -1,0 +1,193 @@
+{
+  "header": {
+    "home": "Home",
+    "about": "About us",
+    "properties": "Properties",
+    "articles": "Blog",
+    "blog": "Blog",
+    "invest": "INVEST! (New)",
+    "contact": "Contact Us"
+  },
+  "hero": {
+    "badge": "Exclusive Luxury Properties",
+    "title": "Orchid Island",
+    "subtitle": "Real estate",
+    "tagline": "The Address You'll Always Remember",
+    "features": {
+      "exclusiveSales": "Exclusive property sales",
+      "customAcquisition": "Custom acquisition",
+      "highEndRental": "High-end rental"
+    },
+    "cta": "Discover our properties",
+    "scroll": "Scroll down"
+  },
+  "footer": {
+    "brand": {
+      "description": "Your trusted partner for luxury real estate in Morocco. The Address You'll Always Remember."
+    },
+    "services": {
+      "title": "Our Services",
+      "propertySales": "Property Sales",
+      "customAcquisition": "Custom Acquisition",
+      "highEndRental": "High-End Rental",
+      "investmentAdvice": "Investment Advice",
+      "wealthManagement": "Wealth Management"
+    },
+    "contact": {
+      "title": "Contact",
+      "address": {
+        "line1": "Boulevard Mohammed V",
+        "line2": "Casablanca 20000, Morocco"
+      },
+      "phone": "+212 5 22 XX XX XX",
+      "email": "contact@orchidisland.ma"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Receive our latest news and exclusive properties.",
+      "apply": "Apply"
+    },
+    "bottom": {
+      "copyright": "© 2024 Orchid Island. All rights reserved.",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfUse": "Terms of Use",
+      "legalNotice": "Legal Notice"
+    }
+  },
+  "properties": {
+    "title": "Our Exceptional Properties",
+    "subtitle": "Discover our exclusive selection of luxury properties in Morocco",
+    "loading": "Loading properties...",
+    "pleaseWait": "Please wait",
+    "searchPlaceholder": "Search for a property...",
+    "allTypes": "All Types",
+    "allPrices": "All Prices",
+    "results": "property",
+    "resultsPlural": "properties",
+    "found": "found",
+    "available": "Available",
+    "sold": "Sold",
+    "featured": "Featured",
+    "viewDetails": "View Details",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "builtIn": "Built in",
+    "noProperties": "No properties found",
+    "adjustSearch": "Try adjusting your search criteria"
+  },
+  "blog": {
+    "insights": "Real Estate Insights",
+    "title": "Luxury Real Estate",
+    "subtitle": "Blog",
+    "description": "Stay informed with the latest trends, insights, and expert analysis in luxury real estate markets.",
+    "allPosts": "All Posts",
+    "marketAnalysis": "Market Analysis",
+    "investment": "Investment",
+    "locationSpotlight": "Location Spotlight",
+    "sustainability": "Sustainability",
+    "technology": "Technology",
+    "globalMarkets": "Global Markets",
+    "featuredArticle": "Featured Article",
+    "readFullArticle": "Read Full Article",
+    "latestArticles": "Latest Articles",
+    "expertInsights": "Expert insights and market analysis from our team of real estate professionals",
+    "loading": "Loading articles...",
+    "noArticles": "No articles in this category.",
+    "loadMore": "Load More Articles"
+  },
+  "about": {
+    "badge": "About Us",
+    "title": "Orchid",
+    "subtitle": "Island",
+    "description": "Your trusted partner in prestige real estate in Morocco. For over 15 years, we have been supporting our clients in their most ambitious real estate projects.",
+    "stats": {
+      "years": "Years of experience",
+      "properties": "Properties sold",
+      "clients": "Satisfied clients",
+      "partners": "Trusted partners"
+    },
+    "story": {
+      "title": "Our Story",
+      "description1": "Founded in 2008, Orchid Island was born from the vision of creating a different real estate agency, focused on service excellence and client satisfaction. We specialize in high-end real estate throughout Morocco.",
+      "description2": "Our team of passionate experts accompanies you through every step of your real estate project, whether for purchasing, selling, or investing in exceptional properties.",
+      "features": [
+        "Recognized expertise in luxury real estate",
+        "Extensive network of trusted partners",
+        "Personalized service and complete support",
+        "In-depth knowledge of the Moroccan market"
+      ]
+    },
+    "values": {
+      "title": "Our Values",
+      "subtitle": "The principles that guide our daily action and our commitment to our clients.",
+      "trust": {
+        "title": "Trust",
+        "description": "We build lasting relationships based on transparency and integrity."
+      },
+      "excellence": {
+        "title": "Excellence",
+        "description": "We strive for excellence in every transaction and service we offer."
+      },
+      "passion": {
+        "title": "Passion",
+        "description": "Our passion for real estate drives us to exceed your expectations."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "description": "We use the latest technologies to optimize your experience."
+      }
+    },
+    "team": {
+      "title": "Our Team",
+      "subtitle": "Experienced and passionate professionals, dedicated to your real estate success."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "To support our clients in realizing their real estate projects by offering excellent service, sound advice and personalized support. We are committed to creating lasting value for our clients and partners."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "To become the undisputed reference in prestige real estate in Morocco, recognized for our expertise, integrity and capacity for innovation. We aspire to transform our clients' real estate experience."
+    },
+    "marrakech": {
+      "title": "Our Presence in Marrakech",
+      "subtitle": "Discover our areas of expertise in the Pearl of the South and our exclusive properties in Marrakech's most prestigious neighborhoods.",
+      "mapTitle": "Interactive Marrakech Map",
+      "mapSubtitle": "Prestige zones and exclusive properties",
+      "description": "Marrakech represents one of our most dynamic markets with over 420 prestige properties in our portfolio. Our local expertise allows us to offer the best investment opportunities.",
+      "districts": {
+        "palmeraie": {
+          "title": "Palmeraie",
+          "description": "Luxury villas with private pools and landscaped gardens. Average price: 8-25M DH"
+        },
+        "hivernage": {
+          "title": "Hivernage",
+          "description": "Modern district with high-end apartments and renovated riads. Average price: 3-12M DH"
+        },
+        "gueliz": {
+          "title": "Gueliz",
+          "description": "Modern city center with penthouses and premium offices. Average price: 2-8M DH"
+        }
+      },
+      "office": {
+        "title": "Marrakech Office",
+        "address": "Avenue Mohammed VI, Résidence Al Manar, Gueliz",
+        "phone": "+212 524 43 21 87",
+        "email": "marrakech@orchidisland.ma"
+      }
+    },
+    "community": {
+      "title": "Our Commitment to Community",
+      "subtitle": "Supporting Local Communities",
+      "description": "At Orchid Island, we firmly believe in sustainable development and supporting local communities. Our commitment goes beyond real estate to create a positive impact in Moroccan society.",
+      "description2": "Discover how we collaborate with local associations to improve community life and contribute to Morocco's social development.",
+      "cta": "Discover Our Commitment"
+    },
+    "cta": {
+      "title": "Ready to Start Your Project?",
+      "subtitle": "Contact our team of experts for a personalized consultation and discover how we can help you realize your real estate ambitions.",
+      "contact": "Contact Us",
+      "viewProperties": "View Our Properties"
+    }
+  }
+}

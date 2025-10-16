@@ -16,135 +16,271 @@ import {
   Settings,
   LogOut,
   Home,
-  Calendar
+  Calendar,
+  Globe
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
+import { apiService, Activity } from "@/services/api"; // ✅ Import Activity
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminEmail, setAdminEmail] = useState("");
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]); // ✅ Dynamic state
+  const [isLoading, setIsLoading] = useState(true);
+  const [isActivitiesLoading, setIsActivitiesLoading] = useState(true); // ✅ Loading for activities
+
+  // Analytics state
+  const [yearlyViewsData, setYearlyViewsData] = useState<any[]>([]);
+  const [countryViewsData, setCountryViewsData] = useState<any[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
+  // ✅ Function to format "X hours ago"
+  const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    }
+    if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    }
+    return "Just now";
+  };
 
   useEffect(() => {
     // Check if admin is logged in
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
     const email = localStorage.getItem("adminEmail");
-    
+
     if (!isLoggedIn || isLoggedIn !== "true") {
       navigate("/admin");
       return;
     }
-    
+
     setAdminEmail(email || "");
+    loadDashboardStats();
+    loadRecentActivities(); // ✅ Also load recent activities
+    loadAnalyticsData(); // Load analytics data
   }, [navigate]);
 
+  const loadDashboardStats = async () => {
+    setIsLoading(true);
+    try {
+      console.log('🔄 Loading statistics...');
+      const result = await apiService.getDashboardStats();
+      console.log('📡 Full API response:', JSON.stringify(result, null, 2));
+      console.log('📊 Extracted data:', JSON.stringify(result.data, null, 2));
+
+      setDashboardStats(result.data);
+      console.log('✅ Statistics loaded and state updated');
+    } catch (error) {
+      console.error('❌ Connection error:', error);
+      showToast({
+        type: "error",
+        title: "Connection Error",
+        message: "Unable to load statistics from server"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ✅ Load activities from backend
+  const loadRecentActivities = async () => {
+    setIsActivitiesLoading(true);
+    try {
+      console.log('🔄 Loading recent activities...');
+      const result = await apiService.getRecentActivities();
+      console.log('📡 Activities received:', result.data);
+
+      // ✅ Format activities for display
+      const formattedActivities = (result.data || []).map((activity: Activity) => ({
+        ...activity,
+        time: activity.createdAt ? formatTimeAgo(activity.createdAt) : "Recently"
+      }));
+
+      setRecentActivities(formattedActivities);
+    } catch (error) {
+      console.error('❌ Error loading activities:', error);
+      showToast({
+        type: "error",
+        title: "Error",
+        message: "Unable to load recent activities"
+      });
+      // Fallback data in case of error
+      setRecentActivities([
+   {
+     action: "Loading error",
+     item: "Unable to retrieve activities",
+     createdAt: new Date().toISOString(),
+     type: "error"
+   } as Activity
+ ]);
+    } finally {
+      setIsActivitiesLoading(false);
+    }
+  };
+
+  // Load analytics data
+  const loadAnalyticsData = async () => {
+    setAnalyticsLoading(true);
+    try {
+      console.log('🔄 Loading analytics data...');
+      const [yearlyData, countriesData] = await Promise.all([
+        apiService.getYearlyViews(),
+        apiService.getCountryViews()
+      ]);
+
+      setYearlyViewsData(yearlyData);
+      setCountryViewsData(countriesData);
+      console.log('✅ Analytics data loaded');
+    } catch (error) {
+      console.error('❌ Error loading analytics:', error);
+      showToast({
+        type: "error",
+        title: "Analytics Error",
+        message: "Unable to load analytics data"
+      });
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
-    if (window.confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+    if (window.confirm("Are you sure you want to log out?")) {
       localStorage.removeItem("adminLoggedIn");
       localStorage.removeItem("adminEmail");
 
-      // Afficher un toast de déconnexion
       showToast({
         type: "success",
-        title: "Déconnexion réussie",
-        message: "Vous avez été déconnecté avec succès. À bientôt !",
+        title: "Logout Successful",
+        message: "You have been successfully logged out. See you soon!",
         duration: 3000
       });
 
-      // Délai pour permettre au toast de s'afficher avant la redirection
       setTimeout(() => {
         navigate("/admin");
       }, 500);
     }
   };
 
-  const stats = [
-    {
-      title: "Propriétés Totales",
-      value: "24",
-      change: "+3 ce mois",
-      icon: Building,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      title: "Articles de Blog",
-      value: "18",
-      change: "+2 cette semaine",
-      icon: FileText,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      title: "Vues Totales",
-      value: "12.5K",
-      change: "+15% ce mois",
-      icon: Eye,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
-    },
-    {
-      title: "Demandes Contact",
-      value: "47",
-      change: "+8 aujourd'hui",
-      icon: MessageCircle,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
+  // Function to format numbers
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
     }
-  ];
+    return num.toString();
+  };
 
-  const recentActivities = [
-    {
-      action: "Nouvelle propriété ajoutée",
-      item: "Villa Luxury Marina",
-      time: "Il y a 2 heures",
-      type: "property"
-    },
-    {
-      action: "Article publié",
-      item: "Tendances Immobilier 2024",
-      time: "Il y a 5 heures",
-      type: "blog"
-    },
-    {
-      action: "Demande de contact",
-      item: "Client intéressé par penthouse",
-      time: "Il y a 1 jour",
-      type: "contact"
-    },
-    {
-      action: "Propriété mise à jour",
-      item: "Appartement Souissi",
-      time: "Il y a 2 jours",
-      type: "property"
+  // Generate stats from backend data
+  const getStatsFromBackend = () => {
+    if (!dashboardStats) {
+      return [
+        {
+          title: "Total Properties",
+          value: "...",
+          change: "Loading...",
+          icon: Building,
+          color: "text-blue-600",
+          bgColor: "bg-blue-50"
+        },
+        {
+          title: "Blog Articles",
+          value: "...",
+          change: "Loading...",
+          icon: FileText,
+          color: "text-green-600",
+          bgColor: "bg-green-50"
+        },
+        {
+          title: "Total Views",
+          value: "...",
+          change: "Loading...",
+          icon: Eye,
+          color: "text-purple-600",
+          bgColor: "bg-purple-50"
+        },
+        {
+          title: "Contact Requests",
+          value: "...",
+          change: "Loading...",
+          icon: MessageCircle,
+          color: "text-orange-600",
+          bgColor: "bg-orange-50"
+        }
+      ];
     }
-  ];
+
+    return [
+      {
+        title: "Total Properties",
+        value: dashboardStats.properties?.total?.toString() || "0",
+        change: dashboardStats.properties?.growthText || "+0 this month",
+        icon: Building,
+        color: "text-blue-600",
+        bgColor: "bg-blue-50"
+      },
+      {
+        title: "Blog Articles",
+        value: dashboardStats.articles?.total?.toString() || "0",
+        change: dashboardStats.articles?.growthText || "+0 this week",
+        icon: FileText,
+        color: "text-green-600",
+        bgColor: "bg-green-50"
+      },
+      {
+        title: "Total Views",
+        value: formatNumber(dashboardStats.views?.total || 0),
+        change: dashboardStats.views?.growthText || "+0% this month",
+        icon: Eye,
+        color: "text-purple-600",
+        bgColor: "bg-purple-50"
+      },
+      {
+        title: "Contact Requests",
+        value: dashboardStats.contacts?.total?.toString() || "0",
+        change: dashboardStats.contacts?.growthText || "+0 today",
+        icon: MessageCircle,
+        color: "text-orange-600",
+        bgColor: "bg-orange-50"
+      }
+    ];
+  };
+
+  const stats = getStatsFromBackend();
 
   const quickActions = [
     {
-      title: "Ajouter Propriété",
-      description: "Créer une nouvelle propriété",
+      title: "Add Property",
+      description: "Create a new property",
       icon: Building,
       link: "/admin/properties/add",
       color: "luxury"
     },
     {
-      title: "Nouvel Article",
-      description: "Rédiger un article de blog",
+      title: "New Article",
+      description: "Write a blog article",
       icon: FileText,
       link: "/admin/articles/add",
       color: "elegant"
     },
     {
-      title: "Voir Propriétés",
-      description: "Gérer les propriétés existantes",
+      title: "View Properties",
+      description: "Manage existing properties",
       icon: Eye,
       link: "/admin/properties",
       color: "outline"
     },
     {
-      title: "Gérer Articles",
-      description: "Modifier les articles de blog",
+      title: "Manage Articles",
+      description: "Edit blog articles",
       icon: Settings,
       link: "/admin/articles",
       color: "outline"
@@ -169,12 +305,12 @@ const AdminDashboard = () => {
                 <Link to="/">
                   <Button variant="outline" size="sm">
                     <Home className="w-4 h-4 mr-2" />
-                    Voir le site
+                    View Site
                   </Button>
                 </Link>
                 <Button variant="destructive" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
-                  Déconnexion
+                  Logout
                 </Button>
               </div>
             </div>
@@ -185,36 +321,35 @@ const AdminDashboard = () => {
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {stats.map((stat, index) => {
-              // Déterminer quelle carte est cliquable et sa destination
               const getCardConfig = (title: string) => {
                 switch (title) {
-                  case "Vues Totales":
+                  case "Total Views":
                     return {
                       isClickable: true,
                       linkTo: "/admin/analytics",
-                      clickText: "Cliquez pour voir les détails →",
-                      ariaLabel: "Voir les statistiques détaillées des vues"
+                      clickText: "Click for details →",
+                      ariaLabel: "View detailed view statistics"
                     };
-                  case "Propriétés Totales":
+                  case "Total Properties":
                     return {
                       isClickable: true,
                       linkTo: "/admin/properties",
-                      clickText: "Gérer les propriétés →",
-                      ariaLabel: "Gérer les propriétés immobilières"
+                      clickText: "Manage properties →",
+                      ariaLabel: "Manage real estate properties"
                     };
-                  case "Articles de Blog":
+                  case "Blog Articles":
                     return {
                       isClickable: true,
                       linkTo: "/admin/articles",
-                      clickText: "Gérer les articles →",
-                      ariaLabel: "Gérer les articles de blog"
+                      clickText: "Manage articles →",
+                      ariaLabel: "Manage blog articles"
                     };
-                  case "Demandes Contact":
+                  case "Contact Requests":
                     return {
                       isClickable: true,
                       linkTo: "/admin/contacts",
-                      clickText: "Voir les demandes →",
-                      ariaLabel: "Voir les demandes de contact"
+                      clickText: "View requests →",
+                      ariaLabel: "View contact requests"
                     };
                   default:
                     return {
@@ -283,7 +418,7 @@ const AdminDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Plus className="w-5 h-5" />
-                    <span>Actions Rapides</span>
+                    <span>Quick Actions</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -310,28 +445,138 @@ const AdminDashboard = () => {
               </Card>
             </div>
 
-            {/* Recent Activities */}
+            {/* Recent Activities — ✅ NOW DYNAMIC */}
             <div>
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Calendar className="w-5 h-5" />
-                    <span>Activités Récentes</span>
+                    <span>Recent Activities</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivities.map((activity, index) => (
-                      <div key={index} className="flex items-start space-x-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                          <p className="text-sm text-muted-foreground">{activity.item}</p>
-                          <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  {isActivitiesLoading ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Loading activities...
+                    </p>
+                  ) : recentActivities.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No recent activities.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {recentActivities.map((activity, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-2 rounded-md bg-muted/50">
+                          <div className="w-2 h-2 rounded-full mt-2 bg-yellow-500"></div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">{activity.action}</p>
+                            <p className="text-sm text-muted-foreground">{activity.item}</p>
+                            <p className="text-xs text-muted-foreground">
+                              <span className="font-medium text-primary">{activity.performedBy || "admin"}</span> • {formatTimeAgo(activity.createdAt)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Analytics Section */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Analytics Overview</h2>
+              <Link to="/admin/analytics">
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  View Full Analytics
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Yearly Views Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Yearly Views Trend</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analyticsLoading ? (
+                    <div className="h-64 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                    </div>
+                  ) : yearlyViewsData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={yearlyViewsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="year" tick={{ fill: "#6b7280" }} />
+                        <YAxis tick={{ fill: "#6b7280" }} />
+                        <Tooltip
+                          content={({ payload, label }) => {
+                            if (!payload || !payload[0]) return null;
+                            const value = payload[0].value as number;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg shadow-md p-3">
+                                <p className="font-semibold text-gray-800">Year {label}</p>
+                                <p className="text-sm text-gray-600">Views: {value?.toLocaleString()}</p>
+                              </div>
+                            );
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="vues"
+                          stroke="#D4AF37"
+                          strokeWidth={3}
+                          dot={{ fill: "#D4AF37", r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-10">No data available</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Country Views Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Globe className="w-5 h-5" />
+                    <span>Views by Country</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analyticsLoading ? (
+                    <div className="h-64 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                    </div>
+                  ) : countryViewsData.length > 0 ? (
+                    <div className="space-y-4">
+                      {countryViewsData.slice(0, 5).map((country, index) => (
+                        <div key={country.pays} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: ["#D4AF37", "#4F46E5", "#EF4444", "#10B981", "#F59E0B"][index] }}
+                            ></div>
+                            <span className="font-medium">{country.pays}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{country.vues?.toLocaleString()}</p>
+                            <p className="text-sm text-gray-500">{country.pourcentage}%</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-10">No data available</p>
+                  )}
                 </CardContent>
               </Card>
             </div>

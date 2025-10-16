@@ -1,0 +1,14 @@
+[
+  {
+    "name": "location",
+    "pattern": "(\\bParis\\b|\\bLyon\\b|\\bMarseille\\b|\\bBordeaux\\b|\\bToulouse\\b|\\bMarrakech\\b|\\bCasablanca\\b|\\bRabat\\b|\\bFes\\b|\\bAgadir\\b|\\bTangier\\b)"
+  },
+  {
+    "name": "date",
+    "pattern": "(\\bdemain\\b|\\blundi\\ prochain\\b|\\b15/06/2024\\b|\\bdans\\ 2\\ jours\\b|\\bla\\ semaine\\ prochaine\\b|\\btomorrow\\b|\\bnext\\ Monday\\b|\\b06/15/2024\\b|\\bin\\ 2\\ days\\b|\\bnext\\ week\\b)"
+  },
+  {
+    "name": "time",
+    "pattern": "(\\b14h30\\b|\\b9h\\b|\\bce\\ soir\\b|\\bdemain\\ matin\\b|\\bdans\\ l'après\\-midi\\b|\\b2:30\\ PM\\b|\\b9\\ AM\\b|\\btonight\\b|\\btomorrow\\ morning\\b|\\bin\\ the\\ afternoon\\b)"
+  }
+]

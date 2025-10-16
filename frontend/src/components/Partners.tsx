@@ -2,43 +2,43 @@ const Partners = () => {
   const partners = [
     {
       name: "Sotheby's International Realty",
-      description: "Réseau mondial de l'immobilier de luxe",
+      description: "Global network for luxury real estate",
     },
     {
       name: "Christie's Real Estate",
-      description: "Expertise internationale en propriétés d'exception",
+      description: "International expertise in exceptional properties",
     },
     {
       name: "Engel & Völkers",
-      description: "Leader européen de l'immobilier haut de gamme",
+      description: "European leader in high-end real estate",
     },
     {
       name: "Banque Populaire",
-      description: "Partenaire financier de confiance",
+      description: "Trusted financial partner",
     },
     {
       name: "BMCE Bank",
-      description: "Solutions de financement sur mesure",
+      description: "Tailored financing solutions",
     },
     {
       name: "Attijariwafa Bank",
-      description: "Accompagnement patrimonial personnalisé",
+      description: "Personalized wealth management",
     },
     {
       name: "Knight Frank",
-      description: "Conseil en immobilier de prestige international",
+      description: "International prestige real estate advisory",
     },
     {
       name: "Coldwell Banker",
-      description: "Réseau premium de l'immobilier de luxe",
+      description: "Premium luxury real estate network",
     },
     {
       name: "Crédit du Maroc",
-      description: "Solutions bancaires haut de gamme",
+      description: "High-end banking solutions",
     },
     {
       name: "Savills",
-      description: "Expertise mondiale en immobilier d'exception",
+      description: "Global expertise in exceptional real estate",
     },
   ];
 
@@ -49,33 +49,33 @@ const Partners = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm rounded-full px-6 py-2 mb-6">
             <div className="w-2 h-2 luxury-gradient rounded-full"></div>
-            <span className="text-foreground font-lora text-sm font-bold">Partenaires Stratégiques</span>
+            <span className="text-foreground font-lora text-sm font-bold">Strategic Partners</span>
           </div>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Nos <span className="luxury-gradient bg-clip-text text-transparent">Partenaires</span> de Prestige
+            Our <span className="luxury-gradient bg-clip-text text-transparent">Prestige</span> Partners
           </h2>
           <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-            Nous collaborons avec les leaders mondiaux de l'immobilier de luxe et les institutions financières 
-            les plus prestigieuses pour vous offrir un service d'excellence.
+            We collaborate with global leaders in luxury real estate and the most prestigious financial 
+            institutions to offer you exceptional service.
           </p>
         </div>
 
-        {/* Partners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Partners Grid - 5 columns, 2 rows */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {partners.map((partner, index) => (
             <div
               key={index}
-              className="group bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg p-8 text-center hover:shadow-luxury transition-luxury hover:-translate-y-2"
+              className="group bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg p-6 text-center hover:shadow-luxury transition-luxury hover:-translate-y-2"
             >
-              <div className="w-16 h-16 luxury-gradient rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-primary-foreground font-playfair font-bold text-xl">
+              <div className="w-12 h-12 luxury-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-primary-foreground font-playfair font-bold text-lg">
                   {partner.name.charAt(0)}
                 </span>
               </div>
-              <h3 className="font-playfair text-xl font-semibold text-foreground mb-3">
+              <h3 className="font-playfair text-lg font-semibold text-foreground mb-2">
                 {partner.name}
               </h3>
-              <p className="font-lora text-muted-foreground">
+              <p className="font-lora text-sm text-muted-foreground leading-relaxed">
                 {partner.description}
               </p>
             </div>
@@ -89,7 +89,7 @@ const Partners = () => {
               50+
             </div>
             <div className="font-lora text-muted-foreground">
-              Partenaires Internationaux
+              International Partners
             </div>
           </div>
           <div className="group">
@@ -97,7 +97,7 @@ const Partners = () => {
               15+
             </div>
             <div className="font-lora text-muted-foreground">
-              Années d'Expérience
+              Years of Experience
             </div>
           </div>
           <div className="group">
@@ -105,7 +105,7 @@ const Partners = () => {
               500+
             </div>
             <div className="font-lora text-muted-foreground">
-              Propriétés Vendues
+              Properties Sold
             </div>
           </div>
           <div className="group">
@@ -113,7 +113,7 @@ const Partners = () => {
               98%
             </div>
             <div className="font-lora text-muted-foreground">
-              Satisfaction Client
+              Client Satisfaction
             </div>
           </div>
         </div>

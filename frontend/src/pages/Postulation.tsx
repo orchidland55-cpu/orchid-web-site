@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,12 +46,39 @@ const Postulation = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Postulation submitted:", formData);
-    // Here you would typically send the data to your backend
-    alert("Votre candidature a été soumise avec succès!");
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  const formDataObj = new FormData();
+  formDataObj.append('firstName', formData.firstName);
+  formDataObj.append('lastName', formData.lastName);
+  formDataObj.append('email', formData.email);
+  formDataObj.append('phone', formData.phone);
+  formDataObj.append('address', formData.address);
+  formDataObj.append('position', formData.position);
+  formDataObj.append('experience', formData.experience);
+  formDataObj.append('motivation', formData.motivation);
+  
+  if (formData.cv) formDataObj.append('cv', formData.cv);
+  if (formData.coverLetter) formDataObj.append('coverLetter', formData.coverLetter);
+
+  try {
+    const response = await fetch('http://localhost:3000/postulation', {
+      method: 'POST',
+      body: formDataObj,
+    });
+    
+    const result = await response.json();
+    alert(result.message);
+
+    // 🔄 Reload page after success
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert('Error submitting application');
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-ivory-white">
@@ -63,11 +89,10 @@ const Postulation = () => {
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal mb-6">
-              Rejoignez Notre Équipe
+              Join Our Team
             </h1>
             <p className="font-lora text-lg text-charcoal/80 max-w-3xl mx-auto">
-              Chez Orchid Island, nous recherchons des talents passionnés pour nous aider à 
-              redéfinir l'excellence dans l'immobilier de luxe au Maroc.
+              At Orchid Island, we're seeking passionate talent to help us redefine excellence in luxury real estate in Morocco.
             </p>
           </div>
 
@@ -75,9 +100,9 @@ const Postulation = () => {
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-xl border-0">
               <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-                <CardTitle className="font-playfair text-2xl">Formulaire de Candidature</CardTitle>
+                <CardTitle className="font-playfair text-2xl">Application Form</CardTitle>
                 <CardDescription className="text-white/90 font-lora">
-                  Remplissez ce formulaire pour postuler à un poste chez Orchid Island
+                  Fill out this form to apply for a position at Orchid Island
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
@@ -87,7 +112,7 @@ const Postulation = () => {
                     <div className="space-y-2">
                       <Label htmlFor="firstName" className="font-lora flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        Prénom *
+                        First Name *
                       </Label>
                       <Input
                         id="firstName"
@@ -96,13 +121,13 @@ const Postulation = () => {
                         onChange={handleInputChange}
                         required
                         className="font-lora"
-                        placeholder="Votre prénom"
+                        placeholder="Your first name"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName" className="font-lora flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        Nom *
+                        Last Name *
                       </Label>
                       <Input
                         id="lastName"
@@ -111,7 +136,7 @@ const Postulation = () => {
                         onChange={handleInputChange}
                         required
                         className="font-lora"
-                        placeholder="Votre nom"
+                        placeholder="Your last name"
                       />
                     </div>
                   </div>
@@ -130,13 +155,13 @@ const Postulation = () => {
                         onChange={handleInputChange}
                         required
                         className="font-lora"
-                        placeholder="votre.email@exemple.com"
+                        placeholder="your.email@example.com"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="font-lora flex items-center gap-2">
                         <Phone className="w-4 h-4" />
-                        Téléphone *
+                        Phone *
                       </Label>
                       <Input
                         id="phone"
@@ -154,7 +179,7 @@ const Postulation = () => {
                   <div className="space-y-2">
                     <Label htmlFor="address" className="font-lora flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      Adresse
+                      Address
                     </Label>
                     <Input
                       id="address"
@@ -162,24 +187,24 @@ const Postulation = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                       className="font-lora"
-                      placeholder="Votre adresse complète"
+                      placeholder="Your full address"
                     />
                   </div>
 
                   {/* Position */}
                   <div className="space-y-2">
-                    <Label className="font-lora">Poste souhaité *</Label>
+                    <Label className="font-lora">Desired Position *</Label>
                     <Select onValueChange={handleSelectChange} required>
                       <SelectTrigger className="font-lora">
-                        <SelectValue placeholder="Sélectionnez un poste" />
+                        <SelectValue placeholder="Select a position" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="agent-immobilier">Agent Immobilier</SelectItem>
-                        <SelectItem value="conseiller-commercial">Conseiller Commercial</SelectItem>
-                        <SelectItem value="gestionnaire-patrimoine">Gestionnaire de Patrimoine</SelectItem>
-                        <SelectItem value="marketing">Marketing & Communication</SelectItem>
-                        <SelectItem value="administratif">Administratif</SelectItem>
-                        <SelectItem value="autre">Autre</SelectItem>
+                        <SelectItem value="agent-immobilier">Real Estate Agent</SelectItem>
+                        <SelectItem value="conseiller-commercial">Sales Advisor</SelectItem>
+                        <SelectItem value="gestionnaire-patrimoine">Wealth Manager</SelectItem>
+                        <SelectItem value="marketing">Marketing & Communications</SelectItem>
+                        <SelectItem value="administratif">Administrative</SelectItem>
+                        <SelectItem value="autre">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -187,7 +212,7 @@ const Postulation = () => {
                   {/* Experience */}
                   <div className="space-y-2">
                     <Label htmlFor="experience" className="font-lora">
-                      Expérience professionnelle *
+                      Professional Experience *
                     </Label>
                     <Textarea
                       id="experience"
@@ -196,14 +221,14 @@ const Postulation = () => {
                       onChange={handleInputChange}
                       required
                       className="font-lora min-h-[120px]"
-                      placeholder="Décrivez votre expérience professionnelle pertinente..."
+                      placeholder="Describe your relevant professional experience..."
                     />
                   </div>
 
                   {/* Motivation */}
                   <div className="space-y-2">
                     <Label htmlFor="motivation" className="font-lora">
-                      Lettre de motivation *
+                      Motivation Letter *
                     </Label>
                     <Textarea
                       id="motivation"
@@ -212,7 +237,7 @@ const Postulation = () => {
                       onChange={handleInputChange}
                       required
                       className="font-lora min-h-[150px]"
-                      placeholder="Expliquez pourquoi vous souhaitez rejoindre Orchid Island..."
+                      placeholder="Explain why you want to join Orchid Island..."
                     />
                   </div>
 
@@ -242,7 +267,7 @@ const Postulation = () => {
                     <div className="space-y-2">
                       <Label className="font-lora flex items-center gap-2">
                         <FileText className="w-4 h-4" />
-                        Lettre de motivation (PDF)
+                        Cover Letter (PDF)
                       </Label>
                       <div className="relative">
                         <Input
@@ -269,7 +294,7 @@ const Postulation = () => {
                       size="lg"
                       className="w-full font-lora text-lg"
                     >
-                      Soumettre ma candidature
+                      Submit Application
                     </Button>
                   </div>
                 </form>
@@ -282,20 +307,20 @@ const Postulation = () => {
             <Card className="max-w-2xl mx-auto">
               <CardContent className="p-8">
                 <h3 className="font-playfair text-2xl font-bold text-charcoal mb-4">
-                  Pourquoi Orchid Island ?
+                  Why Orchid Island?
                 </h3>
                 <div className="space-y-4 font-lora text-charcoal/80">
                   <p>
-                    • Environnement de travail stimulant dans le secteur de l'immobilier de luxe
+                    • Stimulating work environment in the luxury real estate sector
                   </p>
                   <p>
-                    • Opportunités de développement professionnel et de formation continue
+                    • Professional development and continuous training opportunities
                   </p>
                   <p>
-                    • Équipe dynamique et collaborative
+                    • Dynamic and collaborative team
                   </p>
                   <p>
-                    • Rémunération attractive et avantages sociaux
+                    • Attractive compensation and social benefits
                   </p>
                 </div>
               </CardContent>

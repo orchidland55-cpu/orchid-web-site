@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import orchid from "@/assets/orchid1.jpg";
 import {
   Users,
   Award,
@@ -17,61 +18,62 @@ import {
   Phone,
   Mail
 } from "lucide-react";
+import associationHero from "@/assets/association.jpg";
 
 const AboutUs = () => {
   const stats = [
-    { number: "15+", label: "Années d'expérience", icon: Clock },
-    { number: "1,200+", label: "Propriétés vendues", icon: Building },
-    { number: "98%", label: "Clients satisfaits", icon: Star },
-    { number: "85+", label: "Partenaires de confiance", icon: Users },
+    { number: "15+", label: "Years of experience", icon: Clock },
+    { number: "1,200+", label: "Properties sold", icon: Building },
+    { number: "98%", label: "Satisfied clients", icon: Star },
+    { number: "85+", label: "Trusted partners", icon: Users },
   ];
 
   const services = [
     {
-      title: "Vente de Propriétés de Luxe",
-      description: "Accompagnement complet dans la vente de villas, penthouses et propriétés d'exception",
-      features: ["Évaluation professionnelle", "Marketing haut de gamme", "Négociation experte"]
+      title: "Luxury Property Sales",
+      description: "Complete support in selling villas, penthouses and exceptional properties",
+      features: ["Professional valuation", "High-end marketing", "Expert negotiation"]
     },
     {
-      title: "Achat et Investissement",
-      description: "Conseil personnalisé pour l'acquisition de biens immobiliers de prestige",
-      features: ["Recherche ciblée", "Analyse de marché", "Due diligence complète"]
+      title: "Purchase and Investment",
+      description: "Personalized advice for acquiring prestige real estate",
+      features: ["Targeted search", "Market analysis", "Complete due diligence"]
     },
     {
-      title: "Gestion Locative Premium",
-      description: "Service de gestion locative pour propriétaires de biens haut de gamme",
-      features: ["Sélection de locataires", "Maintenance premium", "Reporting détaillé"]
+      title: "Premium Rental Management",
+      description: "Rental management service for high-end property owners",
+      features: ["Tenant selection", "Premium maintenance", "Detailed reporting"]
     },
     {
-      title: "Conseil en Investissement",
-      description: "Expertise en investissement immobilier et optimisation de portefeuille",
-      features: ["Stratégie d'investissement", "Analyse ROI", "Diversification de portefeuille"]
+      title: "Investment Consulting",
+      description: "Real estate investment expertise and portfolio optimization",
+      features: ["Investment strategy", "ROI analysis", "Portfolio diversification"]
     }
   ];
 
   const locations = [
     {
       city: "Casablanca",
-      description: "Centre économique du Maroc",
-      properties: "350+ propriétés",
+      description: "Economic center of Morocco",
+      properties: "350+ properties",
       specialties: ["Marina", "Anfa", "Racine"]
     },
     {
       city: "Rabat",
-      description: "Capitale administrative",
-      properties: "280+ propriétés",
+      description: "Administrative capital",
+      properties: "280+ properties",
       specialties: ["Souissi", "Hay Riad", "Agdal"]
     },
     {
       city: "Marrakech",
-      description: "Perle du Sud",
-      properties: "420+ propriétés",
+      description: "Pearl of the South",
+      properties: "420+ properties",
       specialties: ["Palmeraie", "Hivernage", "Gueliz"]
     },
     {
-      city: "Tanger",
-      description: "Porte de l'Europe",
-      properties: "150+ propriétés",
+      city: "Tangier",
+      description: "Gateway to Europe",
+      properties: "150+ properties",
       specialties: ["Marina Bay", "Malabata", "California"]
     }
   ];
@@ -79,74 +81,74 @@ const AboutUs = () => {
   const values = [
     {
       icon: Shield,
-      title: "Confiance",
-      description: "Nous bâtissons des relations durables basées sur la transparence et l'intégrité."
+      title: "Trust",
+      description: "We build lasting relationships based on transparency and integrity."
     },
     {
       icon: Award,
       title: "Excellence",
-      description: "Nous visons l'excellence dans chaque transaction et service que nous offrons."
+      description: "We strive for excellence in every transaction and service we offer."
     },
     {
       icon: Heart,
       title: "Passion",
-      description: "Notre passion pour l'immobilier nous pousse à dépasser vos attentes."
+      description: "Our passion for real estate drives us to exceed your expectations."
     },
     {
       icon: TrendingUp,
       title: "Innovation",
-      description: "Nous utilisons les dernières technologies pour optimiser votre expérience."
+      description: "We use the latest technologies to optimize your experience."
     }
   ];
 
   const team = [
     {
       name: "Ahmed Benali",
-      role: "Directeur Général & Fondateur",
-      experience: "20 ans d'expérience",
-      speciality: "Immobilier de luxe",
-      description: "Diplômé de l'École Supérieure de Commerce de Casablanca, Ahmed a fondé Orchid Island avec la vision de révolutionner le marché de l'immobilier de prestige au Maroc.",
-      achievements: ["500+ transactions réalisées", "Expert en négociation complexe", "Réseau international"]
+      role: "CEO & Founder",
+      experience: "20 years of experience",
+      speciality: "Luxury real estate",
+      description: "Graduate of Casablanca Business School, Ahmed founded Orchid Island with the vision of revolutionizing the prestige real estate market in Morocco.",
+      achievements: ["500+ completed transactions", "Complex negotiation expert", "International network"]
     },
     {
       name: "Fatima Alaoui",
-      role: "Directrice Commerciale",
-      experience: "15 ans d'expérience",
-      speciality: "Négociation & Ventes",
-      description: "Experte en relations clients et stratégies commerciales, Fatima supervise toutes les activités de vente et assure la satisfaction client.",
-      achievements: ["Taux de satisfaction 98%", "Formation en négociation avancée", "Spécialiste clientèle internationale"]
+      role: "Sales Director",
+      experience: "15 years of experience",
+      speciality: "Negotiation & Sales",
+      description: "Expert in client relations and commercial strategies, Fatima oversees all sales activities and ensures client satisfaction.",
+      achievements: ["98% satisfaction rate", "Advanced negotiation training", "International clientele specialist"]
     },
     {
       name: "Youssef Tazi",
-      role: "Expert Immobilier Senior",
-      experience: "12 ans d'expérience",
-      speciality: "Évaluation & Conseil",
-      description: "Architecte de formation, Youssef apporte son expertise technique dans l'évaluation et l'analyse des propriétés de prestige.",
-      achievements: ["Certifié évaluateur immobilier", "Expert en architecture de luxe", "Conseil en investissement"]
+      role: "Senior Real Estate Expert",
+      experience: "12 years of experience",
+      speciality: "Valuation & Consulting",
+      description: "Architect by training, Youssef brings his technical expertise to the evaluation and analysis of prestige properties.",
+      achievements: ["Certified real estate appraiser", "Luxury architecture expert", "Investment consulting"]
     },
     {
       name: "Laila Benjelloun",
-      role: "Responsable Marketing Digital",
-      experience: "8 ans d'expérience",
+      role: "Digital Marketing Manager",
+      experience: "8 years of experience",
       speciality: "Marketing & Communication",
-      description: "Spécialisée en marketing digital et communication, Laila développe les stratégies de visibilité pour nos propriétés exclusives.",
-      achievements: ["Campagnes digitales innovantes", "Photographie immobilière", "Réseaux sociaux premium"]
+      description: "Specialized in digital marketing and communication, Laila develops visibility strategies for our exclusive properties.",
+      achievements: ["Innovative digital campaigns", "Real estate photography", "Premium social media"]
     },
     {
       name: "Omar Fassi",
-      role: "Conseiller Juridique",
-      experience: "18 ans d'expérience",
-      speciality: "Droit Immobilier",
-      description: "Avocat spécialisé en droit immobilier, Omar sécurise toutes nos transactions et accompagne nos clients dans les aspects juridiques.",
-      achievements: ["Expert en droit des biens", "Transactions internationales", "Conseil fiscal immobilier"]
+      role: "Legal Advisor",
+      experience: "18 years of experience",
+      speciality: "Real Estate Law",
+      description: "Lawyer specialized in real estate law, Omar secures all our transactions and assists our clients with legal aspects.",
+      achievements: ["Property law expert", "International transactions", "Real estate tax consulting"]
     },
     {
       name: "Nadia Chraibi",
-      role: "Gestionnaire de Patrimoine",
-      experience: "10 ans d'expérience",
-      speciality: "Gestion & Investissement",
-      description: "Spécialiste en gestion de patrimoine immobilier, Nadia conseille nos clients sur l'optimisation de leurs investissements.",
-      achievements: ["Gestion de portefeuilles premium", "Stratégies d'investissement", "Optimisation fiscale"]
+      role: "Wealth Manager",
+      experience: "10 years of experience",
+      speciality: "Management & Investment",
+      description: "Real estate wealth management specialist, Nadia advises our clients on optimizing their investments.",
+      achievements: ["Premium portfolio management", "Investment strategies", "Tax optimization"]
     }
   ];
 
@@ -157,15 +159,15 @@ const AboutUs = () => {
         <div className="text-center mb-20">
           <div className="inline-flex items-center space-x-2 bg-cream/50 rounded-full px-6 py-2 mb-6">
             <div className="w-2 h-2 luxury-gradient rounded-full"></div>
-            <span className="text-deep-blue font-lora text-sm font-bold">À Propos de Nous</span>
+            <span className="text-deep-blue font-lora text-sm font-bold">About Us</span>
           </div>
           <h1 className="font-playfair text-4xl md:text-6xl font-bold text-foreground mb-6">
             Orchid <span className="luxury-gradient bg-clip-text text-transparent">Island</span>
           </h1>
           <p className="font-lora text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Votre partenaire de confiance dans l'immobilier de prestige au Maroc. 
-            Depuis plus de 15 ans, nous accompagnons nos clients dans leurs projets 
-            immobiliers les plus ambitieux.
+            Your trusted partner in prestige real estate in Morocco.
+            For over 15 years, we have been supporting our clients in their
+            most ambitious real estate projects.
           </p>
         </div>
 
@@ -190,48 +192,54 @@ const AboutUs = () => {
 
         {/* Our Story */}
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
-          <div>
-            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Notre <span className="luxury-gradient bg-clip-text text-transparent">Histoire</span>
-            </h2>
-            <p className="font-lora text-lg text-muted-foreground mb-6">
-              Fondée en 2008, Orchid Island est née de la vision de créer une agence immobilière 
-              différente, centrée sur l'excellence du service et la satisfaction client. 
-              Nous nous spécialisons dans l'immobilier haut de gamme à travers le Maroc.
-            </p>
-            <p className="font-lora text-lg text-muted-foreground mb-8">
-              Notre équipe d'experts passionnés vous accompagne dans chaque étape de votre 
-              projet immobilier, que ce soit pour l'achat, la vente ou l'investissement 
-              dans des propriétés d'exception.
-            </p>
-            <div className="space-y-3">
-              {[
-                "Expertise reconnue dans l'immobilier de luxe",
-                "Réseau étendu de partenaires de confiance",
-                "Service personnalisé et accompagnement complet",
-                "Connaissance approfondie du marché marocain"
-              ].map((item, index) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="font-lora text-muted-foreground">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="relative">
-            <div className="w-full h-96 bg-gradient-to-br from-cream to-light-gray rounded-lg shadow-elegant"></div>
-            <div className="absolute inset-0 bg-luxury-gold/10 rounded-lg"></div>
-          </div>
+  <div>
+    <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-6">
+      Our <span className="luxury-gradient bg-clip-text text-transparent">Story</span>
+    </h2>
+    <p className="font-lora text-lg text-muted-foreground mb-6">
+      Founded in 2008, Orchid Island was born from the vision of creating a different
+      real estate agency, focused on service excellence and client satisfaction.
+      We specialize in high-end real estate throughout Morocco.
+    </p>
+    <p className="font-lora text-lg text-muted-foreground mb-8">
+      Our team of passionate experts accompanies you through every step of your
+      real estate project, whether for purchasing, selling, or investing
+      in exceptional properties.
+    </p>
+    <div className="space-y-3">
+      {[
+        "Recognized expertise in luxury real estate",
+        "Extensive network of trusted partners",
+        "Personalized service and complete support",
+        "In-depth knowledge of the Moroccan market"
+      ].map((item, index) => (
+        <div key={index} className="flex items-center space-x-3">
+          <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+          <span className="font-lora text-muted-foreground">{item}</span>
         </div>
+      ))}
+    </div>
+  </div>
+  <div className="relative">
+    <div className="w-full h-96 bg-gradient-to-br from-cream to-light-gray rounded-lg shadow-elegant overflow-hidden">
+      <img 
+        src={orchid} 
+        alt="Orchid Island Real Estate" 
+        className="w-full h-full object-cover rounded-lg"
+      />
+    </div>
+    <div className="absolute inset-0 bg-luxury-gold/10 rounded-lg"></div>
+  </div>
+</div>
 
         {/* Our Values */}
         <div className="mb-20">
           <div className="text-center mb-12">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Nos <span className="luxury-gradient bg-clip-text text-transparent">Valeurs</span>
+              Our <span className="luxury-gradient bg-clip-text text-transparent">Values</span>
             </h2>
             <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-              Les principes qui guident notre action quotidienne et notre engagement envers nos clients.
+              The principles that guide our daily action and our commitment to our clients.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -257,10 +265,10 @@ const AboutUs = () => {
         <div className="mb-20">
           <div className="text-center mb-12">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Notre <span className="luxury-gradient bg-clip-text text-transparent">Équipe</span>
+              Our <span className="luxury-gradient bg-clip-text text-transparent">Team</span>
             </h2>
             <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-              Des professionnels expérimentés et passionnés, dédiés à votre réussite immobilière.
+              Experienced and passionate professionals, dedicated to your real estate success.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -296,13 +304,13 @@ const AboutUs = () => {
                 <TrendingUp className="w-8 h-8 text-primary-foreground" />
               </div>
               <h3 className="font-playfair text-2xl font-bold text-foreground mb-4">
-                Notre Mission
+                Our Mission
               </h3>
               <p className="font-lora text-muted-foreground">
-                Accompagner nos clients dans la réalisation de leurs projets immobiliers
-                en offrant un service d'excellence, des conseils avisés et un accompagnement
-                personnalisé. Nous nous engageons à créer de la valeur durable pour nos clients
-                et partenaires.
+                To support our clients in realizing their real estate projects
+                by offering excellent service, sound advice and personalized support.
+                We are committed to creating lasting value for our clients
+                and partners.
               </p>
             </CardContent>
           </Card>
@@ -313,12 +321,12 @@ const AboutUs = () => {
                 <Star className="w-8 h-8 text-ivory-white" />
               </div>
               <h3 className="font-playfair text-2xl font-bold text-foreground mb-4">
-                Notre Vision
+                Our Vision
               </h3>
               <p className="font-lora text-muted-foreground">
-                Devenir la référence incontournable de l'immobilier de prestige au Maroc,
-                reconnue pour notre expertise, notre intégrité et notre capacité d'innovation.
-                Nous aspirons à transformer l'expérience immobilière de nos clients.
+                To become the undisputed reference in prestige real estate in Morocco,
+                recognized for our expertise, integrity and capacity for innovation.
+                We aspire to transform our clients' real estate experience.
               </p>
             </CardContent>
           </Card>
@@ -328,11 +336,11 @@ const AboutUs = () => {
         <div className="mb-20">
           <div className="text-center mb-12">
             <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Notre Présence à <span className="luxury-gradient bg-clip-text text-transparent">Marrakech</span>
+              Our Presence in <span className="luxury-gradient bg-clip-text text-transparent">Marrakech</span>
             </h2>
             <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-              Découvrez nos zones d'expertise dans la perle du Sud et nos propriétés exclusives
-              dans les quartiers les plus prestigieux de Marrakech.
+              Discover our areas of expertise in the Pearl of the South and our exclusive properties
+              in Marrakech's most prestigious neighborhoods.
             </p>
           </div>
 
@@ -347,10 +355,10 @@ const AboutUs = () => {
                       <div className="text-center">
                         <Map className="w-16 h-16 text-primary mx-auto mb-4" />
                         <h3 className="font-playfair text-xl font-semibold text-foreground mb-2">
-                          Carte Interactive Marrakech
+                          Interactive Marrakech Map
                         </h3>
                         <p className="font-lora text-muted-foreground text-sm">
-                          Zones de prestige et propriétés exclusives
+                          Prestige zones and exclusive properties
                         </p>
                       </div>
                     </div>
@@ -385,12 +393,12 @@ const AboutUs = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-playfair text-2xl font-bold text-foreground mb-4">
-                  Marrakech - Perle du Sud
+                  Marrakech - Pearl of the South
                 </h3>
                 <p className="font-lora text-muted-foreground mb-6">
-                  Marrakech représente l'un de nos marchés les plus dynamiques avec plus de 420 propriétés
-                  de prestige dans notre portefeuille. Notre expertise locale nous permet d'offrir
-                  les meilleures opportunités d'investissement.
+                  Marrakech represents one of our most dynamic markets with over 420 prestige
+                  properties in our portfolio. Our local expertise allows us to offer
+                  the best investment opportunities.
                 </p>
               </div>
 
@@ -401,7 +409,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Palmeraie</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Villas de luxe avec piscines privées et jardins paysagers. Prix moyen: 8-25M DH
+                      Luxury villas with private pools and landscaped gardens. Average price: 8-25M DH
                     </p>
                   </div>
                 </div>
@@ -411,7 +419,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Hivernage</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Quartier moderne avec appartements haut de gamme et riads rénovés. Prix moyen: 3-12M DH
+                      Modern district with high-end apartments and renovated riads. Average price: 3-12M DH
                     </p>
                   </div>
                 </div>
@@ -421,7 +429,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Gueliz</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Centre-ville moderne avec penthouses et bureaux premium. Prix moyen: 2-8M DH
+                      Modern city center with penthouses and premium offices. Average price: 2-8M DH
                     </p>
                   </div>
                 </div>
@@ -431,7 +439,7 @@ const AboutUs = () => {
               <Card className="p-6 bg-deep-blue text-ivory-white">
                 <CardContent className="p-0">
                   <h4 className="font-playfair text-lg font-semibold mb-4">
-                    Bureau Marrakech
+                    Marrakech Office
                   </h4>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
@@ -454,23 +462,62 @@ const AboutUs = () => {
             </div>
           </div>
         </div>
+        {/* Association Section */}
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
+               Our Commitment to <span className="luxury-gradient bg-clip-text text-transparent">Community</span>
+            </h2>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative">
+              <img
+                src={associationHero}
+                alt="Community association"
+                className="w-full h-80 object-cover rounded-lg shadow-luxury"
+              />
+              <div className="absolute inset-0 luxury-gradient opacity-20 rounded-lg"></div>
+            </div>
+
+            <div>
+              <h3 className="font-playfair text-2xl font-bold text-foreground mb-6">
+                Supporting Local Communities
+              </h3>
+              <p className="font-lora text-lg text-muted-foreground mb-6">
+                At Orchid Island, we firmly believe in sustainable development and supporting
+                local communities. Our commitment goes beyond real estate to create
+                a positive impact in Moroccan society.
+              </p>
+              <p className="font-lora text-muted-foreground mb-8">
+                Discover how we collaborate with local associations to improve
+                community life and contribute to Morocco's social development.
+              </p>
+              <Link to="/Scr">
+                <Button variant="elegant" size="lg" className="font-lora text-lg px-8 py-3 h-auto font-semibold">
+                  Discover Our Commitment
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
 
         {/* Contact CTA */}
         <div className="text-center bg-gradient-to-r from-cream/30 to-light-gray/30 rounded-2xl p-12">
           <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Prêt à Commencer Votre <span className="luxury-gradient bg-clip-text text-transparent">Projet</span> ?
+            Ready to Start Your <span className="luxury-gradient bg-clip-text text-transparent">Project</span> ?
           </h2>
           <p className="font-lora text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Contactez notre équipe d'experts pour une consultation personnalisée
-            et découvrez comment nous pouvons vous aider à concrétiser vos ambitions immobilières.
+            Contact our team of experts for a personalized consultation
+            and discover how we can help you realize your real estate ambitions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
            <Link to="/contact" className=" bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
-                                    <button className="font-lora text-lg px-10  h-auto font-bold text-center">Nous Contacter</button> 
-                                   </Link>
-                                    <Link to="/properties">
+                                     <button className="font-lora text-lg px-8  py-3 h-auto  h- font-bold text-center">Contact Us</button>
+                                    </Link>
+                                     <Link to="/properties">
             <Button variant="elegant" size="lg" className="font-lora text-lg px-10 py-6 h-auto font-bold">
-              Voir Nos Propriétés
+              View Our Properties
             </Button></Link>
           </div>
         </div>

@@ -1,0 +1,72 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "aide": 0,
+        "ask_about_services": 1,
+        "ask_pricing": 2,
+        "back": 3,
+        "contact_agent": 4,
+        "demander_articles": 5,
+        "demander_bien": 6,
+        "demander_postulation": 7,
+        "demander_prix": 8,
+        "goodbye": 9,
+        "nlu_fallback": 10,
+        "out_of_scope": 11,
+        "request_weather": 12,
+        "restart": 13,
+        "saluer": 14,
+        "schedule_visit": 15,
+        "session_start": 16,
+        "thank_you": 17,
+        "want_to_invest": 18,
+        "want_to_sell": 19
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "action_lister_biens": 13,
+        "action_donner_prix": 14,
+        "action_lister_articles": 15,
+        "action_aide_generale": 16,
+        "utter_aide": 17,
+        "utter_ask_about_services": 18,
+        "utter_ask_pricing": 19,
+        "utter_contact_agent": 20,
+        "utter_demander_articles": 21,
+        "utter_demander_postulation": 22,
+        "utter_goodbye": 23,
+        "utter_saluer": 24,
+        "utter_schedule_visit": 25,
+        "utter_thank_you": 26,
+        "utter_want_to_invest": 27,
+        "utter_want_to_sell": 28
+      },
+      "entities": {
+        "categorie": 0,
+        "location": 1,
+        "type": 2,
+        "ville": 3
+      },
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 7
+}

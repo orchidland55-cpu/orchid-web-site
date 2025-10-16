@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import imagetest from "@/assets/image test.jpeg";
+import imagetest from "@/assets/hero-villa.jpg";
 import {
   Award,
   Users,

@@ -34,6 +34,7 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
     timeSlot: "",
     message: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const timeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -56,7 +57,7 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const meetingData = {
@@ -65,22 +66,42 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
       timestamp: new Date().toISOString()
     };
 
-    console.log("Meeting scheduled:", meetingData);
-    
-    // Here you would typically send the data to your backend
-    alert(`Rendez-vous programmé pour le ${selectedDate?.toLocaleDateString('fr-FR')} à ${formData.timeSlot}. Nous vous confirmerons par email.`);
-    
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      meetingType: "",
-      timeSlot: "",
-      message: ""
-    });
-    setSelectedDate(new Date());
-    onClose();
+    console.log("📤 Envoi au backend:", meetingData);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/schedule-visit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(meetingData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("✅ Demande de visite envoyée ! Nous vous confirmerons par email sous 24h.");
+      } else {
+        alert(`❌ Erreur: ${result.error || "Veuillez réessayer"}`);
+      }
+    } catch (error) {
+      console.error('❌ Erreur réseau:', error);
+      alert("❌ Erreur de connexion. Vérifiez que le serveur backend est démarré.");
+    } finally {
+      setIsSubmitting(false);
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        meetingType: "",
+        timeSlot: "",
+        message: ""
+      });
+      setSelectedDate(new Date());
+      onClose();
+    }
   };
 
   return (
@@ -202,14 +223,17 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
                   </Select>
                 </div>
 
+                {/* ✅ CHAMP MESSAGE RENDU OBLIGATOIRE */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Message (optionnel)</label>
+                  <label className="block text-sm font-medium mb-2 text-destructive">Message *</label>
                   <Textarea
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
-                    placeholder="Décrivez brièvement vos besoins ou questions..."
+                    placeholder="Décrivez brièvement vos besoins ou questions... (obligatoire)"
                     rows={3}
+                    required
+                    className="border border-input focus:border-destructive"
                   />
                 </div>
               </div>
@@ -217,7 +241,7 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
           </div>
 
           {/* Summary */}
-          {selectedDate && formData.timeSlot && formData.name && (
+          {selectedDate && formData.timeSlot && formData.name && formData.message && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
               <h4 className="font-semibold text-primary mb-2">Résumé de votre rendez-vous</h4>
               <div className="text-sm space-y-1">
@@ -236,10 +260,28 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
             <Button 
               type="submit" 
               variant="luxury"
-              disabled={!selectedDate || !formData.timeSlot || !formData.name || !formData.email || !formData.phone || !formData.meetingType}
+              disabled={
+                isSubmitting || 
+                !selectedDate || 
+                !formData.timeSlot || 
+                !formData.name || 
+                !formData.email || 
+                !formData.phone || 
+                !formData.meetingType ||
+                !formData.message  // ✅ Validation du champ message
+              }
             >
-              <CalendarIcon className="w-4 h-4 mr-2" />
-              Confirmer le rendez-vous
+              {isSubmitting ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Envoi en cours...
+                </>
+              ) : (
+                <>
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  Confirmer le rendez-vous
+                </>
+              )}
             </Button>
           </div>
         </form>

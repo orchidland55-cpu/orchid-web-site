@@ -1,0 +1,53 @@
+version: "3.1"
+
+rules:
+
+- rule: répondre aux salutations
+  steps:
+  - intent: saluer
+  - action: utter_saluer
+
+- rule: lister les biens
+  steps:
+  - intent: demander_bien
+  - action: action_lister_biens
+
+- rule: donner le prix d'un bien
+  steps:
+  - intent: demander_prix
+  - action: action_donner_prix
+
+- rule: dire au revoir
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: lister les articles
+  steps:
+  - intent: demander_articles
+  - action: action_lister_articles
+
+- rule: donner de l'aide
+  steps:
+  - intent: aide
+  - action: action_aide_generale
+
+- rule: répondre à la demande de postulation
+  steps:
+  - intent: demander_postulation
+  - action: utter_demander_postulation
+
+- rule: guider vers contact
+  steps:
+  - intent: demander_contact
+  - action: utter_guider_contact
+
+- rule: guider vers investir
+  steps:
+  - intent: demander_investir
+  - action: utter_guider_investir
+
+- rule: planifier visite
+  steps:
+  - intent: planifier_visite
+  - action: utter_planifier_visite

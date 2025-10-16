@@ -6,7 +6,7 @@ import About from "../pages/About";
 import PropertiesPage from "../pages/Properties";
 import PropertyDetail from "../pages/PropertyDetail";
 import Invest from "../pages/Invest";
-import Blog from "../pages/blog";
+import Blog from "../pages/Blog";
 import ArticleDetail from "../pages/ArticleDetail";
 import Contact from "../pages/Contact";
 import AdminLogin from "../pages/AdminLogin";

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // ✅ Added useRef
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/textarea"; // Keep for other fields
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { apiService, PropertyFormData } from "@/services/api";
 import {
   Building,
   Save,
@@ -17,14 +18,217 @@ import {
   Bath,
   Square,
   Star,
-  Camera
+  Camera,
+  // ✅ Toolbar icons
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  List,
+  ListOrdered,
+  Link2,
+  ImageIcon, // Renamed to avoid conflict
+  Quote,
+  Palette,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+
+// ✅ RichTextEditor component integrated directly here — no separate file
+const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
+  const editorRef = useRef(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+
+  useEffect(() => {
+    if (editorRef.current && !isEditorReady) {
+      editorRef.current.innerHTML = value || '';
+      setIsEditorReady(true);
+    }
+  }, [value, isEditorReady]);
+
+  const executeCommand = (command, value = null) => {
+    document.execCommand(command, false, value);
+    handleContentChange();
+  };
+
+  const handleContentChange = () => {
+    if (editorRef.current && onChange) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter link URL:');
+    if (url) {
+      executeCommand('createLink', url);
+    }
+  };
+
+  const insertImage = () => {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      executeCommand('insertImage', url);
+    }
+  };
+
+  const changeFontSize = (size) => {
+    executeCommand('fontSize', size);
+  };
+
+  const changeTextColor = () => {
+    const color = prompt('Enter color (e.g., #ff0000 or red):');
+    if (color) {
+      executeCommand('foreColor', color);
+    }
+  };
+
+  const toolbarButtons = [
+    { icon: Bold, command: 'bold', title: 'Bold' },
+    { icon: Italic, command: 'italic', title: 'Italic' },
+    { icon: Underline, command: 'underline', title: 'Underline' },
+    { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
+    { icon: AlignCenter, command: 'justifyCenter', title: 'Center' },
+    { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
+    { icon: List, command: 'insertUnorderedList', title: 'Bullet List' },
+    { icon: ListOrdered, command: 'insertOrderedList', title: 'Numbered List' },
+    { icon: Quote, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
+  ];
+
+  return (
+    <div className="border border-border rounded-lg overflow-hidden bg-card">
+      {/* Toolbar */}
+      <div className="border-b border-border p-2 bg-muted/30">
+        <div className="flex flex-wrap items-center gap-1">
+          {/* Font Size */}
+          <select
+            onChange={(e) => changeFontSize(e.target.value)}
+            className="px-2 py-1 text-xs border border-border rounded bg-background"
+            title="Font Size"
+          >
+            <option value="">Size</option>
+            <option value="1">Very Small</option>
+            <option value="2">Small</option>
+            <option value="3">Normal</option>
+            <option value="4">Large</option>
+            <option value="5">Very Large</option>
+            <option value="6">Huge</option>
+          </select>
+          {/* Heading Style */}
+          <select
+            onChange={(e) => executeCommand('formatBlock', e.target.value)}
+            className="px-2 py-1 text-xs border border-border rounded bg-background ml-1"
+            title="Style"
+          >
+            <option value="">Style</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="h4">Heading 4</option>
+            <option value="p">Paragraph</option>
+          </select>
+          <div className="w-px h-6 bg-border mx-1"></div>
+          {/* Formatting Buttons */}
+          {toolbarButtons.map((button, index) => (
+            <Button
+              key={index}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => executeCommand(button.command, button.value)}
+              className="p-1 h-8 w-8"
+              title={button.title}
+            >
+              <button.icon className="w-4 h-4" />
+            </Button>
+          ))}
+          <div className="w-px h-6 bg-border mx-1"></div>
+          {/* Special Buttons */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={changeTextColor}
+            className="p-1 h-8 w-8"
+            title="Text Color"
+          >
+            <Palette className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={insertLink}
+            className="p-1 h-8 w-8"
+            title="Insert Link"
+          >
+            <Link2 className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={insertImage}
+            className="p-1 h-8 w-8"
+            title="Insert Image"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      {/* Editing Area */}
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleContentChange}
+        onBlur={handleContentChange}
+        className="min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none rich-text-content"
+        style={{
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word'
+        }}
+        data-placeholder={placeholder}
+      />
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          [contentEditable]:empty:before {
+            content: attr(data-placeholder);
+            color: hsl(var(--muted-foreground));
+            font-style: italic;
+          }
+          [contentEditable]:focus:before {
+            content: none;
+          }
+          /* Editor element styles */
+          .rich-text-content h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h4 { font-size: 1.1em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content p { margin: 0.5em 0; line-height: 1.6; }
+          .rich-text-content ul, .rich-text-content ol { margin: 0.5em 0; padding-left: 2em; }
+          .rich-text-content li { margin: 0.25em 0; }
+          .rich-text-content blockquote { 
+            border-left: 4px solid hsl(var(--border)); 
+            padding-left: 1em; 
+            margin: 1em 0; 
+            font-style: italic; 
+            color: hsl(var(--muted-foreground)); 
+          }
+          .rich-text-content a { color: hsl(var(--primary)); text-decoration: underline; }
+          .rich-text-content img { max-width: 100%; height: auto; margin: 1em 0; }
+          .rich-text-content strong { font-weight: bold; }
+          .rich-text-content em { font-style: italic; }
+          .rich-text-content u { text-decoration: underline; }
+        `
+      }} />
+    </div>
+  );
+};
 
 const AdminAddProperty = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PropertyFormData>({
     title: "",
     description: "",
     price: "",
@@ -37,14 +241,15 @@ const AdminAddProperty = () => {
     status: "available",
     featured: false,
     mainImage: "",
-    additionalImages: "",
+    additionalImages: [], // array
     amenities: "",
     yearBuilt: "",
     parking: "",
     garden: false,
     pool: false,
     security: false,
-    furnished: false
+    furnished: false,
+    person: ""
   });
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState<File[]>([]);
@@ -78,7 +283,6 @@ const AdminAddProperty = () => {
     const file = e.target.files?.[0];
     if (file) {
       setMainImageFile(file);
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -92,19 +296,70 @@ const AdminAddProperty = () => {
     }
   };
 
-  const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.9): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions - higher quality settings
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        // Set canvas dimensions
+        canvas.width = width;
+        canvas.height = height;
+
+        // Enable image smoothing for better quality
+        ctx!.imageSmoothingEnabled = true;
+        ctx!.imageSmoothingQuality = 'high';
+
+        // Draw and compress image with higher quality
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 with higher quality (90%)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleAdditionalImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
       setAdditionalImageFiles(prev => [...prev, ...files]);
 
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          setAdditionalImagePreviews(prev => [...prev, result]);
-        };
-        reader.readAsDataURL(file);
-      });
+      for (const file of files) {
+        try {
+          console.log(`🔄 Compressing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+
+          // Compress the image
+          const compressedBase64 = await compressImage(file, 800, 0.8);
+
+          console.log(`✅ Image compressed: ${file.name}, New size: ${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB`);
+
+          // Check size limit - increased for higher quality
+          if (compressedBase64.length > 3000000) { // 3MB limit for high-quality compressed images
+            alert(`Compressed image "${file.name}" is still too large (${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB). Try a smaller image or reduce resolution.`);
+            continue;
+          }
+
+          setAdditionalImagePreviews(prev => [...prev, compressedBase64]);
+        } catch (error) {
+          console.error("❌ Compression error for file:", file.name, error);
+          alert(`Error: Unable to compress image "${file.name}".`);
+        }
+      }
     }
   };
 
@@ -114,57 +369,78 @@ const AdminAddProperty = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    // Combine uploaded images (base64) and existing URLs in formData
+    const allAdditionalImages = [...additionalImagePreviews, ...formData.additionalImages];
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Create final data object
+    const finalData = {
+      ...formData,
+      additionalImages: allAdditionalImages, // <-- Array of images
+    };
 
-    console.log("Property data:", formData);
-    
-    // Here you would typically send the data to your backend
-    alert("Propriété créée avec succès !");
+    const createdProperty = await apiService.createProperty(finalData);
+    console.log("Property created:", createdProperty);
+    alert("Property created successfully!");
     navigate("/admin/properties");
-    
+  } catch (error: any) {
+    console.error("Error creating property:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const handleSaveDraft = async () => {
-    setFormData(prev => ({ ...prev, status: "draft" }));
-    setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    alert("Brouillon sauvegardé !");
+  setIsLoading(true);
+  try {
+    // Combine images
+    const allAdditionalImages = [...additionalImagePreviews, ...formData.additionalImages];
+
+    const draftData = {
+      ...formData,
+      status: "draft",
+      additionalImages: allAdditionalImages, // <-- Array of images
+    };
+
+    const savedProperty = await apiService.createPropertyDraft(draftData);
+    console.log("Draft saved:", savedProperty);
+    alert("Draft saved!");
+  } catch (error: any) {
+    console.error("Error saving draft:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const propertyTypes = [
     "Villa",
     "Penthouse",
-    "Appartement",
-    "Maison",
+    "Apartment",
+    "House",
     "Studio",
     "Duplex",
     "Triplex",
-    "Terrain"
+    "Land"
   ];
 
   const cities = [
     "Casablanca",
     "Rabat",
     "Marrakech",
-    "Fès",
-    "Tanger",
+    "Fes",
+    "Tangier",
     "Agadir",
-    "Meknès",
+    "Meknes",
     "Oujda"
   ];
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
@@ -172,22 +448,22 @@ const AdminAddProperty = () => {
                 <Link to="/admin/properties">
                   <Button variant="outline" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Retour aux propriétés
+                    Back to Properties
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Nouvelle Propriété</h1>
-                  <p className="text-sm text-muted-foreground">Ajouter une nouvelle propriété au portfolio</p>
+                  <h1 className="text-2xl font-bold text-foreground">New Property</h1>
+                  <p className="text-sm text-muted-foreground">Add a new property to the portfolio</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
                   <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder brouillon
+                  Save Draft
                 </Button>
                 <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
                   <Building className="w-4 h-4 mr-2" />
-                  {isLoading ? "Création..." : "Créer propriété"}
+                  {isLoading ? "Creating..." : "Create Property"}
                 </Button>
               </div>
             </div>
@@ -196,34 +472,31 @@ const AdminAddProperty = () => {
 
         <main className="container mx-auto px-6 py-8">
           <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Building className="w-5 h-5" />
-                    <span>Informations de base</span>
+                    <span>Basic Information</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Titre de la propriété *
+                      Property Title *
                     </label>
                     <Input
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="Ex: Villa Luxury Marina avec vue sur mer"
+                      placeholder="E.g., Luxury Marina Villa"
                       required
                     />
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Type de propriété *
+                        Property Type *
                       </label>
                       <select
                         name="type"
@@ -232,7 +505,7 @@ const AdminAddProperty = () => {
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         required
                       >
-                        <option value="">Sélectionner un type</option>
+                        <option value="">Select type</option>
                         {propertyTypes.map((type) => (
                           <option key={type} value={type}>
                             {type}
@@ -240,10 +513,9 @@ const AdminAddProperty = () => {
                         ))}
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Prix (MAD) *
+                        Price (MAD) *
                       </label>
                       <Input
                         name="price"
@@ -255,36 +527,35 @@ const AdminAddProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Description *
                     </label>
-                    <Textarea
-                      name="description"
+                    {/* ✅ Replace Textarea with RichTextEditor (integrated above) */}
+                    <RichTextEditor
                       value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Description détaillée de la propriété, ses caractéristiques, son environnement..."
-                      rows={6}
-                      required
+                      onChange={(content) => handleInputChange({ target: { name: 'description', value: content } } as any)}
+                      placeholder="Detailed property description..."
                     />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Use the toolbar to format your text (bold, italic, lists, links, etc.)
+                    </p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Location */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <MapPin className="w-5 h-5" />
-                    <span>Localisation</span>
+                    <span>Location</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Ville *
+                        City *
                       </label>
                       <select
                         name="city"
@@ -293,7 +564,7 @@ const AdminAddProperty = () => {
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         required
                       >
-                        <option value="">Sélectionner une ville</option>
+                        <option value="">Select city</option>
                         {cities.map((city) => (
                           <option key={city} value={city}>
                             {city}
@@ -301,16 +572,15 @@ const AdminAddProperty = () => {
                         ))}
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Quartier/Zone *
+                        District/Area *
                       </label>
                       <Input
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        placeholder="Ex: Marina, Souissi, Hivernage"
+                        placeholder="E.g., Marina, Souissi"
                         required
                       />
                     </div>
@@ -318,19 +588,18 @@ const AdminAddProperty = () => {
                 </CardContent>
               </Card>
 
-              {/* Property Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Square className="w-5 h-5" />
-                    <span>Détails de la propriété</span>
+                    <span>Property Details</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Chambres *
+                        Bedrooms *
                       </label>
                       <Input
                         name="bedrooms"
@@ -342,10 +611,9 @@ const AdminAddProperty = () => {
                         required
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Salles de bain *
+                        Bathrooms *
                       </label>
                       <Input
                         name="bathrooms"
@@ -357,10 +625,9 @@ const AdminAddProperty = () => {
                         required
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Surface (m²) *
+                        Area (m²) *
                       </label>
                       <Input
                         name="area"
@@ -373,11 +640,10 @@ const AdminAddProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Année de construction
+                        Year Built
                       </label>
                       <Input
                         name="yearBuilt"
@@ -389,10 +655,9 @@ const AdminAddProperty = () => {
                         max={new Date().getFullYear()}
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Places de parking
+                        Parking Spaces
                       </label>
                       <Input
                         name="parking"
@@ -404,23 +669,21 @@ const AdminAddProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Équipements
+                      Amenities
                     </label>
                     <Textarea
                       name="amenities"
                       value={formData.amenities}
                       onChange={handleInputChange}
-                      placeholder="Climatisation, Chauffage central, Cuisine équipée, Terrasse..."
+                      placeholder="Air conditioning, Heating..."
                       rows={3}
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Images */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -429,10 +692,9 @@ const AdminAddProperty = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Main Image */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Image principale *
+                      Main Image *
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -448,7 +710,7 @@ const AdminAddProperty = () => {
                           className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          Choisir image principale
+                          Choose main image
                         </label>
                         {mainImageFile && (
                           <span className="text-sm text-muted-foreground">
@@ -456,27 +718,24 @@ const AdminAddProperty = () => {
                           </span>
                         )}
                       </div>
-
-                      {/* Alternative URL input for main image */}
                       <div className="border-t pt-4">
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Ou utiliser une URL d'image
+                          Or use image URL
                         </label>
                         <Input
                           name="mainImage"
                           value={formData.mainImage}
                           onChange={handleInputChange}
-                          placeholder="https://exemple.com/image.jpg"
+                          placeholder="https://example.com/image.jpg"
                         />
                       </div>
                     </div>
-
                     {(mainImagePreview || formData.mainImage) && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium text-foreground mb-2">Aperçu image principale:</p>
+                        <p className="text-sm font-medium text-foreground mb-2">Main image preview:</p>
                         <img
                           src={mainImagePreview || formData.mainImage}
-                          alt="Aperçu"
+                          alt="Preview"
                           className="w-full h-48 object-cover rounded-lg border"
                           onError={(e) => {
                             e.currentTarget.src = "/api/placeholder/600/400";
@@ -486,10 +745,9 @@ const AdminAddProperty = () => {
                     )}
                   </div>
 
-                  {/* Additional Images */}
                   <div className="border-t pt-4">
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Images supplémentaires
+                      Additional Images
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -506,37 +764,42 @@ const AdminAddProperty = () => {
                           className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          Ajouter des images
+                          Add images
                         </label>
                         <span className="text-sm text-muted-foreground">
-                          {additionalImageFiles.length} image(s) sélectionnée(s)
+                          {additionalImageFiles.length} image(s)
                         </span>
                       </div>
-
-                      {/* Alternative URL input for additional images */}
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Ou utiliser des URLs d'images
+                          Or use image URLs (one per line)
                         </label>
                         <Textarea
                           name="additionalImages"
-                          value={formData.additionalImages}
-                          onChange={handleInputChange}
-                          placeholder="URLs des images séparées par des virgules"
+                          value={formData.additionalImages.join('\n')}
+                          onChange={(e) => {
+                            const urls = e.target.value
+                              .split('\n')
+                              .map(url => url.trim())
+                              .filter(url => url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')));
+                            setFormData(prev => ({
+                              ...prev,
+                              additionalImages: urls
+                            }));
+                          }}
+                          placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
                           rows={3}
                         />
                       </div>
-
-                      {/* Additional Images Preview */}
                       {additionalImagePreviews.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-foreground mb-2">Images supplémentaires:</p>
+                          <p className="text-sm font-medium text-foreground mb-2">Image previews:</p>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {additionalImagePreviews.map((preview, index) => (
                               <div key={index} className="relative">
                                 <img
                                   src={preview}
-                                  alt={`Aperçu ${index + 1}`}
+                                  alt={`Preview ${index + 1}`}
                                   className="w-full h-32 object-cover rounded-lg border"
                                 />
                                 <button
@@ -552,28 +815,23 @@ const AdminAddProperty = () => {
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Formats acceptés: JPG, PNG, GIF. Vous pouvez sélectionner plusieurs images à la fois.
-                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
-              {/* Status & Features */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Star className="w-5 h-5" />
-                    <span>Statut & Options</span>
+                    <span>Status & Options</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Statut de la propriété
+                      Property Status
                     </label>
                     <select
                       name="status"
@@ -581,13 +839,30 @@ const AdminAddProperty = () => {
                       onChange={handleInputChange}
                       className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                     >
-                      <option value="available">Disponible</option>
-                      <option value="sold">Vendu</option>
-                      <option value="pending">En attente</option>
-                      <option value="draft">Brouillon</option>
+                      <option value="available">Available</option>
+                      <option value="sold">Sold</option>
+                      <option value="pending">Pending</option>
+                      <option value="draft">Draft</option>
                     </select>
                   </div>
-
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Assigned Admin *
+                    </label>
+                    <select
+                      name="person"
+                      value={formData.person}
+                      onChange={handleInputChange}
+                      className="w-full h-10 px-3 rounded-md border text-sm"
+                      required
+                    >
+                      <option value="">Select admin</option>
+                      <option value="khawla">Profil:1</option>
+                      <option value="yassine">Profil:2</option>
+                      <option value="mehdi">Profil:3</option>
+                      <option value="hiba">Profil:4</option>
+                    </select>
+                  </div>
                   <div className="space-y-3">
                     <label className="flex items-center space-x-2">
                       <input
@@ -597,9 +872,8 @@ const AdminAddProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Propriété vedette</span>
+                      <span className="text-sm font-medium">Featured Property</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -608,9 +882,8 @@ const AdminAddProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Jardin</span>
+                      <span className="text-sm font-medium">Garden</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -619,9 +892,8 @@ const AdminAddProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Piscine</span>
+                      <span className="text-sm font-medium">Pool</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -630,9 +902,8 @@ const AdminAddProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Sécurité 24h/24</span>
+                      <span className="text-sm font-medium">24/7 Security</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -641,40 +912,39 @@ const AdminAddProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Meublé</span>
+                      <span className="text-sm font-medium">Furnished</span>
                     </label>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Preview */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Eye className="w-5 h-5" />
-                    <span>Aperçu</span>
+                    <span>Preview</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {formData.featured && (
-                      <Badge className="luxury-gradient text-white">Vedette</Badge>
+                      <Badge className="luxury-gradient text-white">Featured</Badge>
                     )}
                     <h3 className="font-bold text-foreground">
-                      {formData.title || "Titre de la propriété"}
+                      {formData.title || "Property Title"}
                     </h3>
                     <div className="flex items-center space-x-1 text-muted-foreground">
                       <MapPin className="w-4 h-4" />
                       <span className="text-sm">
                         {formData.location && formData.city 
                           ? `${formData.location}, ${formData.city}`
-                          : "Localisation"}
+                          : "Location"}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1 text-primary">
                       <DollarSign className="w-4 h-4" />
                       <span className="font-bold">
-                        {formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Prix"}
+                        {formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Price"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">

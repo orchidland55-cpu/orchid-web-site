@@ -38,23 +38,23 @@ const AdminLogin = () => {
       localStorage.setItem("adminLoggedIn", "true");
       localStorage.setItem("adminEmail", email);
 
-      // Afficher un message de bienvenue
+      // Show welcome message
       showToast({
         type: "success",
-        title: "Connexion réussie",
-        message: `Bienvenue dans l'administration Orchid Island !`,
+        title: "Login Successful",
+        message: `Welcome to Orchid Island Administration!`,
         duration: 4000
       });
 
       navigate("/admin/dashboard");
     } else {
-      setError("Email ou mot de passe incorrect");
+      setError("Incorrect email or password");
 
-      // Afficher un toast d'erreur
+      // Show error toast
       showToast({
         type: "error",
-        title: "Erreur de connexion",
-        message: "Email ou mot de passe incorrect",
+        title: "Login Error",
+        message: "Incorrect email or password",
         duration: 4000
       });
     }
@@ -75,7 +75,7 @@ const AdminLogin = () => {
               Administration
             </h1>
             <p className="text-muted-foreground">
-              Accès réservé aux administrateurs Orchid Island
+              Access reserved for Orchid Island administrators
             </p>
           </div>
 
@@ -84,7 +84,7 @@ const AdminLogin = () => {
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center space-x-2">
                 <Lock className="w-5 h-5" />
-                <span>Connexion Admin</span>
+                <span>Admin Login</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -97,7 +97,7 @@ const AdminLogin = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">
-                    Email administrateur
+                    Administrator Email
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -114,7 +114,7 @@ const AdminLogin = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">
-                    Mot de passe
+                    Password
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -143,14 +143,14 @@ const AdminLogin = () => {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Connexion..." : "Se connecter"}
+                  {isLoading ? "Logging in..." : "Log In"}
                 </Button>
               </form>
 
               <div className="mt-6 pt-6 border-t border-border">
                 <div className="text-center">
                   <Badge variant="outline" className="text-xs">
-                    Accès sécurisé - Orchid Island Admin
+                    Secure Access - Orchid Island Admin
                   </Badge>
                 </div>
               </div>
@@ -159,10 +159,10 @@ const AdminLogin = () => {
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-background/50 rounded-lg border border-border/50">
-            <h3 className="text-sm font-medium text-foreground mb-2">Identifiants de démonstration:</h3>
+            <h3 className="text-sm font-medium text-foreground mb-2">Demo Credentials:</h3>
             <div className="text-xs text-muted-foreground space-y-1">
               <p><strong>Email:</strong> Orchidisland@gmail.com</p>
-              <p><strong>Mot de passe:</strong> OrchidIsland2025</p>
+              <p><strong>Password:</strong> OrchidIsland2025</p>
             </div>
           </div>
         </div>

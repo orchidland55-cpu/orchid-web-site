@@ -1,0 +1,63 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "ask_about_services": 0,
+        "ask_pricing": 1,
+        "back": 2,
+        "contact_agent": 3,
+        "demander_bien": 4,
+        "demander_prix": 5,
+        "goodbye": 6,
+        "nlu_fallback": 7,
+        "out_of_scope": 8,
+        "request_weather": 9,
+        "restart": 10,
+        "saluer": 11,
+        "schedule_visit": 12,
+        "session_start": 13,
+        "thank_you": 14,
+        "want_to_invest": 15,
+        "want_to_sell": 16
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "action_lister_biens": 13,
+        "action_donner_prix": 14,
+        "utter_ask_about_services": 15,
+        "utter_ask_pricing": 16,
+        "utter_contact_agent": 17,
+        "utter_goodbye": 18,
+        "utter_saluer": 19,
+        "utter_schedule_visit": 20,
+        "utter_thank_you": 21,
+        "utter_want_to_invest": 22,
+        "utter_want_to_sell": 23
+      },
+      "entities": {
+        "location": 0,
+        "type": 1,
+        "ville": 2
+      },
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 7
+}

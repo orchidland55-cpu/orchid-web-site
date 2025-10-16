@@ -1,0 +1,90 @@
+version: "3.1"
+
+language: fr
+
+intents:
+  - saluer
+  - demander_bien
+  - demander_prix
+  - demander_articles
+  - demander_postulation
+  - demander_contact
+  - demander_investir
+  - planifier_visite
+  - affirm
+  - aide
+  - request_weather
+  - goodbye
+  - want_to_invest
+  - want_to_sell
+  - schedule_visit
+  - contact_agent
+  - ask_about_services
+  - ask_pricing
+  - thank_you
+
+entities:
+  - type
+  - ville
+  - categorie
+  - location
+
+responses:
+  utter_saluer:
+    - text: "Bonjour ! Comment puis-je vous aider aujourd'hui ?"
+
+  utter_goodbye:
+    - text: "Au revoir ! À bientôt."
+
+  # ✅ Ajoute les réponses manquantes (utterances)
+  utter_want_to_invest:
+    - text: "Super ! L'investissement immobilier est un excellent choix. Quel type de bien vous intéresse ?"
+
+  utter_want_to_sell:
+    - text: "Parfait ! Je peux vous aider à estimer et vendre votre bien. Où se trouve-t-il ?"
+
+  utter_schedule_visit:
+    - text: "Je peux vous aider à planifier une visite. Quel bien souhaitez-vous voir et à quelle date ?"
+
+  utter_contact_agent:
+    - text: "Je vais vous mettre en relation avec un agent immobilier. Un conseiller vous contactera sous peu."
+
+  utter_ask_about_services:
+    - text: "Nous offrons des services d'achat, vente, location et investissement immobilier. De quoi avez-vous besoin ?"
+
+  utter_ask_pricing:
+    - text: "Les prix varient selon la localisation, la taille et le type de bien. Avez-vous un bien en tête ?"
+
+  utter_thank_you:
+    - text: "Je vous en prie ! N'hésitez pas à revenir si vous avez d'autres questions."
+
+  utter_demander_articles:
+    - text: "Je peux vous diriger vers nos articles. Sur quel sujet vous intéresse-t-il ?"
+
+  utter_demander_postulation:
+    - text: "Pour postuler en tant qu'investisseur, vous pouvez remplir le formulaire sur notre site. Souhaitez-vous que je vous guide vers la page de postulation ?"
+
+  utter_guider_postulation:
+    - text: "Parfait ! Rendez-vous sur la page de postulation : /postulation"
+
+  utter_guider_contact:
+    - text: "Pour nous contacter, visitez notre page de contact : /contact"
+
+  utter_guider_investir:
+    - text: "Découvrez nos opportunités d'investissement sur la page investir : /invest"
+
+  utter_planifier_visite:
+    - text: "Pour planifier une visite, contactez-nous via notre page contact : /contact"
+
+  utter_aide:
+    - text: "Comment puis-je vous aider aujourd'hui ?"
+
+actions:
+  - action_lister_biens
+  - action_donner_prix
+  - action_lister_articles
+  - action_aide_generale
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

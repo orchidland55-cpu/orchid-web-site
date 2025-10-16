@@ -1,31 +1,33 @@
-const mongoose = require('mongoose');
+const Article = require("../models/article");
+const Activity = require("../models/Activity");
+const CountryView = require('../models/CountryView');
 
-// Redéfinir le schéma Article avec tous les champs nécessaires
-const articleSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  excerpt: { type: String, required: true },
-  content: { type: String, required: true },
-  author: { type: String, required: true },
-  category: { type: String, required: true },
-  tags: [String],
-  status: { type: String, enum: ['draft', 'published'], default: 'draft' },
-  featured: { type: Boolean, default: false },
-  image: String,
-  views: { type: Number, default: 0 },
-  comments: { type: Number, default: 0 }
-}, { timestamps: true });
+// Fonction pour obtenir le pays depuis l'IP
+async function getCountryFromIP(ip) {
+  try {
+    if (ip === '127.0.0.1' || ip === '::1') return 'Maroc';
 
-// Utiliser le modèle existant ou en créer un nouveau
-const Article = mongoose.models.Article || mongoose.model('Article', articleSchema);
+    const ipNum = ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
+
+    if (ipNum >= 0xC5000000 && ipNum <= 0xC5FFFFFF) return 'Maroc';
+    if (ipNum >= 0xC2000000 && ipNum <= 0xC2FFFFFF) return 'France';
+    if (ipNum >= 0x58000000 && ipNum <= 0x58FFFFFF) return 'Espagne';
+    if (ipNum >= 0x50000000 && ipNum <= 0x50FFFFFF) return 'Allemagne';
+    if (ipNum >= 0x4F000000 && ipNum <= 0x4FFFFFFF) return 'Italie';
+
+    return 'Autres';
+  } catch (error) {
+    console.error('Erreur lors de la détermination du pays:', error);
+    return 'Autres';
+  }
+}
 
 // GET all articles
 exports.getAllArticles = async (req, res) => {
   try {
     const articles = await Article.find();
-    console.log(`📋 ${articles.length} articles récupérés`);
     res.json(articles);
   } catch (err) {
-    console.error('❌ Erreur getAllArticles:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -34,13 +36,9 @@ exports.getAllArticles = async (req, res) => {
 exports.getArticleById = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-    console.log(`📖 Article récupéré: ${article.title}`);
+    if (!article) return res.status(404).json({ error: "Article not found" });
     res.json(article);
   } catch (err) {
-    console.error('❌ Erreur getArticleById:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -48,27 +46,33 @@ exports.getArticleById = async (req, res) => {
 // POST a new article
 exports.addArticle = async (req, res) => {
   try {
-    console.log('📝 Création d\'un nouvel article...');
-    console.log('📋 Données reçues:', JSON.stringify(req.body, null, 2));
-    
-    // Traitement spécial pour les tags
     let processedData = { ...req.body };
-    if (typeof processedData.tags === 'string') {
-      processedData.tags = processedData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+    // Traitement des tags (si envoyés comme une chaîne)
+    if (typeof processedData.tags === "string") {
+      processedData.tags = processedData.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
     }
-    
-    console.log('🔄 Données traitées:', JSON.stringify(processedData, null, 2));
-    
+
+    // Création de l'article
     const article = new Article(processedData);
-    console.log('💾 Article avant sauvegarde:', JSON.stringify(article.toObject(), null, 2));
-    
     await article.save();
-    console.log('✅ Article sauvegardé avec succès:', article._id);
-    console.log('🔍 Article final:', JSON.stringify(article.toObject(), null, 2));
-    
+
+    // Enregistrer une activité si l'article est publié
+    if (article.status === 'published') {
+      const activity = new Activity({
+        action: "Article publié",
+        item: article.title || "Sans titre",
+        type: "blog",
+        performedBy: article.person || "admin" // Utilise le champ du modèle
+      });
+      await activity.save();
+    }
+
     res.status(201).json(article);
   } catch (err) {
-    console.error('❌ Erreur création article:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -76,29 +80,38 @@ exports.addArticle = async (req, res) => {
 // PUT update article
 exports.updateArticle = async (req, res) => {
   try {
-    console.log(`📝 Mise à jour article ${req.params.id}...`);
-    console.log('📋 Données reçues:', JSON.stringify(req.body, null, 2));
-    
-    // Traitement spécial pour les tags
     let processedData = { ...req.body };
-    if (typeof processedData.tags === 'string') {
-      processedData.tags = processedData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+    // Traitement des tags (si envoyés comme une chaîne)
+    if (typeof processedData.tags === "string") {
+      processedData.tags = processedData.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag);
     }
-    
+
+    // Mise à jour de l'article
     const article = await Article.findByIdAndUpdate(
-      req.params.id, 
-      processedData, 
+      req.params.id,
+      processedData,
       { new: true, runValidators: true }
     );
-    
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
+
+    if (!article) return res.status(404).json({ error: "Article not found" });
+
+    // Enregistrer une activité si l'article est publié
+    if (article.status === 'published') {
+      const activity = new Activity({
+        action: "Article mis à jour",
+        item: article.title || "Sans titre",
+        type: "blog",
+        performedBy: article.person || "admin" // Utilise le champ du modèle mis à jour
+      });
+      await activity.save();
     }
-    
-    console.log('✅ Article mis à jour:', article._id);
+
     res.json(article);
   } catch (err) {
-    console.error('❌ Erreur mise à jour article:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -106,17 +119,25 @@ exports.updateArticle = async (req, res) => {
 // DELETE article
 exports.deleteArticle = async (req, res) => {
   try {
-    console.log(`🗑️ Suppression article ${req.params.id}...`);
+    // Trouver l'article avant de le supprimer
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ error: "Article not found" });
 
-    const article = await Article.findByIdAndDelete(req.params.id);
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
+    // Enregistrer l'activité de suppression
+    const activity = new Activity({
+      action: "Article supprimé",
+      item: article.title || "Sans titre",
+      type: "blog",
+      performedBy: article.person || "admin" // Utilise le champ du modèle avant suppression
+    });
+    await activity.save();
 
-    console.log('✅ Article supprimé:', article.title);
-    res.json({ message: 'Article deleted successfully' });
+    // Supprimer l'article
+    await Article.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Article deleted successfully" });
   } catch (err) {
-    console.error('❌ Erreur suppression article:', err);
+    console.error('❌ Erreur deleteArticle:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -124,26 +145,48 @@ exports.deleteArticle = async (req, res) => {
 // POST increment article views
 exports.incrementArticleViews = async (req, res) => {
   try {
-    console.log(`👁️ Incrémentation des vues pour l'article ${req.params.id}...`);
-
     const article = await Article.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
       { new: true }
     );
 
-    if (!article) {
-      return res.status(404).json({ error: 'Article non trouvé' });
+    if (!article) return res.status(404).json({ error: "Article not found" });
+
+    // Analytics: Tracker la vue d'article
+    try {
+      const clientIP = req.ip ||
+                       req.connection.remoteAddress ||
+                       req.socket.remoteAddress ||
+                       (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+                       '127.0.0.1';
+
+      const cleanIP = clientIP.replace(/^::ffff:/, '');
+      const country = await getCountryFromIP(cleanIP);
+
+      // Incrémenter les vues pour ce pays
+      await CountryView.findOneAndUpdate(
+        { pays: country },
+        { $inc: { vues: 1 } },
+        { upsert: true, new: true }
+      );
+
+      // Recalculer les pourcentages
+      const totalViews = await CountryView.aggregate([{ $group: { _id: null, total: { $sum: "$vues" } } }]);
+      const total = totalViews[0]?.total || 1;
+
+      await CountryView.updateMany({}, [
+        { $set: { pourcentage: { $round: [{ $multiply: [{ $divide: ["$vues", total] }, 100] }, 1] } } }
+      ]);
+
+      console.log(`📄 Article vu: ${article.title} depuis ${country} (${cleanIP})`);
+
+    } catch (analyticsError) {
+      console.error('Erreur analytics article:', analyticsError);
     }
 
-    console.log(`✅ Vues incrémentées: ${article.views}`);
-    res.json({
-      success: true,
-      views: article.views,
-      message: 'Vue ajoutée avec succès'
-    });
+    res.json({ success: true, views: article.views });
   } catch (err) {
-    console.error('❌ Erreur incrémentation vues:', err);
     res.status(500).json({ error: err.message });
   }
 };

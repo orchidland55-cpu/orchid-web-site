@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react"; // ✅ Added useRef
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,16 +18,219 @@ import {
   Square,
   Star,
   Camera,
-  Trash2
+  Trash2,
+  // ✅ Toolbar icons
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  List,
+  ListOrdered,
+  Link2,
+  ImageIcon, // Renamed to avoid conflict
+  Quote,
+  Palette,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import { apiService, PropertyFormData } from "@/services/api";
+
+// ✅ RichTextEditor component integrated directly here — no separate file
+const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
+  const editorRef = useRef(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+
+  useEffect(() => {
+    if (editorRef.current && !isEditorReady) {
+      editorRef.current.innerHTML = value || '';
+      setIsEditorReady(true);
+    }
+  }, [value, isEditorReady]);
+
+  const executeCommand = (command, value = null) => {
+    document.execCommand(command, false, value);
+    handleContentChange();
+  };
+
+  const handleContentChange = () => {
+    if (editorRef.current && onChange) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
+  const insertLink = () => {
+    const url = prompt('Enter link URL:');
+    if (url) {
+      executeCommand('createLink', url);
+    }
+  };
+
+  const insertImage = () => {
+    const url = prompt('Enter image URL:');
+    if (url) {
+      executeCommand('insertImage', url);
+    }
+  };
+
+  const changeFontSize = (size) => {
+    executeCommand('fontSize', size);
+  };
+
+  const changeTextColor = () => {
+    const color = prompt('Enter color (e.g., #ff0000 or red):');
+    if (color) {
+      executeCommand('foreColor', color);
+    }
+  };
+
+  const toolbarButtons = [
+    { icon: Bold, command: 'bold', title: 'Bold' },
+    { icon: Italic, command: 'italic', title: 'Italic' },
+    { icon: Underline, command: 'underline', title: 'Underline' },
+    { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
+    { icon: AlignCenter, command: 'justifyCenter', title: 'Center' },
+    { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
+    { icon: List, command: 'insertUnorderedList', title: 'Bullet List' },
+    { icon: ListOrdered, command: 'insertOrderedList', title: 'Numbered List' },
+    { icon: Quote, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
+  ];
+
+  return (
+    <div className="border border-border rounded-lg overflow-hidden bg-card">
+      {/* Toolbar */}
+      <div className="border-b border-border p-2 bg-muted/30">
+        <div className="flex flex-wrap items-center gap-1">
+          {/* Font Size */}
+          <select
+            onChange={(e) => changeFontSize(e.target.value)}
+            className="px-2 py-1 text-xs border border-border rounded bg-background"
+            title="Font Size"
+          >
+            <option value="">Size</option>
+            <option value="1">Very Small</option>
+            <option value="2">Small</option>
+            <option value="3">Normal</option>
+            <option value="4">Large</option>
+            <option value="5">Very Large</option>
+            <option value="6">Huge</option>
+          </select>
+          {/* Heading Style */}
+          <select
+            onChange={(e) => executeCommand('formatBlock', e.target.value)}
+            className="px-2 py-1 text-xs border border-border rounded bg-background ml-1"
+            title="Style"
+          >
+            <option value="">Style</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+            <option value="h4">Heading 4</option>
+            <option value="p">Paragraph</option>
+          </select>
+          <div className="w-px h-6 bg-border mx-1"></div>
+          {/* Formatting Buttons */}
+          {toolbarButtons.map((button, index) => (
+            <Button
+              key={index}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => executeCommand(button.command, button.value)}
+              className="p-1 h-8 w-8"
+              title={button.title}
+            >
+              <button.icon className="w-4 h-4" />
+            </Button>
+          ))}
+          <div className="w-px h-6 bg-border mx-1"></div>
+          {/* Special Buttons */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={changeTextColor}
+            className="p-1 h-8 w-8"
+            title="Text Color"
+          >
+            <Palette className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={insertLink}
+            className="p-1 h-8 w-8"
+            title="Insert Link"
+          >
+            <Link2 className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={insertImage}
+            className="p-1 h-8 w-8"
+            title="Insert Image"
+          >
+            <ImageIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      {/* Editing Area */}
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleContentChange}
+        onBlur={handleContentChange}
+        className="min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none rich-text-content"
+        style={{
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word'
+        }}
+        data-placeholder={placeholder}
+      />
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          [contentEditable]:empty:before {
+            content: attr(data-placeholder);
+            color: hsl(var(--muted-foreground));
+            font-style: italic;
+          }
+          [contentEditable]:focus:before {
+            content: none;
+          }
+          .rich-text-content h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content h4 { font-size: 1.1em; font-weight: bold; margin: 0.5em 0; }
+          .rich-text-content p { margin: 0.5em 0; line-height: 1.6; }
+          .rich-text-content ul, .rich-text-content ol { margin: 0.5em 0; padding-left: 2em; }
+          .rich-text-content li { margin: 0.25em 0; }
+          .rich-text-content blockquote { 
+            border-left: 4px solid hsl(var(--border)); 
+            padding-left: 1em; 
+            margin: 1em 0; 
+            font-style: italic; 
+            color: hsl(var(--muted-foreground)); 
+          }
+          .rich-text-content a { color: hsl(var(--primary)); text-decoration: underline; }
+          .rich-text-content img { max-width: 100%; height: auto; margin: 1em 0; }
+          .rich-text-content strong { font-weight: bold; }
+          .rich-text-content em { font-style: italic; }
+          .rich-text-content u { text-decoration: underline; }
+        `
+      }} />
+    </div>
+  );
+};
 
 const AdminEditProperty = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PropertyFormData>({
     title: "",
     description: "",
     price: "",
@@ -40,14 +243,15 @@ const AdminEditProperty = () => {
     status: "available",
     featured: false,
     mainImage: "",
-    additionalImages: "",
+    additionalImages: [], // array
     amenities: "",
     yearBuilt: "",
     parking: "",
     garden: false,
     pool: false,
     security: false,
-    furnished: false
+    furnished: false,
+    person: "admin"
   });
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState<File[]>([]);
@@ -60,79 +264,53 @@ const AdminEditProperty = () => {
       navigate("/admin");
       return;
     }
-
     loadPropertyData();
   }, [navigate, id]);
 
   const loadPropertyData = async () => {
-    setIsLoadingData(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Sample data - in real app, this would come from API
-    const sampleProperties: { [key: string]: any } = {
-      "1": {
-        title: "Villa Luxury Marina",
-        description: "Magnifique villa de luxe située dans le prestigieux quartier de la Marina à Casablanca. Cette propriété exceptionnelle offre une vue imprenable sur l'océan et dispose de finitions haut de gamme.",
-        price: "2500000",
-        location: "Marina",
-        city: "Casablanca",
-        type: "Villa",
-        bedrooms: "5",
-        bathrooms: "4",
-        area: "450",
-        status: "available",
-        featured: true,
-        mainImage: "/api/placeholder/600/400",
-        additionalImages: "/api/placeholder/400/300,/api/placeholder/400/300,/api/placeholder/400/300",
-        amenities: "Climatisation, Chauffage central, Cuisine équipée, Terrasse, Vue sur mer, Garage",
-        yearBuilt: "2020",
-        parking: "3",
-        garden: true,
-        pool: true,
-        security: true,
-        furnished: false
-      },
-      "2": {
-        title: "Penthouse Souissi",
-        description: "Penthouse d'exception dans le quartier résidentiel de Souissi à Rabat. Appartement de standing avec terrasse panoramique et prestations de luxe.",
-        price: "1800000",
-        location: "Souissi",
-        city: "Rabat",
-        type: "Penthouse",
-        bedrooms: "4",
-        bathrooms: "3",
-        area: "320",
-        status: "sold",
-        featured: false,
-        mainImage: "/api/placeholder/600/400",
-        additionalImages: "/api/placeholder/400/300,/api/placeholder/400/300",
-        amenities: "Climatisation, Ascenseur, Terrasse, Parking souterrain",
-        yearBuilt: "2019",
-        parking: "2",
-        garden: false,
-        pool: false,
-        security: true,
-        furnished: true
-      }
-    };
-
-    const propertyData = sampleProperties[id as string];
-    if (propertyData) {
-      setFormData(propertyData);
-      setMainImagePreview(propertyData.mainImage);
-      
-      // Set additional images previews
-      if (propertyData.additionalImages) {
-        const additionalUrls = propertyData.additionalImages.split(',').filter((url: string) => url.trim());
-        setAdditionalImagePreviews(additionalUrls);
-      }
-    } else {
-      alert("Propriété non trouvée");
+    if (!id) {
+      alert("Property ID missing");
       navigate("/admin/properties");
+      return;
     }
-    
-    setIsLoadingData(false);
+    setIsLoadingData(true);
+    try {
+      const propertyData = await apiService.getPropertyById(id);
+      const formData: PropertyFormData = {
+        title: propertyData.title,
+        description: propertyData.description,
+        price: propertyData.price.toString(),
+        location: propertyData.location,
+        city: propertyData.city,
+        type: propertyData.type,
+        bedrooms: propertyData.bedrooms.toString(),
+        bathrooms: propertyData.bathrooms.toString(),
+        area: propertyData.area.toString(),
+        status: propertyData.status,
+        featured: propertyData.featured,
+        mainImage: propertyData.mainImage,
+        additionalImages: propertyData.additionalImages || [],
+        amenities: propertyData.amenities?.join(", ") || "",
+        yearBuilt: propertyData.yearBuilt ? propertyData.yearBuilt.toString() : "",
+        parking: propertyData.parking,
+        garden: propertyData.garden,
+        pool: propertyData.pool,
+        security: propertyData.security,
+        furnished: propertyData.furnished,
+        person: propertyData.person || "admin"
+      };
+      setFormData(formData);
+      setMainImagePreview(propertyData.mainImage);
+      if (propertyData.additionalImages && propertyData.additionalImages.length > 0) {
+        setAdditionalImagePreviews(propertyData.additionalImages);
+      }
+    } catch (error: any) {
+      console.error("Error loading property:", error);
+      alert("Error loading data");
+      navigate("/admin/properties");
+    } finally {
+      setIsLoadingData(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -155,7 +333,6 @@ const AdminEditProperty = () => {
     const file = e.target.files?.[0];
     if (file) {
       setMainImageFile(file);
-      
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -169,19 +346,70 @@ const AdminEditProperty = () => {
     }
   };
 
-  const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.9): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions - higher quality settings
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        // Set canvas dimensions
+        canvas.width = width;
+        canvas.height = height;
+
+        // Enable image smoothing for better quality
+        ctx!.imageSmoothingEnabled = true;
+        ctx!.imageSmoothingQuality = 'high';
+
+        // Draw and compress image with higher quality
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 with higher quality (90%)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleAdditionalImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
       setAdditionalImageFiles(prev => [...prev, ...files]);
-      
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          setAdditionalImagePreviews(prev => [...prev, result]);
-        };
-        reader.readAsDataURL(file);
-      });
+
+      for (const file of files) {
+        try {
+          console.log(`🔄 Compressing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+
+          // Compress the image
+          const compressedBase64 = await compressImage(file, 800, 0.8);
+
+          console.log(`✅ Image compressed: ${file.name}, New size: ${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB`);
+
+          // Check size limit - increased for higher quality
+          if (compressedBase64.length > 3000000) { // 3MB limit for high-quality compressed images
+            alert(`Compressed image "${file.name}" is still too large (${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB). Try a smaller image or reduce resolution.`);
+            continue;
+          }
+
+          setAdditionalImagePreviews(prev => [...prev, compressedBase64]);
+        } catch (error) {
+          console.error("❌ Compression error for file:", file.name, error);
+          alert(`Error: Unable to compress image "${file.name}".`);
+        }
+      }
     }
   };
 
@@ -190,61 +418,69 @@ const AdminEditProperty = () => {
     setAdditionalImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    console.log("Updated property data:", formData);
-    alert("Propriété mise à jour avec succès !");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!id) return;
+  setIsLoading(true);
+  try {
+    // Combine uploaded images (base64) and existing URLs
+    const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+    // Create final data object
+    const finalData = {
+      ...formData,
+      additionalImages: allImages, // <-- Keep as array
+    };
+    await apiService.updateProperty(id, finalData);
+    alert("Property updated!");
     navigate("/admin/properties");
-    
+  } catch (error: any) {
+    console.error("Error updating property:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const handleSaveDraft = async () => {
-    setFormData(prev => ({ ...prev, status: "draft" }));
-    setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    alert("Brouillon sauvegardé !");
+  if (!id) return;
+  setIsLoading(true);
+  try {
+    // Combine images
+    const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+    const draftData = {
+      ...formData,
+      status: "draft",
+      additionalImages: allImages, // <-- Keep as array
+    };
+    await apiService.updateProperty(id, draftData);
+    alert("Draft saved!");
+    navigate("/admin/properties");
+  } catch (error: any) {
+    console.error("Error saving draft:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   const handleDelete = async () => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette propriété ? Cette action est irréversible.")) {
+    if (!id) return;
+    if (window.confirm("Delete this property?")) {
       setIsLoading(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert("Propriété supprimée avec succès !");
-      navigate("/admin/properties");
+      try {
+        await apiService.deleteProperty(id);
+        alert("Property deleted!");
+        navigate("/admin/properties");
+      } catch (error: any) {
+        alert(`Error: ${error.message}`);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const propertyTypes = [
-    "Villa",
-    "Penthouse",
-    "Appartement",
-    "Maison",
-    "Studio",
-    "Duplex",
-    "Triplex",
-    "Terrain"
-  ];
-
-  const cities = [
-    "Casablanca",
-    "Rabat",
-    "Marrakech",
-    "Fès",
-    "Tanger",
-    "Agadir",
-    "Meknès",
-    "Oujda"
-  ];
+  const propertyTypes = ["Villa", "Penthouse", "Apartment", "House", "Studio", "Duplex", "Triplex", "Land"];
+  const cities = ["Casablanca", "Rabat", "Marrakech", "Fes", "Tangier", "Agadir", "Meknes", "Oujda"];
 
   if (isLoadingData) {
     return (
@@ -254,7 +490,7 @@ const AdminEditProperty = () => {
             <div className="w-16 h-16 luxury-gradient rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
               <Building className="w-8 h-8 text-white" />
             </div>
-            <p className="text-foreground font-medium">Chargement de la propriété...</p>
+            <p className="text-foreground font-medium">Loading...</p>
           </div>
         </div>
       </PageTransition>
@@ -264,34 +500,33 @@ const AdminEditProperty = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link to="/admin/properties">
+                <a href="/admin/properties">
                   <Button variant="outline" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Retour aux propriétés
+                    Back to Properties
                   </Button>
-                </Link>
+                </a>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Modifier la Propriété</h1>
+                  <h1 className="text-2xl font-bold text-foreground">Edit Property</h1>
                   <p className="text-sm text-muted-foreground">ID: {id}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Supprimer
+                  DELETE
                 </Button>
                 <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
                   <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder brouillon
+                  {isLoading ? "Saving..." : "Save Draft"}
                 </Button>
                 <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
                   <Building className="w-4 h-4 mr-2" />
-                  {isLoading ? "Mise à jour..." : "Mettre à jour"}
+                  {isLoading ? "Updating..." : "Update"}
                 </Button>
               </div>
             </div>
@@ -300,34 +535,31 @@ const AdminEditProperty = () => {
 
         <main className="container mx-auto px-6 py-8">
           <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Building className="w-5 h-5" />
-                    <span>Informations de base</span>
+                    <span>Basic Information</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Titre de la propriété *
+                      Title *
                     </label>
                     <Input
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      placeholder="Ex: Villa Luxury Marina avec vue sur mer"
+                      placeholder="E.g., Luxury Marina Villa"
                       required
                     />
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Type de propriété *
+                        Type *
                       </label>
                       <select
                         name="type"
@@ -336,7 +568,7 @@ const AdminEditProperty = () => {
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         required
                       >
-                        <option value="">Sélectionner un type</option>
+                        <option value="">Select</option>
                         {propertyTypes.map((type) => (
                           <option key={type} value={type}>
                             {type}
@@ -344,10 +576,9 @@ const AdminEditProperty = () => {
                         ))}
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Prix (MAD) *
+                        Price (MAD) *
                       </label>
                       <Input
                         name="price"
@@ -359,36 +590,35 @@ const AdminEditProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Description *
                     </label>
-                    <Textarea
-                      name="description"
+                    {/* ✅ Replace Textarea with RichTextEditor */}
+                    <RichTextEditor
                       value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Description détaillée de la propriété..."
-                      rows={6}
-                      required
+                      onChange={(content) => handleInputChange({ target: { name: 'description', value: content } } as any)}
+                      placeholder="Detailed property description..."
                     />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Use the toolbar to format your text (bold, italic, lists, links, etc.)
+                    </p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Location */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <MapPin className="w-5 h-5" />
-                    <span>Localisation</span>
+                    <span>Location</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Ville *
+                        City *
                       </label>
                       <select
                         name="city"
@@ -397,7 +627,7 @@ const AdminEditProperty = () => {
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         required
                       >
-                        <option value="">Sélectionner une ville</option>
+                        <option value="">Select</option>
                         {cities.map((city) => (
                           <option key={city} value={city}>
                             {city}
@@ -405,16 +635,15 @@ const AdminEditProperty = () => {
                         ))}
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Quartier/Zone *
+                        District/Area *
                       </label>
                       <Input
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        placeholder="Ex: Marina, Souissi, Hivernage"
+                        placeholder="E.g., Marina, Souissi"
                         required
                       />
                     </div>
@@ -422,19 +651,18 @@ const AdminEditProperty = () => {
                 </CardContent>
               </Card>
 
-              {/* Property Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Square className="w-5 h-5" />
-                    <span>Détails de la propriété</span>
+                    <span>Details</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Chambres *
+                        Bedrooms *
                       </label>
                       <Input
                         name="bedrooms"
@@ -446,10 +674,9 @@ const AdminEditProperty = () => {
                         required
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Salles de bain *
+                        Bathrooms *
                       </label>
                       <Input
                         name="bathrooms"
@@ -461,10 +688,9 @@ const AdminEditProperty = () => {
                         required
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Surface (m²) *
+                        Area (m²) *
                       </label>
                       <Input
                         name="area"
@@ -477,11 +703,10 @@ const AdminEditProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Année de construction
+                        Year Built
                       </label>
                       <Input
                         name="yearBuilt"
@@ -493,10 +718,9 @@ const AdminEditProperty = () => {
                         max={new Date().getFullYear()}
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">
-                        Places de parking
+                        Parking
                       </label>
                       <Input
                         name="parking"
@@ -508,23 +732,21 @@ const AdminEditProperty = () => {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Équipements
+                      Amenities
                     </label>
                     <Textarea
                       name="amenities"
                       value={formData.amenities}
                       onChange={handleInputChange}
-                      placeholder="Climatisation, Chauffage central, Cuisine équipée..."
+                      placeholder="Air conditioning, Heating..."
                       rows={3}
                     />
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Images */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -533,10 +755,9 @@ const AdminEditProperty = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Main Image */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Image principale *
+                      Main Image *
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -552,7 +773,7 @@ const AdminEditProperty = () => {
                           className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          Changer image principale
+                          Change Image
                         </label>
                         {mainImageFile && (
                           <span className="text-sm text-muted-foreground">
@@ -560,26 +781,24 @@ const AdminEditProperty = () => {
                           </span>
                         )}
                       </div>
-
                       <div className="border-t pt-4">
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Ou modifier l'URL d'image
+                          Edit Image URL
                         </label>
                         <Input
                           name="mainImage"
                           value={formData.mainImage}
                           onChange={handleInputChange}
-                          placeholder="https://exemple.com/image.jpg"
+                          placeholder="https://example.com/image.jpg"
                         />
                       </div>
                     </div>
-
                     {(mainImagePreview || formData.mainImage) && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium text-foreground mb-2">Image principale actuelle:</p>
+                        <p className="text-sm font-medium text-foreground mb-2">Current Image:</p>
                         <img
                           src={mainImagePreview || formData.mainImage}
-                          alt="Aperçu"
+                          alt="Preview"
                           className="w-full h-48 object-cover rounded-lg border"
                           onError={(e) => {
                             e.currentTarget.src = "/api/placeholder/600/400";
@@ -589,10 +808,9 @@ const AdminEditProperty = () => {
                     )}
                   </div>
 
-                  {/* Additional Images */}
                   <div className="border-t pt-4">
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Images supplémentaires
+                      Additional Images
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -609,36 +827,42 @@ const AdminEditProperty = () => {
                           className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2" />
-                          Ajouter des images
+                          Add Images
                         </label>
                         <span className="text-sm text-muted-foreground">
-                          {additionalImageFiles.length} nouvelle(s) image(s) sélectionnée(s)
+                          {additionalImageFiles.length} new
                         </span>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
-                          Ou modifier les URLs d'images
+                          Edit URLs (one per line)
                         </label>
                         <Textarea
                           name="additionalImages"
-                          value={formData.additionalImages}
-                          onChange={handleInputChange}
-                          placeholder="URLs des images séparées par des virgules"
+                          value={formData.additionalImages.join('\n')}
+                          onChange={(e) => {
+                            const urls = e.target.value
+                              .split('\n')
+                              .map(url => url.trim())
+                              .filter(url => url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')));
+                            setFormData(prev => ({
+                              ...prev,
+                              additionalImages: urls
+                            }));
+                          }}
+                          placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
                           rows={3}
                         />
                       </div>
-
-                      {/* Additional Images Preview */}
                       {additionalImagePreviews.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-foreground mb-2">Images supplémentaires:</p>
+                          <p className="text-sm font-medium text-foreground mb-2">Preview:</p>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {additionalImagePreviews.map((preview, index) => (
                               <div key={index} className="relative">
                                 <img
                                   src={preview}
-                                  alt={`Aperçu ${index + 1}`}
+                                  alt={`Preview ${index + 1}`}
                                   className="w-full h-32 object-cover rounded-lg border"
                                 />
                                 <button
@@ -659,20 +883,18 @@ const AdminEditProperty = () => {
               </Card>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
-              {/* Status & Features */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Star className="w-5 h-5" />
-                    <span>Statut & Options</span>
+                    <span>Status & Options</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                      Statut de la propriété
+                      Status
                     </label>
                     <select
                       name="status"
@@ -680,13 +902,12 @@ const AdminEditProperty = () => {
                       onChange={handleInputChange}
                       className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                     >
-                      <option value="available">Disponible</option>
-                      <option value="sold">Vendu</option>
-                      <option value="pending">En attente</option>
-                      <option value="draft">Brouillon</option>
+                      <option value="available">Available</option>
+                      <option value="sold">Sold</option>
+                      <option value="pending">Pending</option>
+                      <option value="draft">Draft</option>
                     </select>
                   </div>
-
                   <div className="space-y-3">
                     <label className="flex items-center space-x-2">
                       <input
@@ -696,9 +917,8 @@ const AdminEditProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Propriété vedette</span>
+                      <span className="text-sm font-medium">Featured</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -707,9 +927,8 @@ const AdminEditProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Jardin</span>
+                      <span className="text-sm font-medium">Garden</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -718,9 +937,8 @@ const AdminEditProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Piscine</span>
+                      <span className="text-sm font-medium">Pool</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -729,9 +947,8 @@ const AdminEditProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Sécurité 24h/24</span>
+                      <span className="text-sm font-medium">24/7 Security</span>
                     </label>
-
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -740,40 +957,39 @@ const AdminEditProperty = () => {
                         onChange={handleInputChange}
                         className="rounded border-input"
                       />
-                      <span className="text-sm font-medium">Meublé</span>
+                      <span className="text-sm font-medium">Furnished</span>
                     </label>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Preview */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Eye className="w-5 h-5" />
-                    <span>Aperçu</span>
+                    <span>Preview</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {formData.featured && (
-                      <Badge className="luxury-gradient text-white">Vedette</Badge>
+                      <Badge className="luxury-gradient text-white">Featured</Badge>
                     )}
                     <h3 className="font-bold text-foreground">
-                      {formData.title || "Titre de la propriété"}
+                      {formData.title || "Title"}
                     </h3>
                     <div className="flex items-center space-x-1 text-muted-foreground">
                       <MapPin className="w-4 h-4" />
                       <span className="text-sm">
                         {formData.location && formData.city 
                           ? `${formData.location}, ${formData.city}`
-                          : "Localisation"}
+                          : "Location"}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1 text-primary">
                       <DollarSign className="w-4 h-4" />
                       <span className="font-bold">
-                        {formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Prix"}
+                        {formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Price"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">

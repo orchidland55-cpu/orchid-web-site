@@ -28,20 +28,16 @@ const getDashboardStats = async (req, res) => {
       createdAt: { $gte: startOfWeek }
     });
 
-    // 3️⃣ Calculer les vues totales réelles à partir des articles
-    const articlesWithViews = await mongoose.connection.db.collection('articles').find({}).toArray();
-    const totalViews = articlesWithViews.reduce((sum, article) => sum + (article.views || 0), 0);
+    // 3️⃣ Calculer les vues totales à partir des analytics (par pays)
+    const countryViews = await mongoose.connection.db.collection('countryviews').find({}).toArray();
+    const totalViews = countryViews.reduce((sum, country) => sum + (country.vues || 0), 0);
 
-    // Calculer la croissance des vues (vues du mois dernier vs ce mois)
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    // Calculer la croissance des vues (comparaison avec le mois dernier depuis monthlyviews)
+    const monthlyViews = await mongoose.connection.db.collection('monthlyviews').find({}).toArray();
+    const currentMonthViews = monthlyViews.reduce((sum, day) => sum + (day.moisActuel || 0), 0);
+    const previousMonthViews = monthlyViews.reduce((sum, day) => sum + (day.moisPrecedent || 0), 0);
 
-    const articlesLastMonth = await mongoose.connection.db.collection('articles').find({
-      createdAt: { $gte: lastMonth, $lt: startOfMonth }
-    }).toArray();
-    const viewsLastMonth = articlesLastMonth.reduce((sum, article) => sum + (article.views || 0), 0);
-
-    const viewsGrowth = viewsLastMonth > 0 ? Math.round(((totalViews - viewsLastMonth) / viewsLastMonth) * 100) : 0;
+    const viewsGrowth = previousMonthViews > 0 ? Math.round(((currentMonthViews - previousMonthViews) / previousMonthViews) * 100) : 0;
 
     // 4️⃣ Compter les demandes de contact
     const totalContacts = await mongoose.connection.db.collection('contacts').countDocuments();

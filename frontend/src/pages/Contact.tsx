@@ -39,10 +39,61 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Contact form submitted:", formData);
-    // Handle form submission here
+    setIsSubmitting(true);
+    setSubmitMessage("");
+
+    try {
+      const response = await fetch('http://localhost:3000/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setSubmitMessage("✅ Message sent successfully! We will respond to you soon.");
+
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+          propertyType: ""
+        });
+      } else {
+        const error = await response.json();
+
+        // If it's just an email issue, but data is saved
+        if (error.details && error.details.includes('Invalid login')) {
+          setSubmitMessage("✅ Your message has been received and saved! (Email temporarily unavailable)");
+
+          // Reset form since data is saved
+          setFormData({
+            name: "",
+            email: "",
+            phone: "",
+            subject: "",
+            message: "",
+            propertyType: ""
+          });
+        } else {
+          setSubmitMessage("❌ Error sending. Please try again.");
+        }
+      }
+    } catch (error) {
+      setSubmitMessage("❌ Connection error. Please check that the backend is running.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -244,9 +295,25 @@ const Contact = () => {
                     />
                   </div>
 
-                  <Button type="submit" variant="luxury" size="lg" className="w-full">
+                  {submitMessage && (
+                    <div className={`p-4 rounded-md mb-4 ${
+                      submitMessage.includes('✅')
+                        ? 'bg-green-50 text-green-800 border border-green-200'
+                        : 'bg-red-50 text-red-800 border border-red-200'
+                    }`}>
+                      {submitMessage}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="luxury"
+                    size="lg"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
                     <Send className="w-5 h-5 mr-2" />
-                    Send Message
+                    {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </div>
@@ -299,7 +366,7 @@ const Contact = () => {
                     onClick={() => setIsScheduleModalOpen(true)}
                   >
                     <Calendar className="w-5 h-5 mr-2" />
-                    Schedule a Meeting
+                    Schedule a Visit
                   </Button>
                 </div>
               </div>

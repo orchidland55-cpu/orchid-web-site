@@ -1,0 +1,6 @@
+action_endpoint:
+  url: "http://localhost:5055/webhook"
+
+# Pour éviter les erreurs CORS avec ton frontend React
+cors_origins:
+  - "*"

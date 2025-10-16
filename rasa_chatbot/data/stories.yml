@@ -1,0 +1,44 @@
+version: "3.1"
+
+stories:
+  - story: User wants to invest
+    steps:
+      - intent: want_to_invest
+      - action: utter_want_to_invest
+
+  - story: User wants to sell
+    steps:
+      - intent: want_to_sell
+      - action: utter_want_to_sell
+
+  - story: User wants to schedule a visit
+    steps:
+      - intent: schedule_visit
+      - action: utter_schedule_visit
+
+  - story: User asks to contact agent
+    steps:
+      - intent: contact_agent
+      - action: utter_contact_agent
+
+  - story: User asks about services
+    steps:
+      - intent: ask_about_services
+      - action: utter_ask_about_services
+
+  - story: User asks pricing
+    steps:
+      - intent: ask_pricing
+      - action: utter_ask_pricing
+
+  - story: User thanks
+    steps:
+      - intent: thank_you
+      - action: utter_thank_you
+
+  - story: User wants to apply and confirms
+    steps:
+      - intent: demander_postulation
+      - action: utter_demander_postulation
+      - intent: affirm
+      - action: utter_guider_postulation

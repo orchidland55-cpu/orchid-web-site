@@ -1,0 +1,193 @@
+{
+  "header": {
+    "home": "Accueil",
+    "about": "À propos",
+    "properties": "Propriétés",
+    "articles": "Articles",
+    "blog": "Blog",
+    "invest": "INVESTIR ! (Nouveau)",
+    "contact": "Nous contacter"
+  },
+  "hero": {
+    "badge": "Propriétés de Luxe Exclusives",
+    "title": "Orchid Island",
+    "subtitle": "Immobilier",
+    "tagline": "L'Adresse que Vous Retiendrez Toujours",
+    "features": {
+      "exclusiveSales": "Vente de propriétés exclusives",
+      "customAcquisition": "Acquisition personnalisée",
+      "highEndRental": "Location haut de gamme"
+    },
+    "cta": "Découvrir nos propriétés",
+    "scroll": "Défiler vers le bas"
+  },
+  "footer": {
+    "brand": {
+      "description": "Votre partenaire de confiance pour l'immobilier de luxe au Maroc. The Address You'll Always Remember."
+    },
+    "services": {
+      "title": "Nos Services",
+      "propertySales": "Vente de Propriétés",
+      "customAcquisition": "Acquisition sur Mesure",
+      "highEndRental": "Location Haut de Gamme",
+      "investmentAdvice": "Conseil en Investissement",
+      "wealthManagement": "Gestion Patrimoniale"
+    },
+    "contact": {
+      "title": "Contact",
+      "address": {
+        "line1": "Boulevard Mohammed V",
+        "line2": "Casablanca 20000, Maroc"
+      },
+      "phone": "+212 5 22 XX XX XX",
+      "email": "contact@orchidisland.ma"
+    },
+    "newsletter": {
+      "title": "Newsletter",
+      "description": "Recevez nos dernières actualités et propriétés exclusives.",
+      "apply": "Postuler"
+    },
+    "bottom": {
+      "copyright": "© 2024 Orchid Island. Tous droits réservés.",
+      "privacyPolicy": "Politique de Confidentialité",
+      "termsOfUse": "Conditions d'Utilisation",
+      "legalNotice": "Mentions Légales"
+    }
+  },
+  "properties": {
+    "title": "Nos Propriétés Exceptionnelles",
+    "subtitle": "Découvrez notre sélection exclusive de propriétés de luxe au Maroc",
+    "loading": "Chargement des propriétés...",
+    "pleaseWait": "Veuillez patienter",
+    "searchPlaceholder": "Rechercher une propriété...",
+    "allTypes": "Tous les Types",
+    "allPrices": "Tous les Prix",
+    "results": "propriété",
+    "resultsPlural": "propriétés",
+    "found": "trouvée(s)",
+    "available": "Disponible",
+    "sold": "Vendu",
+    "featured": "En Vedette",
+    "viewDetails": "Voir les Détails",
+    "bedrooms": "Chambres",
+    "bathrooms": "Salles de Bain",
+    "builtIn": "Construit en",
+    "noProperties": "Aucune propriété trouvée",
+    "adjustSearch": "Essayez d'ajuster vos critères de recherche"
+  },
+  "blog": {
+    "insights": "Perspectives Immobilières",
+    "title": "Immobilier de Luxe",
+    "subtitle": "Blog",
+    "description": "Restez informé des dernières tendances, insights et analyses d'experts dans les marchés immobiliers de luxe.",
+    "allPosts": "Tous les Articles",
+    "marketAnalysis": "Analyse de Marché",
+    "investment": "Investissement",
+    "locationSpotlight": "Spotlight sur les Lieux",
+    "sustainability": "Durabilité",
+    "technology": "Technologie",
+    "globalMarkets": "Marchés Mondiaux",
+    "featuredArticle": "Article en Vedette",
+    "readFullArticle": "Lire l'Article Complet",
+    "latestArticles": "Derniers Articles",
+    "expertInsights": "Perspectives d'experts et analyses de marché de notre équipe de professionnels de l'immobilier",
+    "loading": "Chargement des articles...",
+    "noArticles": "Aucun article dans cette catégorie.",
+    "loadMore": "Charger Plus d'Articles"
+  },
+  "about": {
+    "badge": "À Propos",
+    "title": "Orchid",
+    "subtitle": "Island",
+    "description": "Votre partenaire de confiance dans l'immobilier de prestige au Maroc. Depuis plus de 15 ans, nous accompagnons nos clients dans leurs projets immobiliers les plus ambitieux.",
+    "stats": {
+      "years": "Années d'expérience",
+      "properties": "Propriétés vendues",
+      "clients": "Clients satisfaits",
+      "partners": "Partenaires de confiance"
+    },
+    "story": {
+      "title": "Notre Histoire",
+      "description1": "Fondée en 2008, Orchid Island est née de la vision de créer une agence immobilière différente, axée sur l'excellence du service et la satisfaction client. Nous nous spécialisons dans l'immobilier haut de gamme à travers le Maroc.",
+      "description2": "Notre équipe d'experts passionnés vous accompagne à chaque étape de votre projet immobilier, que ce soit pour l'achat, la vente ou l'investissement dans des propriétés exceptionnelles.",
+      "features": [
+        "Expertise reconnue dans l'immobilier de luxe",
+        "Réseau étendu de partenaires de confiance",
+        "Service personnalisé et accompagnement complet",
+        "Connaissance approfondie du marché marocain"
+      ]
+    },
+    "values": {
+      "title": "Nos Valeurs",
+      "subtitle": "Les principes qui guident notre action quotidienne et notre engagement envers nos clients.",
+      "trust": {
+        "title": "Confiance",
+        "description": "Nous construisons des relations durables basées sur la transparence et l'intégrité."
+      },
+      "excellence": {
+        "title": "Excellence",
+        "description": "Nous nous efforçons d'exceller dans chaque transaction et service que nous offrons."
+      },
+      "passion": {
+        "title": "Passion",
+        "description": "Notre passion pour l'immobilier nous motive à dépasser vos attentes."
+      },
+      "innovation": {
+        "title": "Innovation",
+        "description": "Nous utilisons les dernières technologies pour optimiser votre expérience."
+      }
+    },
+    "team": {
+      "title": "Notre Équipe",
+      "subtitle": "Professionnels expérimentés et passionnés, dédiés à votre succès immobilier."
+    },
+    "mission": {
+      "title": "Notre Mission",
+      "description": "Accompagner nos clients dans la réalisation de leurs projets immobiliers en offrant un service excellent, des conseils éclairés et un soutien personnalisé. Nous nous engageons à créer de la valeur durable pour nos clients et partenaires."
+    },
+    "vision": {
+      "title": "Notre Vision",
+      "description": "Devenir la référence incontestée dans l'immobilier de prestige au Maroc, reconnue pour notre expertise, notre intégrité et notre capacité d'innovation. Nous aspirons à transformer l'expérience immobilière de nos clients."
+    },
+    "marrakech": {
+      "title": "Notre Présence à Marrakech",
+      "subtitle": "Découvrez nos domaines d'expertise dans la Perle du Sud et nos propriétés exclusives dans les quartiers les plus prestigieux de Marrakech.",
+      "mapTitle": "Carte Interactive de Marrakech",
+      "mapSubtitle": "Zones de prestige et propriétés exclusives",
+      "description": "Marrakech représente l'un de nos marchés les plus dynamiques avec plus de 420 propriétés de prestige dans notre portefeuille. Notre expertise locale nous permet d'offrir les meilleures opportunités d'investissement.",
+      "districts": {
+        "palmeraie": {
+          "title": "Palmeraie",
+          "description": "Villas de luxe avec piscines privées et jardins paysagers. Prix moyen : 8-25M DH"
+        },
+        "hivernage": {
+          "title": "Hivernage",
+          "description": "Quartier moderne avec appartements haut de gamme et riads rénovés. Prix moyen : 3-12M DH"
+        },
+        "gueliz": {
+          "title": "Gueliz",
+          "description": "Centre-ville moderne avec penthouses et bureaux premium. Prix moyen : 2-8M DH"
+        }
+      },
+      "office": {
+        "title": "Bureau Marrakech",
+        "address": "Avenue Mohammed VI, Résidence Al Manar, Gueliz",
+        "phone": "+212 524 43 21 87",
+        "email": "marrakech@orchidisland.ma"
+      }
+    },
+    "community": {
+      "title": "Notre Engagement envers la Communauté",
+      "subtitle": "Soutien aux Communautés Locales",
+      "description": "Chez Orchid Island, nous croyons fermement au développement durable et au soutien des communautés locales. Notre engagement va au-delà de l'immobilier pour créer un impact positif sur la société marocaine.",
+      "description2": "Découvrez comment nous collaborons avec les associations locales pour améliorer la vie communautaire et contribuer au développement social du Maroc.",
+      "cta": "Découvrez Notre Engagement"
+    },
+    "cta": {
+      "title": "Prêt à Démarrer Votre Projet ?",
+      "subtitle": "Contactez notre équipe d'experts pour une consultation personnalisée et découvrez comment nous pouvons vous aider à réaliser vos ambitions immobilières.",
+      "contact": "Nous Contacter",
+      "viewProperties": "Voir Nos Propriétés"
+    }
+  }
+}

@@ -1,37 +1,78 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const news = [
-  {
-    id: 1,
-    title: "Tendances du Marché Immobilier Luxe 2024",
-    excerpt: "Analyse complète des évolutions du marché immobilier haut de gamme au Maroc et perspectives d'investissement.",
-    category: "Market Insights",
-    featured: true,
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-  },
-  {
-    id: 2,
-    title: "Nouveau Projet Exclusif à Casablanca",
-    excerpt: "Découvrez notre dernière acquisition : un penthouse exceptionnel avec vue panoramique sur l'océan.",
-    category: "Nouveauté",
-    featured: false,
-    image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-  },
-  {
-    id: 3,
-    title: "Guide d'Investissement Immobilier Maroc",
-    excerpt: "Conseils d'experts pour investir dans l'immobilier de luxe au Maroc : opportunités et stratégies gagnantes.",
-    category: "Investissement",
-    featured: false,
-    image: "https://images.unsplash.com/photo-1554469384-e58fac16e23a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-  },
-];
+import { apiService, Article } from "@/services/api";
 
 const News = () => {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      setLoading(true);
+      try {
+        const articlesData = await apiService.getAllArticles();
+        console.log("🚀 Articles received from backend:", articlesData); // DEBUG
+
+        // Filter only published articles (status: "published")
+        const publishedArticles = articlesData.filter(
+          (article) => article.status === "published"
+        );
+
+        setArticles(publishedArticles);
+      } catch (err) {
+        console.error("❌ Error loading articles:", err);
+        setError("Unable to load articles. Please ensure the backend is running.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArticles();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <section id="news" className="py-20 bg-background">
+        <div className="container mx-auto px-6 text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="font-lora text-lg">Loading articles...</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section id="news" className="py-20 bg-background">
+        <div className="container mx-auto px-6 text-center">
+          <p className="font-lora text-red-500 text-lg">{error}</p>
+          <p className="text-muted-foreground mt-2">
+            Make sure the backend is running at <code>http://localhost:3000</code>
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Select featured article (or first one)
+  const featuredArticle = articles.find((a) => a.featured) || articles[0];
+  // Take next 2 articles (or first 2 if no featured)
+  const otherArticles = featuredArticle
+    ? articles.filter((a) => a._id !== featuredArticle._id).slice(0, 2)
+    : articles.slice(0, 2);
+
+  // Utility function to truncate text
+  const truncate = (str: string, n: number) => {
+    return str?.length > n ? str.slice(0, n - 1) + "…" : str || "";
+  };
+
   return (
     <section id="news" className="py-20 bg-background">
       <div className="container mx-auto px-6">
@@ -39,96 +80,101 @@ const News = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-cream/50 rounded-full px-6 py-2 mb-6">
             <div className="w-2 h-2 luxury-gradient rounded-full"></div>
-            <span className="text-deep-blue font-lora text-sm font-bold">Actualités</span>
+            <span className="text-deep-blue font-lora text-sm font-bold">News</span>
           </div>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Our Latest <span className="luxury-gradient bg-clip-text text-transparent">News</span>
+            Our latest <span className="luxury-gradient bg-clip-text text-transparent">articles</span>
           </h2>
           <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-            Restez informé des dernières tendances du marché immobilier de luxe, 
-            de nos nouveaux projets et de nos conseils d'experts.
+            Stay informed about the latest luxury real estate trends, expert advice, and market insights.
           </p>
         </div>
 
-        {/* News Grid */}
+        {/* Articles Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Featured Article */}
-        {/* Featured Article (center) */}
-<div className="lg:col-span-2 flex">
-  <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full">
-    <div className="relative h-full">
-      {/* Image */}
-      <img
-        src={news[0].image}
-        alt={news[0].title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
+          {/* Featured Article (Large) */}
+          {featuredArticle && (
+            <div className="lg:col-span-2 flex">
+              <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full">
+                <div className="relative h-full">
+                  <img
+                    src={featuredArticle.image || "/placeholder-article.jpg"}
+                    alt={featuredArticle.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="font-lora text-center text-white p-8">
+                      <Badge className="luxury-gradient text-primary-foreground font-lora mb-4">
+                        {featuredArticle.category || "Advice"}
+                      </Badge>
+                      <h3 className="font-playfair text-3xl font-bold mb-4">
+                        {featuredArticle.title}
+                      </h3>
+                      <p className="font-lora text-white/90 text-lg leading-relaxed mb-6">
+                        {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
+                      </p>
+                      <Link to={`/blog/${featuredArticle._id}`}>
+                        <Button variant="luxury" className="w-fit">
+                          Read Article
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                  {featuredArticle.featured && (
+                    <div className="absolute top-4 right-4">
+                      <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
+                        Featured
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
 
-      {/* Overlay dégradé */}
-      <div className=" absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
-
-      {/* Contenu en overlay */}
-      <div className=" absolute inset-0 flex items-center justify-center">
-        <div className="font-lora text-center text-white p-8">
-          <Badge className="luxury-gradient text-primary-foreground font-lora mb-4">
-            {news[0].category}
-          </Badge>
-          <h3 className="font-playfair text-3xl font-bold mb-4">
-            {news[0].title}
-          </h3>
-          <p className="font-lora text-white/90 text-lg leading-relaxed mb-6">
-            {news[0].excerpt}
-          </p>
-          <Link to={`/blog`}>
-                                <Button variant="luxury" className="w-fit">
-                                  Read Full Article
-                                  <ArrowRight className="w-4 h-4 ml-2" />
-                                </Button>
-                              </Link>
-        </div>
-      </div>
-
-      {/* Badge Featured */}
-      <div className="absolute top-4 right-4">
-        <Badge className=" bg-white/90 backdrop-blur-sm text-charcoal font-lora">
-          Featured
-        </Badge>
-      </div>
-    </div>
-  </Card>
-</div>
-
-
-          {/* Other Articles */}
+          {/* Other Articles (Small cards) */}
           <div className="space-y-6">
-            {news.slice(1).map((article) => (
-              <Card key={article.id} className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card">
-                {/* Article Image */}
+            {otherArticles.map((article) => (
+              <Card
+                key={article._id}
+                className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card"
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={article.image}
+                    src={article.image || "/placeholder-article.jpg"}
                     alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
+                    }}
                   />
                   <div className="absolute top-3 left-3">
                     <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
-                      {article.category}
+                      {article.category || "Read More"}
                     </Badge>
                   </div>
                 </div>
-
                 <CardContent className="p-6">
                   <h3 className="font-playfair text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-smooth">
                     {article.title}
                   </h3>
                   <p className="font-lora text-muted-foreground text-sm mb-4 leading-relaxed">
-                    {article.excerpt}
+                    {truncate(article.excerpt || article.content, 80)}
                   </p>
                   <div className="flex items-center justify-end">
-                    <Link to={`/blog`}>
-                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 p-0 h-auto font-bold font-lora">
-                      Lire →
-                    </Button>
+                    <Link to={`/blog/${article._id}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-primary hover:text-primary/80 p-0 h-auto font-bold font-lora"
+                      >
+                        Read →
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -140,9 +186,9 @@ const News = () => {
         {/* Call to Action */}
         <div className="text-center">
           <Link to={`/blog`}>
-          <Button variant="elegant" size="lg" className="font-playfair text-lg px-10 py-6 h-auto">
-            Voir toutes les actualités
-          </Button>
+            <Button variant="elegant" size="lg" className="font-playfair text-lg px-10 py-6 h-auto">
+              View All Articles
+            </Button>
           </Link>
         </div>
       </div>

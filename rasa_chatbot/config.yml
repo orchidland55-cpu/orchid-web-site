@@ -1,0 +1,55 @@
+version: "3.1"
+
+language: fr
+
+pipeline:
+- name: WhitespaceTokenizer
+  intent_tokenization_flag: true
+  intent_split_symbol: "+"
+
+- name: RegexFeaturizer
+
+- name: LexicalSyntacticFeaturizer
+
+- name: CountVectorsFeaturizer
+  analyzer: "word"
+  min_ngram: 1
+  max_ngram: 3
+
+- name: CountVectorsFeaturizer
+  analyzer: "char_wb"
+  min_ngram: 1
+  max_ngram: 4
+
+- name: DIETClassifier
+  epochs: 200
+  batch_size: 64
+    # ❌ SUPPRIME cette ligne :
+    # model_confidence: "cosine"
+  constrain_similarities: true
+
+- name: EntitySynonymMapper
+
+- name: ResponseSelector
+  epochs: 100
+  batch_size: 64
+  constrain_similarities: true
+
+- name: FallbackClassifier
+  threshold: 0.4
+  ambiguity_threshold: 0.1
+
+policies:
+- name: RulePolicy
+  core_fallback_threshold: 0.3
+  core_fallback_action_name: "action_default_fallback"
+
+- name: MemoizationPolicy
+  max_history: 5
+
+- name: TEDPolicy
+  max_history: 7
+  epochs: 200
+  batch_size: 64
+  constrain_similarities: true
+assistant_id: 20250919-134825-pink-cabinet

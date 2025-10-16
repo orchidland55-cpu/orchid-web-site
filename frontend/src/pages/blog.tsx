@@ -1,19 +1,13 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import blog0 from "@/assets/blog0.jpg";
-import blog1 from "@/assets/blog1.jpg";
-import blog2 from "@/assets/blog2.jpg";
-import blog3 from "@/assets/blog3.jpg";
-import blog4 from "@/assets/blog4.jpg";
-import blog5 from "@/assets/blog5.jpg";
+import { apiService, Article } from "@/services/api";
 import {
   Calendar,
-  Clock,
-  User,
   ArrowRight,
   Eye,
   MessageCircle,
@@ -22,84 +16,47 @@ import {
   Home,
   Building
 } from "lucide-react";
+import ShareButton from "@/components/ShareButton";
 
 const Blog = () => {
-  const blogPosts = [
-    {
-      id: 1,
-      title: "Luxury Real Estate Market Trends 2024",
-      excerpt: "Discover the latest trends shaping the luxury real estate market and what investors should know.",
-      author: "Sarah Johnson",
-      date: "March 15, 2024",
-      readTime: "5 min read",
-      views: "2.1k",
-      comments: 24,
-      category: "Market Analysis",
-      image: blog0,
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Investment Strategies for Premium Properties",
-      excerpt: "Learn proven strategies for maximizing returns on luxury property investments.",
-      author: "Michael Chen",
-      date: "March 12, 2024",
-      readTime: "7 min read",
-      views: "1.8k",
-      comments: 18,
-      category: "Investment",
-      image: blog1,
-    },
-    {
-      id: 3,
-      title: "Orchid Island: A Paradise for Investors",
-      excerpt: "Explore why Orchid Island has become the premier destination for luxury real estate investment.",
-      author: "Emma Rodriguez",
-      date: "March 10, 2024",
-      readTime: "6 min read",
-      views: "3.2k",
-      comments: 35,
-      category: "Location Spotlight",
-      image: blog2,
-    },
-    {
-      id: 4,
-      title: "Sustainable Luxury: Eco-Friendly Properties",
-      excerpt: "How sustainable design is revolutionizing the luxury real estate market.",
-      author: "David Park",
-      date: "March 8, 2024",
-      readTime: "4 min read",
-      views: "1.5k",
-      comments: 12,
-      category: "Sustainability",
-      image: blog3,
-    },
-    {
-      id: 5,
-      title: "Technology in Modern Luxury Homes",
-      excerpt: "Smart home technology trends that are defining luxury living in 2024.",
-      author: "Lisa Wang",
-      date: "March 5, 2024",
-      readTime: "8 min read",
-      views: "2.7k",
-      comments: 28,
-      category: "Technology",
-      image: blog4,
-    },
-    {
-      id: 6,
-      title: "Global Luxury Markets: Opportunities Abroad",
-      excerpt: "International luxury real estate markets offering exceptional investment potential.",
-      author: "James Thompson",
-      date: "March 3, 2024",
-      readTime: "6 min read",
-      views: "1.9k",
-      comments: 21,
-      category: "Global Markets",
-      image: blog5,
-    }
-  ];
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All Posts"); // ✅ New state
 
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.getAllArticles();
+        const publishedArticles = data.filter(article => article.status === 'published');
+        setArticles(publishedArticles);
+      } catch (err) {
+        console.error("Error fetching articles:", err);
+        setError("Error loading articles");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  // ✅ Transform articles for display
+  const blogPosts = articles.map(article => ({
+    id: article._id,
+    title: article.title,
+    excerpt: article.excerpt,
+    author: article.author,
+    date: new Date(article.createdAt).toLocaleDateString('en-US'),
+    views: article.views?.toString() || "0",
+    comments: article.comments || 0,
+    category: article.category, // Must match values in `categories`
+    image: article.image || "/api/placeholder/800/400",
+    featured: article.featured || false
+  }));
+
+  // ✅ List of displayed categories
   const categories = [
     "All Posts",
     "Market Analysis",
@@ -109,6 +66,45 @@ const Blog = () => {
     "Technology",
     "Global Markets"
   ];
+
+  // ✅ Dynamic filtering
+  const filteredPosts = blogPosts.filter(post => {
+    if (selectedCategory === "All Posts") return true;
+    return post.category === selectedCategory; // ✅ Ensure `post.category` matches exactly
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="py-20">
+          <div className="container mx-auto px-6 text-center">
+            <div className="w-16 h-16 luxury-gradient rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Building className="w-8 h-8 text-white" />
+            </div>
+            <p className="text-foreground font-medium">Loading articles...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="py-20">
+          <div className="container mx-auto px-6 text-center">
+            <Building className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Loading Error</h2>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -122,11 +118,11 @@ const Blog = () => {
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Real Estate Insights
               </Badge>
-              <h1 className=" font-playfair text-4xl md:text-6xl font-bold text-foreground mb-6">
+              <h1 className="font-playfair text-4xl md:text-6xl font-bold text-foreground mb-6">
                 Luxury Real Estate
                 <span className="luxury-gradient bg-clip-text text-transparent"> Blog</span>
               </h1>
-              <p className="foont-lora text-xl text-muted-foreground max-w-3xl mx-auto">
+              <p className="font-lora text-xl text-muted-foreground max-w-3xl mx-auto">
                 Stay informed with the latest trends, insights, and expert analysis in luxury real estate markets.
               </p>
             </div>
@@ -137,12 +133,13 @@ const Blog = () => {
         <section className="py-8 bg-background border-b">
           <div className="container mx-auto px-6">
             <div className="font-lora flex flex-wrap gap-2 justify-center">
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <Button
-                  key={index}
-                  variant={index === 0 ? "luxury" : "outline"}
+                  key={category} // ✅ Use category as key
+                  variant={selectedCategory === category ? "luxury" : "outline"}
                   size="sm"
                   className="rounded-full"
+                  onClick={() => setSelectedCategory(category)} // ✅ Click handler
                 >
                   {category}
                 </Button>
@@ -152,11 +149,11 @@ const Blog = () => {
         </section>
 
         {/* Featured Post */}
-        {blogPosts.filter(post => post.featured).map((post) => (
+        {filteredPosts.filter(post => post.featured).map((post) => (
           <section key={post.id} className="py-16 bg-background">
             <div className="container mx-auto px-6">
               <div className="font-lora text-center mb-8">
-                <Badge variant="default" className=" luxury-gradient text-primary-foreground">
+                <Badge variant="default" className="luxury-gradient text-primary-foreground">
                   Featured Article
                 </Badge>
               </div>
@@ -169,7 +166,7 @@ const Blog = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <CardContent className=" p-8 flex flex-col justify-center">
+                  <CardContent className="p-8 flex flex-col justify-center">
                     <Badge variant="secondary" className="font-lora w-fit mb-4">
                       {post.category}
                     </Badge>
@@ -181,16 +178,8 @@ const Blog = () => {
                     </p>
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-6">
                       <div className="flex items-center space-x-1">
-                        <User className="w-4 h-4" />
-                        <span>{post.author}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>{post.date}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{post.readTime}</span>
                       </div>
                     </div>
                     <Link to={`/blog/${post.id}`}>
@@ -219,7 +208,7 @@ const Blog = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {blogPosts.filter(post => !post.featured).map((post) => (
+              {filteredPosts.filter(post => !post.featured).map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
@@ -239,29 +228,25 @@ const Blog = () => {
                       <p className="font-lora text-muted-foreground mb-4 line-clamp-2">
                         {post.excerpt}
                       </p>
-                    
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center space-x-1">
-                        <User className="w-4 h-4" />
-                        <span>{post.author}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{post.readTime}</span>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                      
-                      <Button variant="ghost" size="sm">
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                        {/* Author removed */}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <ShareButton showText={false} />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </Link>
               ))}
             </div>
+
+            {filteredPosts.filter(post => !post.featured).length === 0 && (
+              <div className="text-center py-12">
+                <p className="font-lora text-muted-foreground">No articles in this category.</p>
+              </div>
+            )}
 
             <div className="font-lora text-center mt-12">
               <Button variant="elegant" size="lg">

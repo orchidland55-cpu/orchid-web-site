@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import orchid from "@/assets/orchid1.jpg";
 import {
   Users,
   Award,
@@ -18,7 +17,6 @@ import {
   Phone,
   Mail
 } from "lucide-react";
-import associationHero from "@/assets/association.jpg";
 
 const AboutUs = () => {
   const stats = [
@@ -51,32 +49,32 @@ const AboutUs = () => {
     }
   ];
 
-  const locations = [
-    {
-      city: "Casablanca",
-      description: "Economic center of Morocco",
-      properties: "350+ properties",
-      specialties: ["Marina", "Anfa", "Racine"]
-    },
-    {
-      city: "Rabat",
-      description: "Administrative capital",
-      properties: "280+ properties",
-      specialties: ["Souissi", "Hay Riad", "Agdal"]
-    },
-    {
-      city: "Marrakech",
-      description: "Pearl of the South",
-      properties: "420+ properties",
-      specialties: ["Palmeraie", "Hivernage", "Gueliz"]
-    },
-    {
-      city: "Tangier",
-      description: "Gateway to Europe",
-      properties: "150+ properties",
-      specialties: ["Marina Bay", "Malabata", "California"]
-    }
-  ];
+  // const locations = [
+  //   {
+  //     city: "Casablanca",
+  //     description: "Economic center of Morocco",
+  //     properties: "350+ properties",
+  //     specialties: ["Marina", "Anfa", "Racine"]
+  //   },
+  //   {
+  //     city: "Rabat",
+  //     description: "Administrative capital",
+  //     properties: "280+ properties",
+  //     specialties: ["Souissi", "Hay Riad", "Agdal"]
+  //   },
+  //   {
+  //     city: "Marrakech",
+  //     description: "Pearl of the South",
+  //     properties: "420+ properties",
+  //     specialties: ["Palmeraie", "Hivernage", "Gueliz"]
+  //   },
+  //   {
+  //     city: "Tangier",
+  //     description: "Gateway to Europe",
+  //     properties: "150+ properties",
+  //     specialties: ["Marina Bay", "Malabata", "California"]
+  //   }
+  // ];
 
   const values = [
     {
@@ -223,7 +221,7 @@ const AboutUs = () => {
   <div className="relative">
     <div className="w-full h-96 bg-gradient-to-br from-cream to-light-gray rounded-lg shadow-elegant overflow-hidden">
       <img 
-        src={orchid} 
+        src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289706/orchid1_pwgnej.jpg" 
         alt="Orchid Island Real Estate" 
         className="w-full h-full object-cover rounded-lg"
       />
@@ -473,7 +471,7 @@ const AboutUs = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
               <img
-                src={associationHero}
+                src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/association_nark1e.jpg"
                 alt="Community association"
                 className="w-full h-80 object-cover rounded-lg shadow-luxury"
               />

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 // ✅ Import du nouveau composant ShareButton
 import ShareButton from '@/components/ShareButton';
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -181,7 +182,7 @@ const ArticleDetail = () => {
                   {/* Hero Image */}
                   <div className="mb-12">
                     <img
-                      src={article.image || "/fallback.jpg"}
+                      src={getCloudinaryUrl(article.image, 800, 600) || "/fallback.jpg"}
                       alt={article.title}
                       className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
                     />
@@ -203,7 +204,7 @@ const ArticleDetail = () => {
                       <CardHeader className="p-0">
                         <div className="relative">
                           <img
-                            src={article.image || "/fallback.jpg"}
+                            src={getCloudinaryUrl(article.image, 800, 600) || "/fallback.jpg"}
                             alt={article.title}
                             className="w-full h-48 object-cover rounded-t-lg"
                           />
@@ -260,7 +261,7 @@ const ArticleDetail = () => {
                               >
                                 <div className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                                   <img
-                                    src={recent.image || "/fallback.jpg"}
+                                    src={getCloudinaryUrl(recent.image, 800, 600) || "/fallback.jpg"}
                                     alt={recent.title}
                                     className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                                   />
@@ -339,7 +340,7 @@ const ArticleDetail = () => {
                                 <div className="relative overflow-hidden rounded-t-lg">
                                   <img
                                     src={
-                                      relatedArticle.image ||
+                                      getCloudinaryUrl(relatedArticle.image, 400, 300) ||
                                       "/api/placeholder/400/300"
                                     }
                                     alt={relatedArticle.title}

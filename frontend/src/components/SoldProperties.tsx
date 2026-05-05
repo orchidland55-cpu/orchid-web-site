@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const SoldProperties = () => {
   const [soldProperties, setSoldProperties] = useState<Property[]>([]);

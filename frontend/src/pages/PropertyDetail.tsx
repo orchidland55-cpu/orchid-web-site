@@ -31,6 +31,8 @@ const PropertyDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
 
   useEffect(() => {
     if (!id) {
@@ -228,7 +230,8 @@ const PropertyDetail = () => {
                       <img
                         src={image}
                         alt={`${property.title} - Image ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-pointer"
+                        onClick={() => setSelectedImage(image)}
                         onError={(e) => {
                           console.error("❌ Image failed to load at index:", index);
                           e.currentTarget.src = "https://placehold.co/1200x800/f3f4f6/374151?text=Load+error";
@@ -237,7 +240,7 @@ const PropertyDetail = () => {
                           console.log("✅ Image", index + 1, "loaded successfully");
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 pointer-events-none"></div>
                     </div>
                   ))
                 ) : (
@@ -296,6 +299,26 @@ const PropertyDetail = () => {
             </div>
           </div>
         </section>
+        {selectedImage !== null && (
+          <div
+           className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
+           onClick={() => setSelectedImage(null)}
+          >
+           <img
+              src={selectedImage}
+              className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+           {/* bouton fermer */}
+            <button
+             className="absolute top-6 right-6 text-white text-3xl"
+              onClick={() => setSelectedImage(null)}
+           >
+             ✕
+           </button>
+          </div>
+        )}
 
         {/* ✅ HORIZONTAL + CENTERED + TEXT-FREE Thumbnail Gallery */}
         {imagesToShow.length > 1 && (

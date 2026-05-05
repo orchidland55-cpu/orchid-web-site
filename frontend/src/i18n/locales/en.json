@@ -36,10 +36,10 @@
     "contact": {
       "title": "Contact",
       "address": {
-        "line1": "Boulevard Mohammed V",
-        "line2": "Casablanca 20000, Morocco"
+        "line1": "Centre d’affaire Oualid, Jbel Gueliz 10,",
+        "line2": " 40010 Marrakech, Morocco"
       },
-      "phone": "+212 5 22 XX XX XX",
+      "phone": "+212 6 18 68 88 88",
       "email": "contact@orchidisland.ma"
     },
     "newsletter": {
@@ -48,7 +48,7 @@
       "apply": "Apply"
     },
     "bottom": {
-      "copyright": "© 2024 Orchid Island. All rights reserved.",
+      "copyright": "© {{year}} Orchid Island. All rights reserved.",
       "privacyPolicy": "Privacy Policy",
       "termsOfUse": "Terms of Use",
       "legalNotice": "Legal Notice"

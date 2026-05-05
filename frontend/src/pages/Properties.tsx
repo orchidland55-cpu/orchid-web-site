@@ -9,35 +9,41 @@ import {
   Bed,
   Bath,
   Square,
-  Star,
   Eye,
   ArrowRight,
-  Building
+  Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const PropertiesPage = () => {
-  const { t } = useTranslation();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [priceRange, setPriceRange] = useState("all");
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
 
   useEffect(() => {
     loadProperties();
   }, []);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, priceRange]);
+
   const loadProperties = async () => {
     setIsLoading(true);
     try {
       const propertiesData = await apiService.getAllProperties();
-      // Filter only publicly available or sold properties
       const availableProperties = propertiesData.filter(property =>
         property.status === 'available' || property.status === 'sold'
       );
@@ -64,27 +70,153 @@ const PropertiesPage = () => {
     }).format(price) + ' MAD';
   };
 
-  // Filter properties based on search and filters
+  // Extraire les types uniques de propriétés
+  const propertyTypes = Array.from(
+    new Set(properties.map(property => property.type).filter(Boolean))
+  ).sort();
+
   const filteredProperties = properties.filter(property => {
     const searchText = `${property.title} ${property.location} ${property.city}`.toLowerCase();
     const matchesSearch = searchText.includes(searchTerm.toLowerCase());
-
     const matchesType = filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
-
     const matchesPrice = (() => {
       switch (priceRange) {
-        case "0-5M": return property.price <= 5000000;
-        case "5M-15M": return property.price > 5000000 && property.price <= 15000000;
-        case "15M-30M": return property.price > 15000000 && property.price <= 30000000;
-        case "30M+": return property.price > 30000000;
-        default: return true;
+        case "0-5M":   return property.price <= 5000000;
+        case "5M-15M": return property.price > 5000000  && property.price <= 15000000;
+        case "15M-30M":return property.price > 15000000 && property.price <= 30000000;
+        case "30M+":   return property.price > 30000000;
+        default:       return true;
       }
     })();
-
     return matchesSearch && matchesType && matchesPrice;
   });
 
-  const propertyTypes = ["all", "Villa", "Penthouse", "Apartment", "Chalet", "Riad", "Duplex", "Studio", "House"];
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProperties = filteredProperties
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const siblingCount = 1;
+    const pageNumbers: (number | string)[] = [];
+
+    // Toujours afficher la première page
+    pageNumbers.push(1);
+
+    // Calculer la plage de pages à afficher autour de la page actuelle
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
+
+    // Afficher les pointillés à gauche si nécessaire
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 1;
+
+    // Si on est proche du début (pages 1-4)
+    if (!showLeftDots && showRightDots) {
+      const leftRange = 3 + 2 * siblingCount;
+      for (let i = 2; i <= Math.min(leftRange, totalPages - 1); i++) {
+        pageNumbers.push(i);
+      }
+      if (totalPages > leftRange + 1) {
+        pageNumbers.push('...');
+      }
+    }
+    // Si on est proche de la fin
+    else if (showLeftDots && !showRightDots) {
+      pageNumbers.push('...');
+      const rightRange = 3 + 2 * siblingCount;
+      for (let i = Math.max(totalPages - rightRange, 2); i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    // Si on est au milieu
+    else if (showLeftDots && showRightDots) {
+      pageNumbers.push('...');
+      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+        pageNumbers.push(i);
+      }
+      pageNumbers.push('...');
+    }
+    // Si le nombre total de pages est petit (moins de 7 pages)
+    else {
+      for (let i = 2; i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+
+    // Toujours afficher la dernière page (si elle existe et n'est pas la première)
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+
+    return (
+      <div className="flex flex-col items-center space-y-4 mt-12">
+        {/* Navigation avec boutons */}
+        <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="min-w-[90px]"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+
+          <div className="flex items-center space-x-1">
+            {pageNumbers.map((pageNumber, index) => {
+              if (pageNumber === '...') {
+                return (
+                  <span key={`dots-${index}`} className="px-3 text-muted-foreground">
+                    ...
+                  </span>
+                );
+              }
+
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "luxury" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNumber as number)}
+                  className={`min-w-[40px] ${currentPage === pageNumber ? "text-white" : ""}`}
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="min-w-[90px]"
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+
+        {/* Info sur la page actuelle */}
+        <p className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </p>
+      </div>
+    );
+  };
 
   const stripHtml = (html: string) => {
     const div = document.createElement('div');
@@ -93,7 +225,7 @@ const PropertiesPage = () => {
   };
 
   return (
-    <PageTransition>
+    // <PageTransition>
       <div className="min-h-screen">
         <Header />
         <main>
@@ -102,10 +234,10 @@ const PropertiesPage = () => {
             <div className="container mx-auto px-6">
               <div className="text-center max-w-4xl mx-auto">
                 <h1 className="text-4xl md:text-6xl font-playfair font-bold text-foreground mb-6">
-                  {t('properties.title')}
+                  Our Exceptional Properties
                 </h1>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  {t('properties.subtitle')}
+                  Discover our exclusive selection of luxury properties in Morocco
                 </p>
               </div>
             </div>
@@ -118,8 +250,8 @@ const PropertiesPage = () => {
                   <div className="w-16 h-16 luxury-gradient rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
                     <Building className="w-8 h-8 text-white" />
                   </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">{t('properties.loading')}</h2>
-                  <p className="text-muted-foreground">{t('properties.pleaseWait')}</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Loading properties...</h2>
+                  <p className="text-muted-foreground">Please wait</p>
                 </div>
               </div>
             </section>
@@ -133,23 +265,24 @@ const PropertiesPage = () => {
                     <div>
                       <Input
                         type="text"
-                        placeholder={t('properties.searchPlaceholder')}
+                        placeholder="Search for a property..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full"
                       />
                     </div>
 
-                    {/* Type Filter */}
+                    {/* Type Filter - Dynamique */}
                     <div>
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        {propertyTypes.map(type => (
+                        <option value="all">All Types</option>
+                        {propertyTypes.map((type) => (
                           <option key={type} value={type}>
-                            {type === "all" ? t('properties.allTypes') : type}
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
                           </option>
                         ))}
                       </select>
@@ -160,9 +293,9 @@ const PropertiesPage = () => {
                       <select
                         value={priceRange}
                         onChange={(e) => setPriceRange(e.target.value)}
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground"
+                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        <option value="all">{t('properties.allPrices')}</option>
+                        <option value="all">All Prices</option>
                         <option value="0-5M">0 - 5M MAD</option>
                         <option value="5M-15M">5M - 15M MAD</option>
                         <option value="15M-30M">15M - 30M MAD</option>
@@ -173,7 +306,13 @@ const PropertiesPage = () => {
                     {/* Results Count */}
                     <div className="flex items-center justify-center md:justify-start">
                       <span className="text-muted-foreground">
-                        {filteredProperties.length} {filteredProperties.length === 1 ? t('properties.results') : t('properties.resultsPlural')} {t('properties.found')}
+                        {filteredProperties.length}{" "}
+                        {filteredProperties.length === 1 ? "property" : "properties"} found
+                        {filteredProperties.length > 0 && (
+                          <span className="text-sm ml-2">
+                            (showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProperties.length)})
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -184,7 +323,7 @@ const PropertiesPage = () => {
               <section className="py-20 bg-background">
                 <div className="container mx-auto px-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProperties.map((property) => (
+                    {currentProperties.map((property) => (
                       <Card key={property._id} className="group overflow-hidden hover:shadow-luxury transition-all duration-500 min-h-[600px]">
                         <div className="relative">
                           {/* Property Image */}
@@ -195,26 +334,26 @@ const PropertiesPage = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
 
-                            {/* 👉 TOP-LEFT: Status Badge (Luxury Gradient Style) */}
+                            {/* TOP-LEFT: Status Badge */}
                             <div className="absolute top-4 left-4 z-10">
                               <Badge className="luxury-gradient text-primary-foreground px-3 py-1 text-xs font-medium">
-                                {property.status === 'available' ? t('properties.available') : t('properties.sold')}
+                                {property.status === 'available' ? "Available" : "Sold"}
                               </Badge>
                             </div>
 
-                            {/* 👉 TOP-RIGHT: Property Type Badge (Luxury Gradient Style) */}
+                            {/* TOP-RIGHT: Property Type Badge */}
                             <div className="absolute top-4 right-4 z-10">
                               <Badge className="luxury-gradient text-primary-foreground px-3 py-1 text-xs font-medium">
                                 {property.type}
                               </Badge>
                             </div>
 
-                            {/* Quick View Button (overlay on hover) */}
+                            {/* Quick View Button */}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                               <Link to={`/properties/${property._id}`}>
                                 <Button variant="secondary" size="sm" className="bg-white/90 text-foreground hover:bg-white">
                                   <Eye className="w-4 h-4 mr-2" />
-                                  {t('properties.viewDetails')}
+                                  View Details
                                 </Button>
                               </Link>
                             </div>
@@ -230,8 +369,6 @@ const PropertiesPage = () => {
                                 <MapPin className="w-4 h-4 mr-1" />
                                 <span className="text-sm">{property.location}, {property.city}</span>
                               </div>
-
-                              {/* ✅ Description tronquée à ~200 caractères avec "..." */}
                               <div
                                 className="text-muted-foreground text-sm leading-relaxed"
                                 dangerouslySetInnerHTML={{
@@ -247,12 +384,12 @@ const PropertiesPage = () => {
                               <div className="text-center">
                                 <Bed className="w-4 h-4 text-primary mx-auto mb-1" />
                                 <span className="text-sm font-medium text-foreground">{property.bedrooms}</span>
-                                <div className="text-xs text-muted-foreground">{t('properties.bedrooms')}</div>
+                                <div className="text-xs text-muted-foreground">Bedrooms</div>
                               </div>
                               <div className="text-center">
                                 <Bath className="w-4 h-4 text-primary mx-auto mb-1" />
                                 <span className="text-sm font-medium text-foreground">{property.bathrooms}</span>
-                                <div className="text-xs text-muted-foreground">{t('properties.bathrooms')}</div>
+                                <div className="text-xs text-muted-foreground">Bathrooms</div>
                               </div>
                               <div className="text-center">
                                 <Square className="w-4 h-4 text-primary mx-auto mb-1" />
@@ -282,7 +419,7 @@ const PropertiesPage = () => {
                                   {formatPrice(property.price)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  {property.yearBuilt && `${t('properties.builtIn')} ${property.yearBuilt}`}
+                                  {property.yearBuilt && `Built in ${property.yearBuilt}`}
                                 </div>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -299,15 +436,18 @@ const PropertiesPage = () => {
                     ))}
                   </div>
 
+                  {/* Pagination */}
+                  {renderPagination()}
+
                   {/* No Results */}
                   {filteredProperties.length === 0 && (
                     <div className="text-center py-20">
                       <Building className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-xl font-semibold text-foreground mb-2">
-                        {t('properties.noProperties')}
+                        No properties found
                       </h3>
                       <p className="text-muted-foreground">
-                        {t('properties.adjustSearch')}
+                        Try adjusting your search criteria
                       </p>
                     </div>
                   )}
@@ -318,7 +458,7 @@ const PropertiesPage = () => {
         </main>
         <Footer />
       </div>
-    </PageTransition>
+    // </PageTransition>
   );
 };
 

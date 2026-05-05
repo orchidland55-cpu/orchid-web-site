@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Partners from "@/components/Partners";
 import Introduction from "@/components/Introduction";
 import Properties from "@/components/Properties";
 import SoldProperties from "@/components/SoldProperties";
@@ -9,6 +8,7 @@ import FAQ from "@/components/FAQ";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
+import OurPartners from "@/components/Ourpartners";
 
 const Index = () => {
   return (
@@ -20,7 +20,7 @@ const Index = () => {
         <Properties />
         <SoldProperties />
         <News />
-        <Partners />
+        <OurPartners />
         <Testimonials />
         <FAQ />
       </main>

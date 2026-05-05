@@ -18,7 +18,9 @@ import {
   Bed,
   Bath,
   Square,
-  User, // ✅ Added
+  User,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { apiService, Property } from "@/services/api";
@@ -31,6 +33,8 @@ const AdminProperties = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -42,6 +46,11 @@ const AdminProperties = () => {
   useEffect(() => {
     fetchProperties();
   }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType]);
 
   const fetchProperties = async () => {
     try {
@@ -56,12 +65,23 @@ const AdminProperties = () => {
     }
   };
 
+  // Extraire les types uniques de propriétés
+  const propertyTypes = Array.from(
+    new Set(properties.map(property => property.type).filter(Boolean))
+  ).sort();
+
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProperties = filteredProperties.slice(indexOfFirstItem, indexOfLastItem);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -91,6 +111,125 @@ const AdminProperties = () => {
         setDeletingId(null);
       }
     }
+  };
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const siblingCount = 1; // Nombre de pages à afficher de chaque côté de la page actuelle
+    const pageNumbers: (number | string)[] = [];
+
+    // Toujours afficher la première page
+    pageNumbers.push(1);
+
+    // Calculer la plage de pages à afficher autour de la page actuelle
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
+
+    // Afficher les pointillés à gauche si nécessaire
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 1;
+
+    // Si on est proche du début (pages 1-4)
+    if (!showLeftDots && showRightDots) {
+      const leftRange = 3 + 2 * siblingCount;
+      for (let i = 2; i <= Math.min(leftRange, totalPages - 1); i++) {
+        pageNumbers.push(i);
+      }
+      if (totalPages > leftRange + 1) {
+        pageNumbers.push('...');
+      }
+    }
+    // Si on est proche de la fin
+    else if (showLeftDots && !showRightDots) {
+      pageNumbers.push('...');
+      const rightRange = 3 + 2 * siblingCount;
+      for (let i = Math.max(totalPages - rightRange, 2); i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    // Si on est au milieu
+    else if (showLeftDots && showRightDots) {
+      pageNumbers.push('...');
+      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+        pageNumbers.push(i);
+      }
+      pageNumbers.push('...');
+    }
+    // Si le nombre total de pages est petit (moins de 7 pages)
+    else {
+      for (let i = 2; i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+
+    // Toujours afficher la dernière page (si elle existe et n'est pas la première)
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+
+    return (
+      <div className="flex flex-col items-center space-y-4 mt-8">
+        {/* Navigation avec boutons */}
+        <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="min-w-[80px]"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+
+          <div className="flex items-center space-x-1">
+            {pageNumbers.map((pageNumber, index) => {
+              if (pageNumber === '...') {
+                return (
+                  <span key={`dots-${index}`} className="px-3 text-muted-foreground">
+                    ...
+                  </span>
+                );
+              }
+
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "luxury" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNumber as number)}
+                  className={`min-w-[40px] ${currentPage === pageNumber ? "text-white" : ""}`}
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="min-w-[80px]"
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+
+        {/* Info sur la page actuelle */}
+        <p className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </p>
+      </div>
+    );
   };
 
   if (loading) {
@@ -197,21 +336,30 @@ const AdminProperties = () => {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-2 border border-input rounded-md bg-background"
+                    className="px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="all">All types</option>
-                    <option value="villa">Villa</option>
-                    <option value="penthouse">Penthouse</option>
-                    <option value="appartement">Apartment</option>
+                    <option value="all">All Types</option>
+                    {propertyTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
+
+              {/* Results count */}
+              {filteredProperties.length > 0 && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                  Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProperties.length)} of {filteredProperties.length} properties
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Properties Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
+            {currentProperties.map((property) => (
               <Card key={property._id} className="hover:shadow-luxury transition-all duration-300 overflow-hidden">
                 <div className="relative">
                   <img
@@ -232,7 +380,7 @@ const AdminProperties = () => {
                 <CardContent className="p-4">
                   <h3 className="text-lg font-bold text-foreground mb-2">{property.title}</h3>
 
-                  {/* ✅ Display person field */}
+                  {/* Display person field */}
                   <div className="flex items-center space-x-1 text-muted-foreground mb-2">
                     <User className="w-4 h-4" />
                     <span className="text-sm">{property.person || "—"}</span>
@@ -284,6 +432,9 @@ const AdminProperties = () => {
               </Card>
             ))}
           </div>
+
+          {/* Pagination */}
+          {renderPagination()}
 
           {filteredProperties.length === 0 && (
             <Card>

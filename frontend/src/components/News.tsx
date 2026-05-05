@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService, Article } from "@/services/api";
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const News = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -98,7 +99,7 @@ const News = () => {
               <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full">
                 <div className="relative h-full">
                   <img
-                    src={featuredArticle.image || "/placeholder-article.jpg"}
+                    src={getCloudinaryUrl(featuredArticle.image) || "/placeholder-article.jpg"}
                     alt={featuredArticle.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
@@ -146,7 +147,7 @@ const News = () => {
               >
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={article.image || "/placeholder-article.jpg"}
+                    src={getCloudinaryUrl(article.image) || "/placeholder-article.jpg"}
                     alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {

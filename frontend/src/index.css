@@ -1,7 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap');
+
 
 /* Orchid Island Luxury Real Estate Design System
 All colors MUST be HSL.
@@ -180,3 +181,30 @@ span {
     transition: var(--transition-smooth);
   }
 }
+
+/* Hide Google Translate toolbar */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+/* Force hide Google Translate bar */
+.goog-te-banner-frame { display: none !important; }
+.skiptranslate { display: none !important; }
+
+body { top: 0 !important; position: static !important; }
+
+/* Hide the injected iframe */
+iframe.goog-te-banner-frame { display: none !important; }
+iframe.skiptranslate { display: none !important; }

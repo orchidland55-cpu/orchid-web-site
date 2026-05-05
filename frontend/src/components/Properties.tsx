@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -125,7 +126,8 @@ const Properties = () => {
 
         {/* Properties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {properties.map((property) => (
+          {[...properties].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+           .map((property) => (
             <Card key={property._id} className="group overflow-hidden hover:shadow-luxury transition-all duration-500 min-h-[500px]">
               <div className="relative">
                 {/* Property Image */}

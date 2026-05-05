@@ -42,196 +42,11 @@ import {
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
-import { apiService, ArticleFormData } from "@/services/api";
+import { apiService, ArticleFormData, Admin } from "@/services/api";
+import { uploadToCloudinary } from "@/services/cloudinary";
+import RichTextEditor from "@/components/RichTextEditor";
 
-const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
-  const editorRef = useRef(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
 
-  useEffect(() => {
-    if (editorRef.current && !isEditorReady) {
-      editorRef.current.innerHTML = value || '';
-      setIsEditorReady(true);
-    }
-  }, [value, isEditorReady]);
-
-  const executeCommand = (command, value = null) => {
-    document.execCommand(command, false, value);
-    handleContentChange();
-  };
-
-  const handleContentChange = () => {
-    if (editorRef.current && onChange) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertLink = () => {
-    const url = prompt('Enter link URL:');
-    if (url) {
-      executeCommand('createLink', url);
-    }
-  };
-
-  const insertImage = () => {
-    const url = prompt('Enter image URL:');
-    if (url) {
-      executeCommand('insertImage', url);
-    }
-  };
-
-  const changeFontSize = (size) => {
-    executeCommand('fontSize', size);
-  };
-
-  const changeTextColor = () => {
-    const color = prompt('Enter color (e.g., #ff0000 or red):');
-    if (color) {
-      executeCommand('foreColor', color);
-    }
-  };
-
-  const toolbarButtons = [
-    { icon: Bold, command: 'bold', title: 'Bold' },
-    { icon: Italic, command: 'italic', title: 'Italic' },
-    { icon: Underline, command: 'underline', title: 'Underline' },
-    { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
-    { icon: AlignCenter, command: 'justifyCenter', title: 'Center' },
-    { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
-    { icon: List, command: 'insertUnorderedList', title: 'Bullet List' },
-    { icon: ListOrdered, command: 'insertOrderedList', title: 'Numbered List' },
-    { icon: Quote, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
-  ];
-
-  return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
-      {/* Toolbar */}
-      <div className="border-b border-border p-2 bg-muted/30">
-        <div className="flex flex-wrap items-center gap-1">
-          {/* Font Size */}
-          <select
-            onChange={(e) => changeFontSize(e.target.value)}
-            className="px-2 py-1 text-xs border border-border rounded bg-background"
-            title="Font Size"
-          >
-            <option value="">Size</option>
-            <option value="1">Very Small</option>
-            <option value="2">Small</option>
-            <option value="3">Normal</option>
-            <option value="4">Large</option>
-            <option value="5">Very Large</option>
-            <option value="6">Huge</option>
-          </select>
-          {/* Heading Style */}
-          <select
-            onChange={(e) => executeCommand('formatBlock', e.target.value)}
-            className="px-2 py-1 text-xs border border-border rounded bg-background ml-1"
-            title="Style"
-          >
-            <option value="">Style</option>
-            <option value="h1">Heading 1</option>
-            <option value="h2">Heading 2</option>
-            <option value="h3">Heading 3</option>
-            <option value="h4">Heading 4</option>
-            <option value="p">Paragraph</option>
-          </select>
-          <div className="w-px h-6 bg-border mx-1"></div>
-          {/* Formatting Buttons */}
-          {toolbarButtons.map((button, index) => (
-            <Button
-              key={index}
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => executeCommand(button.command, button.value)}
-              className="p-1 h-8 w-8"
-              title={button.title}
-            >
-              <button.icon className="w-4 h-4" />
-            </Button>
-          ))}
-          <div className="w-px h-6 bg-border mx-1"></div>
-          {/* Special Buttons */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={changeTextColor}
-            className="p-1 h-8 w-8"
-            title="Text Color"
-          >
-            <Palette className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={insertLink}
-            className="p-1 h-8 w-8"
-            title="Insert Link"
-          >
-            <Link2 className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={insertImage}
-            className="p-1 h-8 w-8"
-            title="Insert Image"
-          >
-            <Image className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      {/* Editing Area */}
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleContentChange}
-        onBlur={handleContentChange}
-        className="min-h-[400px] p-4 focus:outline-none prose prose-sm max-w-none rich-text-content"
-        style={{
-          wordBreak: 'break-word',
-          overflowWrap: 'break-word'
-        }}
-        data-placeholder={placeholder}
-      />
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          [contentEditable]:empty:before {
-            content: attr(data-placeholder);
-            color: hsl(var(--muted-foreground));
-            font-style: italic;
-          }
-          [contentEditable]:focus:before {
-            content: none;
-          }
-          /* Editor element styles */
-          .rich-text-content h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h4 { font-size: 1.1em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content p { margin: 0.5em 0; line-height: 1.6; }
-          .rich-text-content ul, .rich-text-content ol { margin: 0.5em 0; padding-left: 2em; }
-          .rich-text-content li { margin: 0.25em 0; }
-          .rich-text-content blockquote { 
-            border-left: 4px solid hsl(var(--border)); 
-            padding-left: 1em; 
-            margin: 1em 0; 
-            font-style: italic; 
-            color: hsl(var(--muted-foreground)); 
-          }
-          .rich-text-content a { color: hsl(var(--primary)); text-decoration: underline; }
-          .rich-text-content img { max-width: 100%; height: auto; margin: 1em 0; }
-          .rich-text-content strong { font-weight: bold; }
-          .rich-text-content em { font-style: italic; }
-          .rich-text-content u { text-decoration: underline; }
-        `
-      }} />
-    </div>
-  );
-};
 
 const SEOAnalyzer = ({ formData }) => {
   const calculateSEOScore = () => {
@@ -372,13 +187,26 @@ const AdminAddArticle = () => {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // ✅ État pour les admins dynamiques
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [adminsLoading, setAdminsLoading] = useState(true);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("adminLoggedIn");
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      navigate("/admin");
-    }
-  }, [navigate]);
+    const loadAdmins = async () => {
+      try {
+        const data = await apiService.getAdmins();
+        setAdmins(data);
+      } catch (error) {
+        console.error('Erreur chargement admins:', error);
+      } finally {
+        setAdminsLoading(false);
+      }
+    };
+    loadAdmins();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -415,24 +243,37 @@ const AdminAddArticle = () => {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === 'string') {
-          setImagePreview(result);
-          setFormData((prev) => ({
-            ...prev,
-            image: result,
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setImageFile(file);
+  // Preview local immédiat pendant l'upload
+  setImagePreview(URL.createObjectURL(file));
+  setIsUploading(true);
+  setUploadProgress(0);
+
+  try {
+    const result = await uploadToCloudinary(
+      file,
+      "orchid/blog",
+      (percent) => setUploadProgress(percent)
+    );
+    // On stocke uniquement le publicId en BDD
+    setFormData((prev) => ({ ...prev, image: result.publicId }));
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    showToast({
+      type: "error",
+      title: "Upload Error",
+      message: "Failed to upload image. Please try again.",
+      duration: 3000,
+    });
+  } finally {
+    setIsUploading(false);
+    setUploadProgress(0);
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -463,7 +304,7 @@ const AdminAddArticle = () => {
         person: formData.person,
         category: formData.category,
         status: formData.status,
-        featured: false,
+        featured: true,
         image: formData.image || "",
         tags: formData.tags || "",
       };
@@ -621,6 +462,7 @@ const AdminAddArticle = () => {
                       value={formData.content}
                       onChange={handleContentChange}
                       placeholder="Write the full content of your article here. Use the toolbar to format text..."
+                      uploadFolder="orchid/blog"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Use the toolbar above to format text (bold, italic, lists, links, etc.)
@@ -810,6 +652,19 @@ const AdminAddArticle = () => {
                             {imageFile.name}
                           </span>
                         )}
+                        {isUploading && (
+                         <div className="w-full mt-2">
+                           <div className="bg-gray-200 rounded-full h-2">
+                             <div
+                               className="bg-primary h-2 rounded-full transition-all duration-300"
+                               style={{ width: `${uploadProgress}%` }}
+                             />
+                           </div>
+                           <p className="text-xs text-muted-foreground mt-1">
+                             Uploading... {uploadProgress}%
+                           </p>
+                         </div>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Accepted formats: JPG, PNG, GIF (recommended: 800x400px)
@@ -895,12 +750,16 @@ const AdminAddArticle = () => {
                       onChange={handleInputChange}
                       className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
                       required
+                      disabled={adminsLoading}
                     >
-                      <option value="">Select admin</option>
-                      <option value="khawla">Profil:1</option>
-                      <option value="mehdi">Profil:2</option>
-                      <option value="yassin">Profil:3</option>
-                      <option value="hiba">Profil:4</option>
+                      <option value="">
+                        {adminsLoading ? "Loading..." : "Select admin"}
+                      </option>
+                      {admins.map((admin) => (
+                        <option key={admin._id} value={admin.name}>
+                          {admin.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>

@@ -1,14 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import imagetest from "@/assets/hero-villa.jpg";
 import {
   Award,
   Users,
   MapPin,
-  TrendingUp,
-  ArrowRight,
-  CheckCircle,
-  Star,
   Building
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -59,16 +54,10 @@ const Introduction = () => {
             {/* Main Image */}
             <div className="relative overflow-hidden rounded-2xl shadow-luxury">
               <img
-                src={imagetest}
+                src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289704/hero-villa_diljro.jpg"
                 alt="Orchid Island - Immobilier de luxe au Maroc"
                 className="w-full h-[500px] object-cover"
-              />
-              
-              {/* Overlay Badge */}
-              
-
-              {/* Floating Stats Card */}
-              
+              />                            
             </div>
 
             {/* Decorative Elements */}
@@ -101,16 +90,7 @@ const Introduction = () => {
                 Notre expertise et notre réseau exclusif font de nous le leader de 
                 l'immobilier de prestige.
               </p>
-            </div>
-
-            {/* Features List */}
-           
-
-            {/* Achievements Grid */}
-            
-
-            {/* Call to Actions */}
-           
+            </div>         
 
             {/* Trust Indicators */}
             <div className="pt-6 border-t border-border">

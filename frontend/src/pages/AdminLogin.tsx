@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
+import { apiService } from "@/services/api"; // ✅ import apiService
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -16,50 +17,65 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check if already logged in
+  // ✅ Vérification via le token JWT (plus via le simple booléen)
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("adminLoggedIn");
-    if (isLoggedIn === "true") {
-      navigate("/admin/dashboard");
-    }
+    const checkExistingSession = async () => {
+      const token = localStorage.getItem("adminToken");
+      if (!token) return;
+
+      try {
+        const isValid = await apiService.verifyToken();
+        if (isValid) {
+          navigate("/admin/dashboard");
+        } else {
+          // Token expiré ou invalide → on nettoie
+          apiService.logout();
+        }
+      } catch {
+        apiService.logout();
+      }
+    };
+
+    checkExistingSession();
   }, [navigate]);
 
+  // ✅ Login sécurisé via l'API backend (plus de credentials hardcodés)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Simulate login delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const data = await apiService.login(email, password);
 
-    // Check credentials
-    if (email === "Orchidisland@gmail.com" && password === "OrchidIsland2025") {
-      // Store admin session
+      // ✅ JWT pour la nouvelle sécurité
+      localStorage.setItem("adminToken", data.token);
+
+      // ✅ Backward compat pour les autres pages admin qui vérifient encore adminLoggedIn
       localStorage.setItem("adminLoggedIn", "true");
-      localStorage.setItem("adminEmail", email);
+      localStorage.setItem("adminEmail", data.user.email);
 
-      // Show welcome message
       showToast({
         type: "success",
         title: "Login Successful",
-        message: `Welcome to Orchid Island Administration!`,
-        duration: 4000
+        message: "Welcome to Orchid Island Administration!",
+        duration: 4000,
       });
 
       navigate("/admin/dashboard");
-    } else {
-      setError("Incorrect email or password");
 
-      // Show error toast
+    } catch (err: any) {
+      setError(err.message || "Incorrect email or password");
+
       showToast({
         type: "error",
         title: "Login Error",
-        message: "Incorrect email or password",
-        duration: 4000
+        message: err.message || "Incorrect email or password",
+        duration: 4000,
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
@@ -150,21 +166,12 @@ const AdminLogin = () => {
               <div className="mt-6 pt-6 border-t border-border">
                 <div className="text-center">
                   <Badge variant="outline" className="text-xs">
-                    Secure Access - Orchid Island Admin
+                    Secure Access — Orchid Island Admin
                   </Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-background/50 rounded-lg border border-border/50">
-            <h3 className="text-sm font-medium text-foreground mb-2">Demo Credentials:</h3>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p><strong>Email:</strong> Orchidisland@gmail.com</p>
-              <p><strong>Password:</strong> OrchidIsland2025</p>
-            </div>
-          </div>
         </div>
       </div>
     </PageTransition>

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import orchidLogo from "@/assets/logopng.png";
 import {
   BarChart3,
-  Users,
+  Shield,
   Building,
   FileText,
   TrendingUp,
@@ -22,22 +22,24 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
-import { apiService, Activity } from "@/services/api"; // ✅ Import Activity
+import { apiService, Activity } from "@/services/api";
+import UserManagementModal from "@/components/UserManagementModal";
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminEmail, setAdminEmail] = useState("");
   const [dashboardStats, setDashboardStats] = useState(null);
-  const [recentActivities, setRecentActivities] = useState<Activity[]>([]); // ✅ Dynamic state
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isActivitiesLoading, setIsActivitiesLoading] = useState(true); // ✅ Loading for activities
+  const [isActivitiesLoading, setIsActivitiesLoading] = useState(true);
+  const [userModalOpen, setUserModalOpen] = useState(false);
 
   // Analytics state
   const [yearlyViewsData, setYearlyViewsData] = useState<any[]>([]);
   const [countryViewsData, setCountryViewsData] = useState<any[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
-  // ✅ Function to format "X hours ago"
   const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -54,21 +56,14 @@ const AdminDashboard = () => {
     return "Just now";
   };
 
+  // ✅ MODIFIÉ : ProtectedRoute gère déjà l'auth, on lit juste l'email
   useEffect(() => {
-    // Check if admin is logged in
-    const isLoggedIn = localStorage.getItem("adminLoggedIn");
     const email = localStorage.getItem("adminEmail");
-
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      navigate("/admin");
-      return;
-    }
-
     setAdminEmail(email || "");
     loadDashboardStats();
-    loadRecentActivities(); // ✅ Also load recent activities
-    loadAnalyticsData(); // Load analytics data
-  }, [navigate]);
+    loadRecentActivities();
+    loadAnalyticsData();
+  }, []);
 
   const loadDashboardStats = async () => {
     setIsLoading(true);
@@ -92,15 +87,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Load activities from backend
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
+
   const loadRecentActivities = async () => {
     setIsActivitiesLoading(true);
+    setCurrentPage(1);
     try {
       console.log('🔄 Loading recent activities...');
       const result = await apiService.getRecentActivities();
       console.log('📡 Activities received:', result.data);
 
-      // ✅ Format activities for display
       const formattedActivities = (result.data || []).map((activity: Activity) => ({
         ...activity,
         time: activity.createdAt ? formatTimeAgo(activity.createdAt) : "Recently"
@@ -114,21 +111,19 @@ const AdminDashboard = () => {
         title: "Error",
         message: "Unable to load recent activities"
       });
-      // Fallback data in case of error
       setRecentActivities([
-   {
-     action: "Loading error",
-     item: "Unable to retrieve activities",
-     createdAt: new Date().toISOString(),
-     type: "error"
-   } as Activity
- ]);
+        {
+          action: "Loading error",
+          item: "Unable to retrieve activities",
+          createdAt: new Date().toISOString(),
+          type: "error"
+        } as Activity
+      ]);
     } finally {
       setIsActivitiesLoading(false);
     }
   };
 
-  // Load analytics data
   const loadAnalyticsData = async () => {
     setAnalyticsLoading(true);
     try {
@@ -153,10 +148,10 @@ const AdminDashboard = () => {
     }
   };
 
+  // ✅ MODIFIÉ : utilise apiService.logout() qui nettoie tout proprement
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
-      localStorage.removeItem("adminLoggedIn");
-      localStorage.removeItem("adminEmail");
+      apiService.logout();
 
       showToast({
         type: "success",
@@ -171,7 +166,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Function to format numbers
   const formatNumber = (num: number) => {
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'K';
@@ -179,7 +173,6 @@ const AdminDashboard = () => {
     return num.toString();
   };
 
-  // Generate stats from backend data
   const getStatsFromBackend = () => {
     if (!dashboardStats) {
       return [
@@ -288,20 +281,24 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <PageTransition>
+    // <PageTransition>
       <div className="min-h-screen bg-background">
         {/* Admin Header */}
         <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-             <div className="flex items-center space-x-3">
-            <img
-              src={orchidLogo}
-              alt="Orchid Island Logo"
-              className="h-12 w-auto"
-            />
-          </div>
+              <div className="flex items-center space-x-3">
+                <img
+                  src={orchidLogo}
+                  alt="Orchid Island Logo"
+                  className="h-12 w-auto"
+                />
+              </div>
               <div className="flex items-center space-x-4">
+                <Button variant="outline" size="sm" onClick={() => setUserModalOpen(true)}>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Manage Users
+                </Button>
                 <Link to="/">
                   <Button variant="outline" size="sm">
                     <Home className="w-4 h-4 mr-2" />
@@ -444,8 +441,8 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Recent Activities — ✅ NOW DYNAMIC */}
+            <UserManagementModal open={userModalOpen} onOpenChange={setUserModalOpen} />
+            {/* Recent Activities */}
             <div>
               <Card>
                 <CardHeader>
@@ -464,20 +461,49 @@ const AdminDashboard = () => {
                       No recent activities.
                     </p>
                   ) : (
-                    <div className="space-y-4">
-                      {recentActivities.map((activity, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-2 rounded-md bg-muted/50">
-                          <div className="w-2 h-2 rounded-full mt-2 bg-yellow-500"></div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                            <p className="text-sm text-muted-foreground">{activity.item}</p>
-                            <p className="text-xs text-muted-foreground">
-                              <span className="font-medium text-primary">{activity.performedBy || "admin"}</span> • {formatTimeAgo(activity.createdAt)}
-                            </p>
+                    <>
+                      <div className="space-y-4">
+                        {recentActivities
+                          .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                          .map((activity, index) => (
+                            <div key={index} className="flex items-start space-x-3 p-2 rounded-md bg-muted/50">
+                              <div className="w-2 h-2 rounded-full mt-2 bg-yellow-500"></div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-foreground">{activity.action}</p>
+                                <p className="text-sm text-muted-foreground">{activity.item}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  <span className="font-medium text-primary">{activity.performedBy || "admin"}</span> • {formatTimeAgo(activity.createdAt)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+
+                      {/* Pagination */}
+                      {recentActivities.length > itemsPerPage && (
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                          <p className="text-xs text-muted-foreground">
+                            Page {currentPage} / {Math.ceil(recentActivities.length / itemsPerPage)}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                              disabled={currentPage === 1}
+                              className="px-3 py-1 text-xs rounded-md border bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                              ← Prev
+                            </button>
+                            <button
+                              onClick={() => setCurrentPage((p) => Math.min(Math.ceil(recentActivities.length / itemsPerPage), p + 1))}
+                              disabled={currentPage === Math.ceil(recentActivities.length / itemsPerPage)}
+                              className="px-3 py-1 text-xs rounded-md border bg-background hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                              Next →
+                            </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -583,7 +609,7 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
-    </PageTransition>
+    // </PageTransition>
   );
 };
 

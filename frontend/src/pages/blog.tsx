@@ -17,6 +17,7 @@ import {
   Building
 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
+import { getCloudinaryUrl } from "@/services/cloudinary";
 
 const Blog = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -49,6 +50,7 @@ const Blog = () => {
     excerpt: article.excerpt,
     author: article.author,
     date: new Date(article.createdAt).toLocaleDateString('en-US'),
+    createdAt: article.createdAt,
     views: article.views?.toString() || "0",
     comments: article.comments || 0,
     category: article.category, // Must match values in `categories`
@@ -149,6 +151,7 @@ const Blog = () => {
         </section>
 
         {/* Featured Post */}
+        
         {filteredPosts.filter(post => post.featured).map((post) => (
           <section key={post.id} className="py-16 bg-background">
             <div className="container mx-auto px-6">
@@ -161,10 +164,10 @@ const Blog = () => {
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto">
                     <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                    />
+                    src={getCloudinaryUrl(post.image, 800, 600)}
+                    alt={post.title}
+                    className="w-full h-full object-cover"
+                  />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
                     <Badge variant="secondary" className="font-lora w-fit mb-4">
@@ -196,6 +199,7 @@ const Blog = () => {
         ))}
 
         {/* Blog Posts Grid */}
+        
         <section className="py-20 bg-cream/30">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
@@ -208,12 +212,14 @@ const Blog = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPosts.filter(post => !post.featured).map((post) => (
+              {[...filteredPosts].filter(post => ! post.featured)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
                       <img
-                        src={post.image}
+                        src={getCloudinaryUrl(post.image, 800, 600)}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

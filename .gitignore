@@ -17,3 +17,7 @@ node_modules/
 # Ignorer les fichiers temporaires
 .DS_Store
 .vscode/
+
+# Ignorer les fichiers environnement spécifiques
+frontend/.env
+backend/.env

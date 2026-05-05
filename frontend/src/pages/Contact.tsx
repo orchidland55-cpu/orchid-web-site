@@ -100,7 +100,7 @@ const Contact = () => {
     {
       icon: Phone,
       title: "Phone",
-      details: ["+212 5XX-XXX-XXX", "+212 6XX-XXX-XXX"],
+      details: ["+212 618-688-888"],
       description: "Call us anytime"
     },
     {
@@ -112,7 +112,7 @@ const Contact = () => {
     {
       icon: MapPin,
       title: "Office",
-      details: ["123 Luxury Avenue", "Casablanca, Morocco"],
+      details: ["Centre d’affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Morocco"],
       description: "Visit our office"
     },
     {
@@ -127,19 +127,19 @@ const Contact = () => {
     {
       city: "Casablanca",
       address: "123 Luxury Avenue, Marina District",
-      phone: "+212 5XX-XXX-XXX",
+      phone: "+212 618-688-888",
       email: "casablanca@orchidisland.com"
     },
     {
       city: "Rabat",
       address: "456 Royal Street, Souissi",
-      phone: "+212 5XX-XXX-XXX",
+      phone: "+212 618-688-888",
       email: "rabat@orchidisland.com"
     },
     {
       city: "Marrakech",
-      address: "789 Palmeraie Road, Hivernage",
-      phone: "+212 5XX-XXX-XXX",
+      address: "Centre d’affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Morocc",
+      phone: "+212 618-688-888",
       email: "marrakech@orchidisland.com"
     }
   ];

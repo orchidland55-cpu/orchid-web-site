@@ -8,6 +8,12 @@ const Activity = require('./models/Activity');
 const YearlyView = require('./models/YearlyView');
 const MonthlyView = require('./models/MonthlyView');
 const CountryView = require('./models/CountryView');
+const { verifyJWT, requireAdmin } = require('./middleware/authMiddleware');
+const {
+     login, verifyToken, getAdmins,
+     getUsers, createUser, updateUser, deleteUser,
+     setPassword, resendInvite,
+   } = require('./controllers/authController');
 
 // Controllers
 const propertyController = require('./controllers/propertyController');
@@ -144,11 +150,16 @@ async function analyticsMiddleware(req, res, next) {
 // Appliquer le middleware d'analytics
 app.use(analyticsMiddleware);
 
+// Routes d'authentification (PUBLIQUES)
+app.post('/api/auth/login', login);
+app.get('/api/auth/verify', verifyJWT, verifyToken);
+
 // ===== Connect to MongoDB =====
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGO_URI)
+// mongoose.connect(process.env.MONGO_URI, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true
+// })
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.log("MongoDB connection error:", err));
 
@@ -160,23 +171,23 @@ app.get('/', (req, res) => {
 // ===== CRUD routes for properties =====
 app.get('/properties', propertyController.getAllProperties);
 app.get('/properties/:id', propertyController.getPropertyById);
-app.post('/properties', propertyController.addProperty);
-app.put('/properties/:id', propertyController.updateProperty);
-app.delete('/properties/:id', propertyController.deleteProperty);
+app.post('/properties', verifyJWT, requireAdmin, propertyController.addProperty);
+app.put('/properties/:id', verifyJWT, requireAdmin, propertyController.updateProperty);
+app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);
 
 // ===== CRUD routes for articles =====
 app.get('/articles', articleController.getAllArticles);
 app.get('/articles/:id', articleController.getArticleById);
-app.post('/articles', articleController.addArticle);
-app.put('/articles/:id', articleController.updateArticle);
-app.delete('/articles/:id', articleController.deleteArticle);
+app.post('/articles', verifyJWT, requireAdmin, articleController.addArticle);
+app.put('/articles/:id', verifyJWT, requireAdmin, articleController.updateArticle);
+app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);
 app.post('/articles/:id/views', articleController.incrementArticleViews);
 
 // ===== Contact routes =====
 app.post('/contact', contactController.addContact);
 app.get('/contacts', contactController.getAllContacts);
-app.put('/contacts/:id/status', contactController.updateContactStatus);
-app.delete('/contacts/:id', contactController.deleteContact);
+app.put('/contacts/:id/status', verifyJWT, requireAdmin, contactController.updateContactStatus);
+app.delete('/contacts/:id', verifyJWT, requireAdmin, contactController.deleteContact);
 app.post('/schedule-visit', contactController.scheduleVisit);
 app.get('/test-email', contactController.testEmail);
 
@@ -194,7 +205,7 @@ app.post('/invest', sendInvestmentEmail);
 app.post('/chatbot', sendMessageToChatbot);
 
 // 📄 Route dynamique pour les activités récentes (filtrées sur 24h)
-app.get('/admin/recent-activities', async (req, res) => {
+app.get('/admin/recent-activities', verifyJWT, requireAdmin, async (req, res) => {
   console.log("✅ Envoi des activités récentes (moins de 24h) au frontend");
 
   try {
@@ -219,6 +230,19 @@ app.get('/admin/recent-activities', async (req, res) => {
     });
   }
 });
+
+// Route protégée — seul un admin connecté peut voir la liste
+app.get('/api/auth/admins', verifyJWT, requireAdmin, getAdmins);
+
+// Route publique — définir le mot de passe via token email
+app.post('/api/auth/set-password', setPassword);
+ 
+// Gestion des utilisateurs (admin uniquement)
+app.get('/api/users',                      verifyJWT, requireAdmin, getUsers);
+app.post('/api/users',                     verifyJWT, requireAdmin, createUser);
+app.put('/api/users/:id',                  verifyJWT, requireAdmin, updateUser);
+app.delete('/api/users/:id',               verifyJWT, requireAdmin, deleteUser);
+app.post('/api/users/:id/resend-invite',   verifyJWT, requireAdmin, resendInvite);
 
 
 // Importer les contrôleurs

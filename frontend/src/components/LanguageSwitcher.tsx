@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,22 +7,33 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe, ChevronDown } from 'lucide-react';
+import { switchGoogleLanguage, getCurrentGoogleLanguage } from '@/hooks/useGoogleTranslate';
+
+// ─── Supported languages ──────────────────────────────────────────────────────
+
+const languages = [
+  { code: 'en', name: 'English',  flag: '🇺🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'ar', name: 'العربية',  flag: '🇸🇦' },
+  { code: 'es', name: 'Español',  flag: '🇪🇸' },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const LanguageSwitcher = () => {
-  const { i18n, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
+  // Read active language from the Google Translate cookie (persists on reload)
+  const currentCode = getCurrentGoogleLanguage();
+  const currentLanguage =
+    languages.find((l) => l.code === currentCode) || languages[0];
+
+  const handleChange = (code: string) => {
     setIsOpen(false);
+    if (code !== currentCode) {
+      switchGoogleLanguage(code); // sets cookie + reloads
+    }
   };
-
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  ];
-
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -38,22 +48,26 @@ const LanguageSwitcher = () => {
           <ChevronDown className="w-3 h-3" />
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end" className="w-40">
-        {languages.map((language) => (
-          <DropdownMenuItem
-            key={language.code}
-            onClick={() => changeLanguage(language.code)}
-            className={`flex items-center space-x-2 cursor-pointer ${
-              i18n.language === language.code ? 'bg-primary/10 text-primary' : ''
-            }`}
-          >
-            <span>{language.flag}</span>
-            <span>{language.name}</span>
-            {i18n.language === language.code && (
-              <div className="w-2 h-2 bg-primary rounded-full ml-auto" />
-            )}
-          </DropdownMenuItem>
-        ))}
+        {languages.map((language) => {
+          const isActive = language.code === currentCode;
+          return (
+            <DropdownMenuItem
+              key={language.code}
+              onClick={() => handleChange(language.code)}
+              className={`flex items-center space-x-2 cursor-pointer ${
+                isActive ? 'bg-primary/10 text-primary' : ''
+              }`}
+            >
+              <span>{language.flag}</span>
+              <span>{language.name}</span>
+              {isActive && (
+                <div className="w-2 h-2 bg-primary rounded-full ml-auto" />
+              )}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

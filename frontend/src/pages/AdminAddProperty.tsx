@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea"; // Keep for other fields
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiService, PropertyFormData } from "@/services/api";
+import { apiService, PropertyFormData, Admin } from "@/services/api";
+import { uploadToCloudinary } from "@/services/cloudinary";
 import {
   Building,
   Save,
@@ -34,196 +35,8 @@ import {
   Palette,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import RichTextEditor from "@/components/RichTextEditor";
 
-// ✅ RichTextEditor component integrated directly here — no separate file
-const RichTextEditor = ({ value, onChange, placeholder = "Write your content here..." }) => {
-  const editorRef = useRef(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
-
-  useEffect(() => {
-    if (editorRef.current && !isEditorReady) {
-      editorRef.current.innerHTML = value || '';
-      setIsEditorReady(true);
-    }
-  }, [value, isEditorReady]);
-
-  const executeCommand = (command, value = null) => {
-    document.execCommand(command, false, value);
-    handleContentChange();
-  };
-
-  const handleContentChange = () => {
-    if (editorRef.current && onChange) {
-      onChange(editorRef.current.innerHTML);
-    }
-  };
-
-  const insertLink = () => {
-    const url = prompt('Enter link URL:');
-    if (url) {
-      executeCommand('createLink', url);
-    }
-  };
-
-  const insertImage = () => {
-    const url = prompt('Enter image URL:');
-    if (url) {
-      executeCommand('insertImage', url);
-    }
-  };
-
-  const changeFontSize = (size) => {
-    executeCommand('fontSize', size);
-  };
-
-  const changeTextColor = () => {
-    const color = prompt('Enter color (e.g., #ff0000 or red):');
-    if (color) {
-      executeCommand('foreColor', color);
-    }
-  };
-
-  const toolbarButtons = [
-    { icon: Bold, command: 'bold', title: 'Bold' },
-    { icon: Italic, command: 'italic', title: 'Italic' },
-    { icon: Underline, command: 'underline', title: 'Underline' },
-    { icon: AlignLeft, command: 'justifyLeft', title: 'Align Left' },
-    { icon: AlignCenter, command: 'justifyCenter', title: 'Center' },
-    { icon: AlignRight, command: 'justifyRight', title: 'Align Right' },
-    { icon: List, command: 'insertUnorderedList', title: 'Bullet List' },
-    { icon: ListOrdered, command: 'insertOrderedList', title: 'Numbered List' },
-    { icon: Quote, command: 'formatBlock', value: 'blockquote', title: 'Quote' },
-  ];
-
-  return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
-      {/* Toolbar */}
-      <div className="border-b border-border p-2 bg-muted/30">
-        <div className="flex flex-wrap items-center gap-1">
-          {/* Font Size */}
-          <select
-            onChange={(e) => changeFontSize(e.target.value)}
-            className="px-2 py-1 text-xs border border-border rounded bg-background"
-            title="Font Size"
-          >
-            <option value="">Size</option>
-            <option value="1">Very Small</option>
-            <option value="2">Small</option>
-            <option value="3">Normal</option>
-            <option value="4">Large</option>
-            <option value="5">Very Large</option>
-            <option value="6">Huge</option>
-          </select>
-          {/* Heading Style */}
-          <select
-            onChange={(e) => executeCommand('formatBlock', e.target.value)}
-            className="px-2 py-1 text-xs border border-border rounded bg-background ml-1"
-            title="Style"
-          >
-            <option value="">Style</option>
-            <option value="h1">Heading 1</option>
-            <option value="h2">Heading 2</option>
-            <option value="h3">Heading 3</option>
-            <option value="h4">Heading 4</option>
-            <option value="p">Paragraph</option>
-          </select>
-          <div className="w-px h-6 bg-border mx-1"></div>
-          {/* Formatting Buttons */}
-          {toolbarButtons.map((button, index) => (
-            <Button
-              key={index}
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => executeCommand(button.command, button.value)}
-              className="p-1 h-8 w-8"
-              title={button.title}
-            >
-              <button.icon className="w-4 h-4" />
-            </Button>
-          ))}
-          <div className="w-px h-6 bg-border mx-1"></div>
-          {/* Special Buttons */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={changeTextColor}
-            className="p-1 h-8 w-8"
-            title="Text Color"
-          >
-            <Palette className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={insertLink}
-            className="p-1 h-8 w-8"
-            title="Insert Link"
-          >
-            <Link2 className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={insertImage}
-            className="p-1 h-8 w-8"
-            title="Insert Image"
-          >
-            <ImageIcon className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      {/* Editing Area */}
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleContentChange}
-        onBlur={handleContentChange}
-        className="min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none rich-text-content"
-        style={{
-          wordBreak: 'break-word',
-          overflowWrap: 'break-word'
-        }}
-        data-placeholder={placeholder}
-      />
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          [contentEditable]:empty:before {
-            content: attr(data-placeholder);
-            color: hsl(var(--muted-foreground));
-            font-style: italic;
-          }
-          [contentEditable]:focus:before {
-            content: none;
-          }
-          /* Editor element styles */
-          .rich-text-content h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content h4 { font-size: 1.1em; font-weight: bold; margin: 0.5em 0; }
-          .rich-text-content p { margin: 0.5em 0; line-height: 1.6; }
-          .rich-text-content ul, .rich-text-content ol { margin: 0.5em 0; padding-left: 2em; }
-          .rich-text-content li { margin: 0.25em 0; }
-          .rich-text-content blockquote { 
-            border-left: 4px solid hsl(var(--border)); 
-            padding-left: 1em; 
-            margin: 1em 0; 
-            font-style: italic; 
-            color: hsl(var(--muted-foreground)); 
-          }
-          .rich-text-content a { color: hsl(var(--primary)); text-decoration: underline; }
-          .rich-text-content img { max-width: 100%; height: auto; margin: 1em 0; }
-          .rich-text-content strong { font-weight: bold; }
-          .rich-text-content em { font-style: italic; }
-          .rich-text-content u { text-decoration: underline; }
-        `
-      }} />
-    </div>
-  );
-};
 
 const AdminAddProperty = () => {
   const navigate = useNavigate();
@@ -255,13 +68,27 @@ const AdminAddProperty = () => {
   const [additionalImageFiles, setAdditionalImageFiles] = useState<File[]>([]);
   const [mainImagePreview, setMainImagePreview] = useState<string>("");
   const [additionalImagePreviews, setAdditionalImagePreviews] = useState<string[]>([]);
+  const [isUploadingMain, setIsUploadingMain] = useState(false);
+  const [isUploadingAdditional, setIsUploadingAdditional] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // ✅ État pour les admins dynamiques
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [adminsLoading, setAdminsLoading] = useState(true);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("adminLoggedIn");
-    if (!isLoggedIn || isLoggedIn !== "true") {
-      navigate("/admin");
-    }
-  }, [navigate]);
+    const loadAdmins = async () => {
+      try {
+        const data = await apiService.getAdmins();
+        setAdmins(data);
+      } catch (error) {
+        console.error('Erreur chargement admins:', error);
+      } finally {
+        setAdminsLoading(false);
+      }
+    };
+    loadAdmins();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -279,88 +106,58 @@ const AdminAddProperty = () => {
     }
   };
 
-  const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setMainImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setMainImagePreview(result);
-        setFormData(prev => ({
-          ...prev,
-          mainImage: result
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setMainImageFile(file);
+   setMainImagePreview(URL.createObjectURL(file)); // preview local immédiat
+    setIsUploadingMain(true);
+    setUploadProgress(0);
+
+    try {
+      const result = await uploadToCloudinary(
+        file,
+        "orchid/properties",
+       (percent) => setUploadProgress(percent)
+      );
+      setFormData(prev => ({ ...prev, mainImage: result.url }));
+    } catch (error) {
+      console.error("Main image upload error:", error);
+      alert("Failed to upload main image. Please try again.");
+    } finally {
+      setIsUploadingMain(false);
+      setUploadProgress(0);
     }
-  };
-
-  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.9): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        // Calculate new dimensions - higher quality settings
-        let { width, height } = img;
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        // Set canvas dimensions
-        canvas.width = width;
-        canvas.height = height;
-
-        // Enable image smoothing for better quality
-        ctx!.imageSmoothingEnabled = true;
-        ctx!.imageSmoothingQuality = 'high';
-
-        // Draw and compress image with higher quality
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        // Convert to base64 with higher quality (90%)
-        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedBase64);
-      };
-
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
-      };
-
-      img.src = URL.createObjectURL(file);
-    });
   };
 
   const handleAdditionalImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setAdditionalImageFiles(prev => [...prev, ...files]);
+    if (files.length === 0) return;
 
-      for (const file of files) {
-        try {
-          console.log(`🔄 Compressing image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+    setAdditionalImageFiles(prev => [...prev, ...files]);
+    setIsUploadingAdditional(true);
 
-          // Compress the image
-          const compressedBase64 = await compressImage(file, 800, 0.8);
+    for (const file of files) {
+      // Preview local immédiat
+      const localPreview = URL.createObjectURL(file);
+      setAdditionalImagePreviews(prev => [...prev, localPreview]);
 
-          console.log(`✅ Image compressed: ${file.name}, New size: ${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB`);
-
-          // Check size limit - increased for higher quality
-          if (compressedBase64.length > 3000000) { // 3MB limit for high-quality compressed images
-            alert(`Compressed image "${file.name}" is still too large (${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB). Try a smaller image or reduce resolution.`);
-            continue;
-          }
-
-          setAdditionalImagePreviews(prev => [...prev, compressedBase64]);
-        } catch (error) {
-          console.error("❌ Compression error for file:", file.name, error);
-          alert(`Error: Unable to compress image "${file.name}".`);
-        }
+      try {
+        const result = await uploadToCloudinary(file, "orchid/properties");
+       // Remplace le preview local par l'URL Cloudinary
+        setAdditionalImagePreviews(prev =>
+          prev.map(p => (p === localPreview ? result.url : p))
+        );
+      } catch (error) {
+        console.error(`Upload error for ${file.name}:`, error);
+        // Supprime le preview si l'upload échoue
+        setAdditionalImagePreviews(prev => prev.filter(p => p !== localPreview));
+        alert(`Failed to upload "${file.name}". Please try again.`);
       }
     }
+
+    setIsUploadingAdditional(false);
   };
 
   const removeAdditionalImage = (index: number) => {
@@ -419,12 +216,16 @@ const AdminAddProperty = () => {
   const propertyTypes = [
     "Villa",
     "Penthouse",
+    "Chalet",
+    "Riad",
+    "Hotel",
     "Apartment",
     "House",
     "Studio",
     "Duplex",
     "Triplex",
-    "Land"
+    "Land",
+    "Mall"
   ];
 
   const cities = [
@@ -439,7 +240,7 @@ const AdminAddProperty = () => {
   ];
 
   return (
-    <PageTransition>
+    // <PageTransition>
       <div className="min-h-screen bg-background">
         <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
@@ -536,6 +337,7 @@ const AdminAddProperty = () => {
                       value={formData.description}
                       onChange={(content) => handleInputChange({ target: { name: 'description', value: content } } as any)}
                       placeholder="Detailed property description..."
+                      uploadFolder="orchid/properties"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Use the toolbar to format your text (bold, italic, lists, links, etc.)
@@ -714,8 +516,21 @@ const AdminAddProperty = () => {
                         </label>
                         {mainImageFile && (
                           <span className="text-sm text-muted-foreground">
-                            {mainImageFile.name}
-                          </span>
+                           {mainImageFile.name}
+                         </span>
+                        )}
+                        {isUploadingMain && (
+                          <div className="w-full mt-2">
+                           <div className="bg-gray-200 rounded-full h-2">
+                             <div
+                                className="bg-primary h-2 rounded-full transition-all duration-300"
+                               style={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                           <p className="text-xs text-muted-foreground mt-1">
+                             Uploading... {uploadProgress}%
+                           </p>
+                          </div>
                         )}
                       </div>
                       <div className="border-t pt-4">
@@ -769,6 +584,11 @@ const AdminAddProperty = () => {
                         <span className="text-sm text-muted-foreground">
                           {additionalImageFiles.length} image(s)
                         </span>
+                        {isUploadingAdditional && (
+                          <span className="text-xs text-primary animate-pulse ml-2">
+                            Uploading...
+                          </span>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-2">
@@ -855,12 +675,16 @@ const AdminAddProperty = () => {
                       onChange={handleInputChange}
                       className="w-full h-10 px-3 rounded-md border text-sm"
                       required
+                      disabled={adminsLoading}
                     >
-                      <option value="">Select admin</option>
-                      <option value="khawla">Profil:1</option>
-                      <option value="yassine">Profil:2</option>
-                      <option value="mehdi">Profil:3</option>
-                      <option value="hiba">Profil:4</option>
+                      <option value="">
+                        {adminsLoading ? "Loading..." : "Select admin"}
+                      </option>
+                      {admins.map((admin) => (
+                        <option key={admin._id} value={admin.name}>
+                          {admin.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-3">
@@ -968,7 +792,8 @@ const AdminAddProperty = () => {
           </form>
         </main>
       </div>
-    </PageTransition>
+    // </PageTransition>
+    
   );
 };
 

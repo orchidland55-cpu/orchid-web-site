@@ -22,7 +22,7 @@ export interface PropertyFormData {
   pool: boolean;
   security: boolean;
   furnished: boolean;
-  person: string; // ✅ ajouté
+  person: string;
 }
 
 export interface PropertyData {
@@ -46,7 +46,7 @@ export interface PropertyData {
   pool: boolean;
   security: boolean;
   furnished: boolean;
-  person: string; // ✅ ajouté
+  person: string;
 }
 
 export interface Property extends PropertyData {
@@ -55,13 +55,12 @@ export interface Property extends PropertyData {
   updatedAt: string;
 }
 
-// Interfaces pour les articles
 export interface ArticleFormData {
   title: string;
   content: string;
   excerpt: string;
   author: string;
-  person: string; // ✅ déjà présent
+  person: string;
   category: string;
   status: string;
   featured: boolean;
@@ -74,7 +73,7 @@ export interface ArticleData {
   content: string;
   excerpt: string;
   author: string;
-  person: string; // ✅ déjà présent
+  person: string;
   category: string;
   status: string;
   featured: boolean;
@@ -91,7 +90,6 @@ export interface Article extends ArticleData {
   comments?: number;
 }
 
-// Interfaces pour les postulations
 export interface PostulationFormData {
   firstName: string;
   lastName: string;
@@ -124,23 +122,67 @@ export interface Postulation extends PostulationData {
   updatedAt: string;
 }
 
-// 🆕 Interface pour les activités récentes — AJOUTÉE ICI ✅
 export interface Activity {
   id?: string;
   action: string;
   item: string;
   createdAt: string;
-  type: "property" | "blog" | "contact" | "user" | "postulation" | "unknown" | "error"; // ✅ Ajouté "error"
+  type: "property" | "blog" | "contact" | "user" | "postulation" | "unknown" | "error";
   performedBy: string;
 }
 
+export interface Admin {
+  _id: string;
+  name: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    email: string;
+    role: string;
+  };
+}
+
+// ── Types utilisateurs ────────────────────────────────────────────────────────
+
+export type UserRole = 'admin' | 'editor';
+
+export interface AppUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  passwordSet: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface UpdateUserPayload {
+  name?: string;
+  email?: string;
+  role?: UserRole;
+  password?: string; // optionnel — uniquement si l'admin veut le changer
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 class ApiService {
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`; // ✅ API_BASE_URL est accessible ici
+    const url = `${API_BASE_URL}${endpoint}`;
+    const token = localStorage.getItem("adminToken");
 
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
       ...options,
@@ -153,14 +195,33 @@ class ApiService {
         let errorMessage = `Erreur HTTP! status: ${response.status}`;
 
         switch (response.status) {
+          case 401:
+            this.logout();
+            window.location.href = '/admin';
+            errorMessage = 'Session expirée, veuillez vous reconnecter.';
+            break;
+          case 403:
+            errorMessage = 'Accès refusé.';
+            break;
+          case 409:
+            try {
+              const body = await response.json();
+              errorMessage = body.message || 'Cet email est déjà utilisé.';
+            } catch {}
+            break;
           case 413:
             errorMessage = 'Les données sont trop volumineuses. Veuillez réduire la taille des images ou du contenu.';
             break;
           case 400:
-            errorMessage = 'Données invalides. Veuillez vérifier les informations saisies.';
+            try {
+              const body = await response.json();
+              errorMessage = body.message || 'Données invalides.';
+            } catch {
+              errorMessage = 'Données invalides. Veuillez vérifier les informations saisies.';
+            }
             break;
           case 404:
-            errorMessage = 'Propriété non trouvée. Elle a peut-être été supprimée ou l\'ID est incorrect.';
+            errorMessage = 'Ressource non trouvée. Elle a peut-être été supprimée ou l\'ID est incorrect.';
             break;
           case 500:
             errorMessage = 'Erreur interne du serveur. Veuillez réessayer plus tard.';
@@ -168,33 +229,119 @@ class ApiService {
           default:
             try {
               const errorData = await response.json();
-              errorMessage = errorData.error || errorMessage;
+              errorMessage = errorData.message || errorData.error || errorMessage;
             } catch {}
         }
 
         throw new Error(errorMessage);
       }
 
+      // 204 No Content (DELETE)
+      if (response.status === 204) return undefined as T;
+
       return await response.json();
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
+      if (error instanceof Error) throw error;
       throw new Error('Erreur de réseau');
     }
   }
 
-  // Convertir les données du formulaire en données pour l'API
-  private convertFormDataToApiData(formData: PropertyFormData): PropertyData {
-    const description = formData.description.length > 5000
-      ? formData.description.substring(0, 5000) + '...'
-      : formData.description;
+  // ============================================================
+  // AUTH
+  // ============================================================
 
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Email ou mot de passe incorrect');
+    return data;
+  }
+
+  async verifyToken(): Promise<boolean> {
+    const token = localStorage.getItem("adminToken");
+    if (!token) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async getAdmins(): Promise<Admin[]> {
+    const res = await this.request<{ success: boolean; data: Admin[] }>('/api/auth/admins');
+    return res.data;
+  }
+
+  logout(): void {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminLoggedIn");
+    localStorage.removeItem("adminEmail");
+  }
+
+  // ============================================================
+  // GESTION DES UTILISATEURS
+  // ============================================================
+
+  /** Récupère tous les utilisateurs (admin + editor). */
+  async getUsers(): Promise<AppUser[]> {
+    const res = await this.request<{ success: boolean; data: AppUser[] }>('/api/users');
+    return res.data;
+  }
+
+  /**
+   * Crée un utilisateur et déclenche l'envoi de l'email d'invitation.
+   * Pas de mot de passe à envoyer — il sera défini par l'utilisateur via le lien email.
+   */
+  async createUser(payload: CreateUserPayload): Promise<AppUser> {
+    const res = await this.request<{ success: boolean; warning?: string; data: AppUser }>('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    // Remonter l'avertissement si l'email n'a pas pu être envoyé
+    if (res.warning) throw new Error(`__WARNING__${res.warning}`);
+    return res.data;
+  }
+
+  /** Met à jour les infos d'un utilisateur. Le mot de passe n'est modifié que s'il est fourni. */
+  async updateUser(id: string, payload: UpdateUserPayload): Promise<AppUser> {
+    // Ne pas envoyer un mot de passe vide
+    const body = { ...payload };
+    if (!body.password) delete body.password;
+
+    const res = await this.request<{ success: boolean; data: AppUser }>(`/api/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+    return res.data;
+  }
+
+  /** Supprime un utilisateur. */
+  async deleteUser(id: string): Promise<void> {
+    await this.request<void>(`/api/users/${id}`, { method: 'DELETE' });
+  }
+
+  /** Renvoie l'email d'invitation à un utilisateur qui n'a pas encore défini son mot de passe. */
+  async resendInvite(id: string): Promise<void> {
+    await this.request<void>(`/api/users/${id}/resend-invite`, { method: 'POST' });
+  }
+
+  // ============================================================
+  // PROPRIÉTÉS
+  // ============================================================
+
+  private convertFormDataToApiData(formData: PropertyFormData): PropertyData {
     const amenitiesArray = formData.amenities
-      ? formData.amenities.split(',').map(amenity => amenity.trim()).filter(amenity => amenity).slice(0, 20)
+      ? formData.amenities.split(',').map(a => a.trim()).filter(a => a).slice(0, 20)
       : [];
 
-    // ✅ Correction ici : on garde les base64 et les URLs depuis l'array
     const additionalImagesArray = (() => {
       if (Array.isArray(formData.additionalImages) && formData.additionalImages.length > 0) {
         return formData.additionalImages
@@ -206,7 +353,7 @@ class ApiService {
 
     return {
       title: formData.title.substring(0, 200),
-      description,
+      description: formData.description,
       price: parseFloat(formData.price) || 0,
       location: formData.location.substring(0, 100),
       city: formData.city.substring(0, 50),
@@ -225,11 +372,10 @@ class ApiService {
       pool: formData.pool,
       security: formData.security,
       furnished: formData.furnished,
-      person: formData.person.substring(0, 100)
+      person: formData.person.substring(0, 100),
     };
   }
 
-  // Méthodes API pour les propriétés
   async getAllProperties(): Promise<Property[]> {
     return this.request<Property[]>('/properties');
   }
@@ -240,71 +386,52 @@ class ApiService {
     console.log('🔍 Main image present:', !!property.mainImage);
     console.log('🔍 Main image length:', property.mainImage?.length || 0);
     console.log('🔍 Additional images count:', property.additionalImages?.length || 0);
-    console.log('🔍 Additional images type:', Array.isArray(property.additionalImages) ? 'array' : typeof property.additionalImages);
     return property;
   }
 
   async createProperty(formData: PropertyFormData): Promise<Property> {
     const propertyData = this.convertFormDataToApiData(formData);
-
-    // Debug: Check the size of the data being sent
     const jsonString = JSON.stringify(propertyData);
-    console.log('📤 Sending property data:');
-    console.log('📤 Total JSON size:', jsonString.length, 'characters');
-    console.log('📤 Main image size:', propertyData.mainImage?.length || 0);
-    console.log('📤 Additional images count:', propertyData.additionalImages?.length || 0);
-    if (propertyData.additionalImages) {
-      console.log('📤 Additional images sizes:', propertyData.additionalImages.map(img => img.length));
-    }
-
-    return this.request<Property>('/properties', {
-      method: 'POST',
-      body: jsonString,
-    });
+    console.log('📤 Sending property data, size:', jsonString.length, 'characters');
+    return this.request<Property>('/properties', { method: 'POST', body: jsonString });
   }
 
   async createPropertyDraft(formData: PropertyFormData): Promise<Property> {
     const propertyData = this.convertFormDataToApiData(formData);
     propertyData.status = 'draft';
-    return this.request<Property>('/properties', {
-      method: 'POST',
-      body: JSON.stringify(propertyData),
-    });
+    return this.request<Property>('/properties', { method: 'POST', body: JSON.stringify(propertyData) });
   }
 
   async updateProperty(id: string, formData: PropertyFormData): Promise<Property> {
     const propertyData = this.convertFormDataToApiData(formData);
-    return this.request<Property>(`/properties/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(propertyData),
-    });
+    return this.request<Property>(`/properties/${id}`, { method: 'PUT', body: JSON.stringify(propertyData) });
   }
 
   async deleteProperty(id: string): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`/properties/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<{ message: string }>(`/properties/${id}`, { method: 'DELETE' });
   }
 
-  // Convertir les données du formulaire d'article en données pour l'API
+  // ============================================================
+  // ARTICLES
+  // ============================================================
+
   private convertArticleFormDataToApiData(formData: ArticleFormData): ArticleData {
     return {
       title: formData.title.substring(0, 200),
       content: formData.content,
       excerpt: formData.excerpt.substring(0, 500),
       author: formData.author.substring(0, 100),
-      person: formData.person.substring(0, 100), // ✅ déjà présent
+      person: formData.person.substring(0, 100),
       category: formData.category,
       status: formData.status,
       featured: formData.featured,
       image: formData.image,
       tags: formData.tags
         ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).slice(0, 10)
-        : []
+        : [],
     };
   }
 
-  // Méthodes API pour les articles
   async getAllArticles(): Promise<Article[]> {
     return this.request<Article[]>('/articles');
   }
@@ -315,38 +442,31 @@ class ApiService {
 
   async createArticle(formData: ArticleFormData): Promise<Article> {
     const articleData = this.convertArticleFormDataToApiData(formData);
-    return this.request<Article>('/articles', {
-      method: 'POST',
-      body: JSON.stringify(articleData),
-    });
+    return this.request<Article>('/articles', { method: 'POST', body: JSON.stringify(articleData) });
   }
 
   async createArticleDraft(formData: ArticleFormData): Promise<Article> {
     const articleData = this.convertArticleFormDataToApiData(formData);
     articleData.status = 'draft';
-    return this.request<Article>('/articles', {
-      method: 'POST',
-      body: JSON.stringify(articleData),
-    });
+    return this.request<Article>('/articles', { method: 'POST', body: JSON.stringify(articleData) });
   }
 
   async updateArticle(id: string, formData: ArticleFormData): Promise<Article> {
     const articleData = this.convertArticleFormDataToApiData(formData);
-    return this.request<Article>(`/articles/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(articleData),
-    });
+    return this.request<Article>(`/articles/${id}`, { method: 'PUT', body: JSON.stringify(articleData) });
   }
 
   async deleteArticle(id: string): Promise<{ message: string }> {
-  // ✅ Récupérer le nom de l'admin depuis le localStorage
-  const adminName = localStorage.getItem("adminEmail")?.split("@")[0] || "admin";
-  return this.request<{ message: string }>(`/articles/${id}?person=${encodeURIComponent(adminName)}`, {
-    method: 'DELETE',
-  });
-}
+    const adminName = localStorage.getItem("adminEmail")?.split("@")[0] || "admin";
+    return this.request<{ message: string }>(`/articles/${id}?person=${encodeURIComponent(adminName)}`, {
+      method: 'DELETE',
+    });
+  }
 
-  // Méthode utilitaire pour vérifier la connexion au backend
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+
   async checkConnection(): Promise<boolean> {
     try {
       const response = await fetch(`${API_BASE_URL}/`);
@@ -356,7 +476,6 @@ class ApiService {
     }
   }
 
-  // Méthodes API pour le dashboard
   async getDashboardStats(): Promise<any> {
     return this.request<any>('/dashboard/stats');
   }
@@ -365,15 +484,16 @@ class ApiService {
     return this.request<any>(`/dashboard/details/${type}`);
   }
 
-  // Méthodes API pour les contacts
+  // ============================================================
+  // CONTACTS
+  // ============================================================
+
   async getAllContacts(): Promise<any> {
     return this.request<any>('/contacts');
   }
 
   async deleteContact(id: string): Promise<{ message: string }> {
-    return this.request<{ message: string }>(`/contacts/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<{ message: string }>(`/contacts/${id}`, { method: 'DELETE' });
   }
 
   async updateContactStatus(id: string, status: string): Promise<{ success: boolean; message: string }> {
@@ -383,61 +503,55 @@ class ApiService {
     });
   }
 
-  // Méthodes API pour les postulations
+  // ============================================================
+  // POSTULATIONS
+  // ============================================================
+
   async getAllPostulations(): Promise<Postulation[]> {
     return this.request<Postulation[]>('/postulations');
   }
 
   async createPostulation(formData: FormData): Promise<Postulation> {
-    const config: RequestInit = {
-      method: 'POST',
-      body: formData,
-      headers: {},
-    };
-
     const url = `${API_BASE_URL}/postulations`;
+    const token = localStorage.getItem("adminToken");
 
     try {
-      const response = await fetch(url, config);
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
 
       if (!response.ok) {
         let errorMessage = `Erreur HTTP! status: ${response.status}`;
-
         switch (response.status) {
-          case 413:
-            errorMessage = 'Les fichiers sont trop volumineux. Veuillez réduire la taille des fichiers.';
-            break;
-          case 400:
-            errorMessage = 'Données invalides. Veuillez vérifier les informations saisies.';
-            break;
-          case 500:
-            errorMessage = 'Erreur interne du serveur. Veuillez réessayer plus tard.';
-            break;
+          case 413: errorMessage = 'Les fichiers sont trop volumineux.'; break;
+          case 400: errorMessage = 'Données invalides.'; break;
+          case 500: errorMessage = 'Erreur interne du serveur.'; break;
           default:
             try {
               const errorData = await response.json();
               errorMessage = errorData.error || errorMessage;
             } catch {}
         }
-
         throw new Error(errorMessage);
       }
 
       return await response.json();
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
+      if (error instanceof Error) throw error;
       throw new Error('Erreur de réseau');
     }
   }
 
-  // 🆕 Méthode ajoutée pour les activités récentes — CORRIGÉE ICI ✅
+  // ============================================================
+  // ACTIVITÉS & ANALYTICS
+  // ============================================================
+
   async getRecentActivities(): Promise<{ success: boolean; data: Activity[] }> {
     return this.request<{ success: boolean; data: Activity[] }>('/admin/recent-activities');
   }
 
-  // Méthodes API pour les analytics
   async getYearlyViews(): Promise<any[]> {
     return this.request<any[]>('/api/analytics/yearly');
   }
@@ -450,14 +564,11 @@ class ApiService {
     return this.request<any[]>('/api/analytics/countries');
   }
 
-  // Méthode pour tracker les vues de pages
   async trackPageView(page: string): Promise<void> {
     try {
       await fetch(`${API_BASE_URL}/api/analytics/track-page`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ page }),
       });
     } catch (error) {

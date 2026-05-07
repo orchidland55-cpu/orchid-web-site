@@ -44,6 +44,11 @@ import TermsAndConditions from "./pages/Termsandconditions";
 import LegalNotice from "./pages/Legalnotice";
 import SetPassword from "./pages/SetPassword";
 
+import SpaceManager from "./components/SpaceManager";
+import SpaceAccess from "./pages/SpaceAccess";
+import SpaceView from "./pages/SpaceView";
+import SpaceManagerPage from "./pages/SpaceManagerPage";
+
 import Chatbot from "./components/Chatbot";
 import WhatsAppButton from "./components/WhatsAppButton";
 
@@ -55,12 +60,15 @@ function App() {
     <div className="overflow-x-hidden">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Router>
+          <Router future={{ 
+              v7_startTransition: true,
+              v7_relativeSplatPath: true }
+            }>
             <ScrollToTop />
             <AnalyticsTracker />
-            <Routes>
+            <Routes >
 
-              {/* ===== Routes publiques — inchangées ===== */}
+              {/* ===== Routes publiques ===== */}
               <Route path="/" element={<Index />} />
               <Route path="/postulation" element={<Postulation />} />
               <Route path="/blog" element={<Blog />} />
@@ -83,38 +91,102 @@ function App() {
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/legal-notice" element={<LegalNotice />} />
               <Route path="/set-password" element={<SetPassword />} />
+
               
+              <Route path="/space" element={<SpaceAccess />} />
+              <Route path="/space/:spaceId"  element={<SpaceView />} />
+
               {/* ===== Page de login — publique ===== */}
               <Route path="/admin" element={<AdminLogin />} />
+              
 
-              {/* ===== Routes admin — protégées par JWT ===== */}
-              <Route path="/admin/dashboard" element={
-                <ProtectedRoute><AdminDashboard /></ProtectedRoute>
-              } />
-              <Route path="/admin/properties" element={
-                <ProtectedRoute><AdminProperties /></ProtectedRoute>
-              } />
-              <Route path="/admin/properties/add" element={
-                <ProtectedRoute><AdminAddProperty /></ProtectedRoute>
-              } />
-              <Route path="/admin/properties/edit/:id" element={
-                <ProtectedRoute><AdminEditProperty /></ProtectedRoute>
-              } />
-              <Route path="/admin/articles" element={
-                <ProtectedRoute><AdminArticles /></ProtectedRoute>
-              } />
-              <Route path="/admin/articles/add" element={
-                <ProtectedRoute><AdminAddArticle /></ProtectedRoute>
-              } />
-              <Route path="/admin/articles/edit/:id" element={
-                <ProtectedRoute><AdminEditArticle /></ProtectedRoute>
-              } />
-              <Route path="/admin/analytics" element={
-                <ProtectedRoute><AdminAnalytics /></ProtectedRoute>
-              } />
-              <Route path="/admin/contacts" element={
-                <ProtectedRoute><AdminContacts /></ProtectedRoute>
-              } />
+              {/* ===== DASHBOARD - Accessible aux admins ET éditeurs ===== */}
+               <Route 
+                path="/admin/dashboard" 
+                element={
+                <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+                } 
+              />
+              {/* ===== PROPRIÉTÉS - Accessible aux admins ET éditeurs ===== */}
+              <Route 
+                path="/admin/properties" 
+                element={
+                <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                  <AdminProperties />
+                </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/properties/add" 
+                element={
+                 <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                   <AdminAddProperty />
+                  </ProtectedRoute>
+               } 
+              />
+              <Route 
+                path="/admin/properties/edit/:id" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                    <AdminEditProperty />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* ===== ARTICLES - Accessible aux admins ET éditeurs ===== */}
+              <Route 
+               path="/admin/articles" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                    <AdminArticles />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/articles/add" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                   <AdminAddArticle />
+                 </ProtectedRoute>
+                } 
+              />
+              <Route 
+               path="/admin/articles/edit/:id" 
+               element={
+                 <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                   <AdminEditArticle />
+                 </ProtectedRoute>
+                } 
+              />
+               {/* ===== ANALYTICS - Accessible aux admins ET éditeurs ===== */}
+              <Route 
+                path="/admin/analytics" 
+                element={
+                 <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                   <AdminAnalytics />
+                  </ProtectedRoute>
+                } 
+              />
+ 
+              {/* ===== CONTACTS - UNIQUEMENT ADMIN ===== */}
+              <Route 
+                path="/admin/contacts" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                    <AdminContacts />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* ===== GESTION ESPACES - UNIQUEMENT ADMIN ===== */}
+              <Route 
+                path="/space-manager" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <SpaceManagerPage />
+                  </ProtectedRoute>
+                } 
+              />
 
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

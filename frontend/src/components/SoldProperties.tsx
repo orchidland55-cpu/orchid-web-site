@@ -30,7 +30,7 @@ const SoldProperties = () => {
       setLoading(true);
       try {
         const data = await apiService.getAllProperties();
-        console.log("🚀 Properties received:", data); // DEBUG
+        // console.log("🚀 Properties received:", data); // DEBUG
 
         // Filter only sold properties
         const soldPropertiesList = data.filter(

@@ -8,7 +8,8 @@ const Activity = require('./models/Activity');
 const YearlyView = require('./models/YearlyView');
 const MonthlyView = require('./models/MonthlyView');
 const CountryView = require('./models/CountryView');
-const { verifyJWT, requireAdmin } = require('./middleware/authMiddleware');
+const User = require('./models/User');
+const { verifyJWT, requireAdmin, requireAdminOrEditor } = require('./middleware/authMiddleware');
 const {
      login, verifyToken, getAdmins,
      getUsers, createUser, updateUser, deleteUser,
@@ -24,6 +25,15 @@ const { sendPostulation } = require('./controllers/postulationController');
 const { sendInvestmentEmail } = require('./controllers/investController');
 const { sendMessageToChatbot } = require('./controllers/chatbotController');
 
+const rateLimit = require('express-rate-limit');
+const {
+  createSpace, getSpaces, getSpaceById, updateSpace, deleteSpace,
+  accessSpace,
+  getSpaceFiles, uploadFile, deleteFile,
+} = require('./controllers/spaceController');
+const { verifySpaceJWT, checkUploadAllowed } = require('./middleware/authMiddleware');
+const { uploadSingle } = require('./middleware/uploadMiddleware');
+
 dotenv.config(); // charge les variables d'environnement
 
 const app = express();
@@ -34,7 +44,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '150mb' }));
 app.use(bodyParser.urlencoded({ limit: '150mb', extended: true }));
-app.use(fileUpload()); // middleware pour gérer les fichiers
+// app.use(fileUpload()); // middleware pour gérer les fichiers
+app.use((req, res, next) => {
+  // Ne pas appliquer express-fileupload sur les routes d'upload d'espaces
+  // (ces routes utilisent multer à la place)
+  if (req.path.startsWith('/api/spaces') && req.method === 'POST') {
+    return next();
+  }
+  return fileUpload()(req, res, next);
+});
 
 // Debug middleware to log request sizes
 app.use((req, res, next) => {
@@ -147,6 +165,26 @@ async function analyticsMiddleware(req, res, next) {
   next();
 }
 
+// Limite les tentatives de connexion aux espaces : 5 essais / 15 min / IP
+const spaceAccessLimiter = rateLimit({
+  windowMs        : 15 * 60 * 1000,   // 15 minutes
+  max             : 5,
+  standardHeaders : true,
+  legacyHeaders   : false,
+  message         : {
+    message: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
+  },
+  // En production, ajouter : keyGenerator: (req) => req.ip
+});
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // max 50 requêtes par IP
+  message: "Trop de requêtes, veuillez réessayer plus tard."
+});
+
+app.use("/invest", limiter);
+
 // Appliquer le middleware d'analytics
 app.use(analyticsMiddleware);
 
@@ -171,16 +209,16 @@ app.get('/', (req, res) => {
 // ===== CRUD routes for properties =====
 app.get('/properties', propertyController.getAllProperties);
 app.get('/properties/:id', propertyController.getPropertyById);
-app.post('/properties', verifyJWT, requireAdmin, propertyController.addProperty);
-app.put('/properties/:id', verifyJWT, requireAdmin, propertyController.updateProperty);
-app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);
+app.post('/properties', verifyJWT, requireAdminOrEditor, propertyController.addProperty);  // ✅ Éditeurs peuvent créer
+app.put('/properties/:id', verifyJWT, requireAdminOrEditor, propertyController.updateProperty);  // ✅ Éditeurs peuvent modifier
+app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);  // ❌ Seuls admins peuvent supprimer
 
 // ===== CRUD routes for articles =====
 app.get('/articles', articleController.getAllArticles);
 app.get('/articles/:id', articleController.getArticleById);
-app.post('/articles', verifyJWT, requireAdmin, articleController.addArticle);
-app.put('/articles/:id', verifyJWT, requireAdmin, articleController.updateArticle);
-app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);
+app.post('/articles', verifyJWT, requireAdminOrEditor, articleController.addArticle);  // ✅ Éditeurs peuvent créer
+app.put('/articles/:id', verifyJWT, requireAdminOrEditor, articleController.updateArticle);  // ✅ Éditeurs peuvent modifier
+app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);  // ❌ Seuls admins peuvent supprimer
 app.post('/articles/:id/views', articleController.incrementArticleViews);
 
 // ===== Contact routes =====
@@ -317,6 +355,47 @@ app.post('/api/analytics/track-page', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+// Auth visiteur (publique — protégée par rate limit)
+app.post('/api/spaces/access', spaceAccessLimiter, accessSpace);
+ 
+// Fichiers (visiteurs authentifiés — JWT d'espace)
+app.get(
+  '/api/spaces/:spaceId/files',
+  verifySpaceJWT,
+  getSpaceFiles
+);
+ 
+const { verifyAdminOrSpaceJWT, checkUploadAllowedOrAdmin } = require('./middleware/authMiddleware');
+
+app.post(
+  '/api/spaces/:spaceId/files',
+  verifyAdminOrSpaceJWT,       // accepte JWT admin OU JWT espace
+  checkUploadAllowedOrAdmin,   // admin = toujours OK / visiteur = vérifie allowUpload
+  uploadSingle,
+  uploadFile
+);
+ 
+// Suppression de fichier — accessible aussi par l'admin avec son JWT standard
+// On accepte soit un JWT d'espace (admin de l'espace) soit un JWT admin global
+app.delete(
+  '/api/spaces/:spaceId/files/:fileId',
+  verifyJWT,
+  requireAdmin,
+  deleteFile
+);
+
+app.get('/api/users/assignable', verifyJWT, requireAdminOrEditor, async (req, res) => {
+  const users = await User.find({}, 'name');
+  res.json({ success: true, data: users });
+});
+ 
+// CRUD espaces (admin uniquement)
+app.get    ('/api/spaces',     verifyJWT, requireAdmin, getSpaces);
+app.post   ('/api/spaces',     verifyJWT, requireAdmin, createSpace);
+app.get    ('/api/spaces/:id', verifyJWT, requireAdmin, getSpaceById);
+app.put    ('/api/spaces/:id', verifyJWT, requireAdmin, updateSpace);
+app.delete ('/api/spaces/:id', verifyJWT, requireAdmin, deleteSpace);
 
 // Route de test
 app.get('/', (req, res) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"; // ✅ Added useRef
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,40 +6,69 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Building,
-  Save,
-  Eye,
-  ArrowLeft,
-  Upload,
-  MapPin,
-  DollarSign,
-  Bed,
-  Bath,
-  Square,
-  Star,
-  Camera,
-  Trash2,
-  // ✅ Toolbar icons
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-  Link2,
-  ImageIcon, // Renamed to avoid conflict
-  Quote,
-  Palette,
+  Building, Save, Eye, ArrowLeft, Upload, MapPin, DollarSign,
+  Bed, Bath, Square, Star, Camera, Trash2,
+  Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
+  List, ListOrdered, Link2, ImageIcon, Quote, Palette, Plus,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { apiService, PropertyFormData } from "@/services/api";
 import { uploadToCloudinary } from "@/services/cloudinary";
 import RichTextEditor from "@/components/RichTextEditor";
 
-// ✅ RichTextEditor component integrated directly here — no separate file
+// ─── Clé localStorage (identique à AdminAddProperty) ─────────────────────────
+const STORAGE_KEY = "orchid_property_types";
 
+const BASE_PROPERTY_TYPES = [
+  "Villa", "Penthouse", "Chalet", "Riad", "Hotel",
+  "Apartment", "House", "Studio", "Duplex", "Triplex",
+  "Land", "Mall", "Office", "Warehouse", "Resort",
+];
+
+// ─── Hook partagé — même logique que AdminAddProperty ────────────────────────
+function usePropertyTypes() {
+  const [propertyTypes, setPropertyTypes] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const custom: string[] = stored ? JSON.parse(stored) : [];
+      return [...new Set([...BASE_PROPERTY_TYPES, ...custom])];
+    } catch {
+      return BASE_PROPERTY_TYPES;
+    }
+  });
+
+  const [newType, setNewType] = useState("");
+
+  const addCustomType = () => {
+    const trimmed = newType.trim();
+    if (!trimmed) return;
+
+    const alreadyExists = propertyTypes.some(
+      (t) => t.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (alreadyExists) {
+      setNewType("");
+      return;
+    }
+
+    const updated = [...propertyTypes, trimmed];
+    setPropertyTypes(updated);
+
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const custom: string[] = stored ? JSON.parse(stored) : [];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...custom, trimmed]));
+    } catch {
+      console.error("localStorage write failed");
+    }
+
+    setNewType("");
+  };
+
+  return { propertyTypes, newType, setNewType, addCustomType };
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 
 const AdminEditProperty = () => {
   const navigate = useNavigate();
@@ -47,27 +76,11 @@ const AdminEditProperty = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState<PropertyFormData>({
-    title: "",
-    description: "",
-    price: "",
-    location: "",
-    city: "",
-    type: "",
-    bedrooms: "",
-    bathrooms: "",
-    area: "",
-    status: "available",
-    featured: false,
-    mainImage: "",
-    additionalImages: [], // array
-    amenities: "",
-    yearBuilt: "",
-    parking: "",
-    garden: false,
-    pool: false,
-    security: false,
-    furnished: false,
-    person: "admin"
+    title: "", description: "", price: "", location: "", city: "",
+    type: "", bedrooms: "", bathrooms: "", area: "", status: "available",
+    featured: false, mainImage: "", additionalImages: [], amenities: "",
+    yearBuilt: "", parking: "", garden: false, pool: false,
+    security: false, furnished: false, person: "admin",
   });
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState<File[]>([]);
@@ -76,6 +89,9 @@ const AdminEditProperty = () => {
   const [isUploadingMain, setIsUploadingMain] = useState(false);
   const [isUploadingAdditional, setIsUploadingAdditional] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // ✅ Types de propriété dynamiques via localStorage
+  const { propertyTypes, newType, setNewType, addCustomType } = usePropertyTypes();
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -95,7 +111,7 @@ const AdminEditProperty = () => {
     setIsLoadingData(true);
     try {
       const propertyData = await apiService.getPropertyById(id);
-      const formData: PropertyFormData = {
+      const loaded: PropertyFormData = {
         title: propertyData.title,
         description: propertyData.description,
         price: propertyData.price.toString(),
@@ -116,11 +132,11 @@ const AdminEditProperty = () => {
         pool: propertyData.pool,
         security: propertyData.security,
         furnished: propertyData.furnished,
-        person: propertyData.person || "admin"
+        person: propertyData.person || "admin",
       };
-      setFormData(formData);
+      setFormData(loaded);
       setMainImagePreview(propertyData.mainImage);
-      if (propertyData.additionalImages && propertyData.additionalImages.length > 0) {
+      if (propertyData.additionalImages?.length > 0) {
         setAdditionalImagePreviews(propertyData.additionalImages);
       }
     } catch (error: any) {
@@ -132,123 +148,96 @@ const AdminEditProperty = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleMainImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  setMainImageFile(file);
-  setMainImagePreview(URL.createObjectURL(file));
-  setIsUploadingMain(true);
-  setUploadProgress(0);
-
-  try {
-    const result = await uploadToCloudinary(
-      file,
-      "orchid/properties",
-      (percent) => setUploadProgress(percent)
-    );
-    setFormData(prev => ({ ...prev, mainImage: result.url }));
-  } catch (error) {
-    console.error("Main image upload error:", error);
-    alert("Failed to upload main image. Please try again.");
-  } finally {
-    setIsUploadingMain(false);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMainImageFile(file);
+    setMainImagePreview(URL.createObjectURL(file));
+    setIsUploadingMain(true);
     setUploadProgress(0);
-  }
-};
-
-
-  const handleAdditionalImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = Array.from(e.target.files || []);
-  if (files.length === 0) return;
-
-  setAdditionalImageFiles(prev => [...prev, ...files]);
-  setIsUploadingAdditional(true);
-
-  for (const file of files) {
-    const localPreview = URL.createObjectURL(file);
-    setAdditionalImagePreviews(prev => [...prev, localPreview]);
-
     try {
-      const result = await uploadToCloudinary(file, "orchid/properties");
-      setAdditionalImagePreviews(prev =>
-        prev.map(p => (p === localPreview ? result.url : p))
-      );
+      const result = await uploadToCloudinary(file, "orchid/properties", (percent) => setUploadProgress(percent));
+      setFormData((prev) => ({ ...prev, mainImage: result.url }));
     } catch (error) {
-      console.error(`Upload error for ${file.name}:`, error);
-      setAdditionalImagePreviews(prev => prev.filter(p => p !== localPreview));
-      alert(`Failed to upload "${file.name}". Please try again.`);
+      console.error("Main image upload error:", error);
+      alert("Failed to upload main image. Please try again.");
+    } finally {
+      setIsUploadingMain(false);
+      setUploadProgress(0);
     }
-  }
-
-  setIsUploadingAdditional(false);
-};
-
-  const removeAdditionalImage = (index: number) => {
-    setAdditionalImageFiles(prev => prev.filter((_, i) => i !== index));
-    setAdditionalImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!id) return;
-  setIsLoading(true);
-  try {
-    // Combine uploaded images (base64) and existing URLs
-    const allImages = [...additionalImagePreviews, ...formData.additionalImages];
-    // Create final data object
-    const finalData = {
-      ...formData,
-      additionalImages: allImages, // <-- Keep as array
-    };
-    await apiService.updateProperty(id, finalData);
-    alert("Property updated!");
-    navigate("/admin/properties");
-  } catch (error: any) {
-    console.error("Error updating property:", error);
-    alert(`Error: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const handleAdditionalImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setAdditionalImageFiles((prev) => [...prev, ...files]);
+    setIsUploadingAdditional(true);
+    for (const file of files) {
+      const localPreview = URL.createObjectURL(file);
+      setAdditionalImagePreviews((prev) => [...prev, localPreview]);
+      try {
+        const result = await uploadToCloudinary(file, "orchid/properties");
+        setAdditionalImagePreviews((prev) => prev.map((p) => (p === localPreview ? result.url : p)));
+      } catch (error) {
+        console.error(`Upload error for ${file.name}:`, error);
+        setAdditionalImagePreviews((prev) => prev.filter((p) => p !== localPreview));
+        alert(`Failed to upload "${file.name}". Please try again.`);
+      }
+    }
+    setIsUploadingAdditional(false);
+  };
+
+  const removeAdditionalImage = (index: number) => {
+    setAdditionalImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setAdditionalImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    setIsLoading(true);
+    try {
+      const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      const finalData = { ...formData, additionalImages: allImages };
+      await apiService.updateProperty(id, finalData);
+      alert("Property updated!");
+      navigate("/admin/properties");
+    } catch (error: any) {
+      console.error("Error updating property:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSaveDraft = async () => {
-  if (!id) return;
-  setIsLoading(true);
-  try {
-    // Combine images
-    const allImages = [...additionalImagePreviews, ...formData.additionalImages];
-    const draftData = {
-      ...formData,
-      status: "draft",
-      additionalImages: allImages, // <-- Keep as array
-    };
-    await apiService.updateProperty(id, draftData);
-    alert("Draft saved!");
-    navigate("/admin/properties");
-  } catch (error: any) {
-    console.error("Error saving draft:", error);
-    alert(`Error: ${error.message}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    if (!id) return;
+    setIsLoading(true);
+    try {
+      const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      const draftData = { ...formData, status: "draft", additionalImages: allImages };
+      await apiService.updateProperty(id, draftData);
+      alert("Draft saved!");
+      navigate("/admin/properties");
+    } catch (error: any) {
+      console.error("Error saving draft:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!id) return;
@@ -266,7 +255,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
-  const propertyTypes = ["Villa", "Penthouse", "Apartment", "House", "Studio", "Duplex", "Triplex", "Land", "Mall", "Office", "Warehouse", "Hotel", "Resort"];
   const cities = ["Casablanca", "Rabat", "Marrakech", "Fes", "Tangier", "Agadir", "Meknes", "Oujda"];
 
   if (isLoadingData) {
@@ -304,16 +292,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
               <div className="flex items-center space-x-2">
                 <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  DELETE
+                  <Trash2 className="w-4 h-4 mr-2" />DELETE
                 </Button>
                 <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isLoading ? "Saving..." : "Save Draft"}
+                  <Save className="w-4 h-4 mr-2" />{isLoading ? "Saving..." : "Save Draft"}
                 </Button>
                 <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
-                  <Building className="w-4 h-4 mr-2" />
-                  {isLoading ? "Updating..." : "Update"}
+                  <Building className="w-4 h-4 mr-2" />{isLoading ? "Updating..." : "Update"}
                 </Button>
               </div>
             </div>
@@ -323,31 +308,22 @@ const handleSubmit = async (e: React.FormEvent) => {
         <main className="container mx-auto px-6 py-8">
           <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
+              {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Building className="w-5 h-5" />
-                    <span>Basic Information</span>
+                    <Building className="w-5 h-5" /><span>Basic Information</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Title *
-                    </label>
-                    <Input
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      placeholder="E.g., Luxury Marina Villa"
-                      required
-                    />
+                    <label className="block text-sm font-medium text-foreground mb-2">Title *</label>
+                    <Input name="title" value={formData.title} onChange={handleInputChange} placeholder="E.g., Luxury Marina Villa" required />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Type *
-                      </label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Property Type *</label>
+                      {/* ✅ Select dynamique — même logique que AdminAddProperty */}
                       <select
                         name="type"
                         value={formData.type}
@@ -357,34 +333,42 @@ const handleSubmit = async (e: React.FormEvent) => {
                       >
                         <option value="">Select</option>
                         {propertyTypes.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
+                          <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                      {/* ✅ Champ pour ajouter un type custom */}
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          value={newType}
+                          onChange={(e) => setNewType(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomType())}
+                          placeholder="Add a new type..."
+                          className="text-sm h-8"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addCustomType}
+                          className="h-8 px-2 flex-shrink-0"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Les types ajoutés sont sauvegardés automatiquement
+                      </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Price (MAD) *
-                      </label>
-                      <Input
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        placeholder="2500000"
-                        type="number"
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Price (MAD) *</label>
+                      <Input name="price" value={formData.price} onChange={handleInputChange} placeholder="2500000" type="number" required />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Description *
-                    </label>
-                    {/* ✅ Replace Textarea with RichTextEditor */}
+                    <label className="block text-sm font-medium text-foreground mb-2">Description *</label>
                     <RichTextEditor
                       value={formData.description}
-                      onChange={(content) => handleInputChange({ target: { name: 'description', value: content } } as any)}
+                      onChange={(content) => handleInputChange({ target: { name: "description", value: content } } as any)}
                       placeholder="Detailed property description..."
                       uploadFolder="orchid/properties"
                     />
@@ -395,268 +379,129 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </CardContent>
               </Card>
 
+              {/* Location */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <MapPin className="w-5 h-5" />
-                    <span>Location</span>
+                    <MapPin className="w-5 h-5" /><span>Location</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        City *
-                      </label>
-                      <select
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                        required
-                      >
+                      <label className="block text-sm font-medium text-foreground mb-2">City *</label>
+                      <select name="city" value={formData.city} onChange={handleInputChange} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" required>
                         <option value="">Select</option>
-                        {cities.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
+                        {cities.map((city) => (<option key={city} value={city}>{city}</option>))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        District/Area *
-                      </label>
-                      <Input
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        placeholder="E.g., Marina, Souissi"
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">District/Area *</label>
+                      <Input name="location" value={formData.location} onChange={handleInputChange} placeholder="E.g., Marina, Souissi" required />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Square className="w-5 h-5" />
-                    <span>Details</span>
+                    <Square className="w-5 h-5" /><span>Details</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Bedrooms *
-                      </label>
-                      <Input
-                        name="bedrooms"
-                        value={formData.bedrooms}
-                        onChange={handleInputChange}
-                        placeholder="3"
-                        type="number"
-                        min="0"
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Bedrooms *</label>
+                      <Input name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} placeholder="3" type="number" min="0" required />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Bathrooms *
-                      </label>
-                      <Input
-                        name="bathrooms"
-                        value={formData.bathrooms}
-                        onChange={handleInputChange}
-                        placeholder="2"
-                        type="number"
-                        min="0"
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Bathrooms *</label>
+                      <Input name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} placeholder="2" type="number" min="0" required />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Area (m²) *
-                      </label>
-                      <Input
-                        name="area"
-                        value={formData.area}
-                        onChange={handleInputChange}
-                        placeholder="180"
-                        type="number"
-                        min="0"
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Area (m²) *</label>
+                      <Input name="area" value={formData.area} onChange={handleInputChange} placeholder="180" type="number" min="0" required />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Year Built
-                      </label>
-                      <Input
-                        name="yearBuilt"
-                        value={formData.yearBuilt}
-                        onChange={handleInputChange}
-                        placeholder="2020"
-                        type="number"
-                        min="1900"
-                        max={new Date().getFullYear()}
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Year Built</label>
+                      <Input name="yearBuilt" value={formData.yearBuilt} onChange={handleInputChange} placeholder="2020" type="number" min="1900" max={new Date().getFullYear()} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Parking
-                      </label>
-                      <Input
-                        name="parking"
-                        value={formData.parking}
-                        onChange={handleInputChange}
-                        placeholder="2"
-                        type="number"
-                        min="0"
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Parking</label>
+                      <Input name="parking" value={formData.parking} onChange={handleInputChange} placeholder="2" type="number" min="0" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Amenities
-                    </label>
-                    <Textarea
-                      name="amenities"
-                      value={formData.amenities}
-                      onChange={handleInputChange}
-                      placeholder="Air conditioning, Heating..."
-                      rows={3}
-                    />
+                    <label className="block text-sm font-medium text-foreground mb-2">Amenities</label>
+                    <Textarea name="amenities" value={formData.amenities} onChange={handleInputChange} placeholder="Air conditioning, Heating..." rows={3} />
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Images */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Camera className="w-5 h-5" />
-                    <span>Images</span>
+                    <Camera className="w-5 h-5" /><span>Images</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Main Image *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Main Image *</label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleMainImageChange}
-                          className="hidden"
-                          id="main-image-upload"
-                        />
-                        <label
-                          htmlFor="main-image-upload"
-                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Change Image
+                        <input type="file" accept="image/*" onChange={handleMainImageChange} className="hidden" id="main-image-upload" />
+                        <label htmlFor="main-image-upload" className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />Change Image
                         </label>
-                        {mainImageFile && (
-                          <span className="text-sm text-muted-foreground">
-                            {mainImageFile.name}
-                          </span>
-                        )}
+                        {mainImageFile && <span className="text-sm text-muted-foreground">{mainImageFile.name}</span>}
                         {isUploadingMain && (
-                         <div className="w-full mt-2">
+                          <div className="w-full mt-2">
                             <div className="bg-gray-200 rounded-full h-2">
-                             <div
-                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                               style={{ width: `${uploadProgress}%` }}
-                             />
+                              <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                             </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                             Uploading... {uploadProgress}%
-                           </p>
-                         </div>
+                            <p className="text-xs text-muted-foreground mt-1">Uploading... {uploadProgress}%</p>
+                          </div>
                         )}
                       </div>
                       <div className="border-t pt-4">
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Edit Image URL
-                        </label>
-                        <Input
-                          name="mainImage"
-                          value={formData.mainImage}
-                          onChange={handleInputChange}
-                          placeholder="https://example.com/image.jpg"
-                        />
+                        <label className="block text-sm font-medium text-foreground mb-2">Edit Image URL</label>
+                        <Input name="mainImage" value={formData.mainImage} onChange={handleInputChange} placeholder="https://example.com/image.jpg" />
                       </div>
                     </div>
                     {(mainImagePreview || formData.mainImage) && (
                       <div className="mt-4">
                         <p className="text-sm font-medium text-foreground mb-2">Current Image:</p>
-                        <img
-                          src={mainImagePreview || formData.mainImage}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg border"
-                          onError={(e) => {
-                            e.currentTarget.src = "/api/placeholder/600/400";
-                          }}
-                        />
+                        <img src={mainImagePreview || formData.mainImage} alt="Preview" className="w-full h-48 object-cover rounded-lg border" onError={(e) => { e.currentTarget.src = "/api/placeholder/600/400"; }} />
                       </div>
                     )}
                   </div>
 
                   <div className="border-t pt-4">
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Additional Images
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Additional Images</label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleAdditionalImagesChange}
-                          className="hidden"
-                          id="additional-images-upload"
-                        />
-                        <label
-                          htmlFor="additional-images-upload"
-                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Add Images
+                        <input type="file" accept="image/*" multiple onChange={handleAdditionalImagesChange} className="hidden" id="additional-images-upload" />
+                        <label htmlFor="additional-images-upload" className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />Add Images
                         </label>
-                        <span className="text-sm text-muted-foreground">
-                          {additionalImageFiles.length} new
-                        </span>
-                        {isUploadingAdditional && (
-                          <span className="text-xs text-primary animate-pulse ml-2">
-                            Uploading...
-                          </span>
-                        )}
+                        <span className="text-sm text-muted-foreground">{additionalImageFiles.length} new</span>
+                        {isUploadingAdditional && <span className="text-xs text-primary animate-pulse ml-2">Uploading...</span>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Edit URLs (one per line)
-                        </label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Edit URLs (one per line)</label>
                         <Textarea
                           name="additionalImages"
-                          value={formData.additionalImages.join('\n')}
+                          value={formData.additionalImages.join("\n")}
                           onChange={(e) => {
-                            const urls = e.target.value
-                              .split('\n')
-                              .map(url => url.trim())
-                              .filter(url => url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:image')));
-                            setFormData(prev => ({
-                              ...prev,
-                              additionalImages: urls
-                            }));
+                            const urls = e.target.value.split("\n").map((url) => url.trim()).filter((url) => url && (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:image")));
+                            setFormData((prev) => ({ ...prev, additionalImages: urls }));
                           }}
-                          placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                          placeholder="https://example.com/image1.jpg"
                           rows={3}
                         />
                       </div>
@@ -666,18 +511,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {additionalImagePreviews.map((preview, index) => (
                               <div key={index} className="relative">
-                                <img
-                                  src={preview}
-                                  alt={`Preview ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg border"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => removeAdditionalImage(index)}
-                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                                >
-                                  ×
-                                </button>
+                                <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-lg border" />
+                                <button type="button" onClick={() => removeAdditionalImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">×</button>
                               </div>
                             ))}
                           </div>
@@ -689,25 +524,18 @@ const handleSubmit = async (e: React.FormEvent) => {
               </Card>
             </div>
 
+            {/* Sidebar */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Star className="w-5 h-5" />
-                    <span>Status & Options</span>
+                    <Star className="w-5 h-5" /><span>Status & Options</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                    >
+                    <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+                    <select name="status" value={formData.status} onChange={handleInputChange} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
                       <option value="available">Available</option>
                       <option value="sold">Sold</option>
                       <option value="pending">Pending</option>
@@ -715,56 +543,18 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="featured"
-                        checked={formData.featured}
-                        onChange={handleInputChange}
-                        className="rounded border-input"
-                      />
-                      <span className="text-sm font-medium">Featured</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="garden"
-                        checked={formData.garden}
-                        onChange={handleInputChange}
-                        className="rounded border-input"
-                      />
-                      <span className="text-sm font-medium">Garden</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="pool"
-                        checked={formData.pool}
-                        onChange={handleInputChange}
-                        className="rounded border-input"
-                      />
-                      <span className="text-sm font-medium">Pool</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="security"
-                        checked={formData.security}
-                        onChange={handleInputChange}
-                        className="rounded border-input"
-                      />
-                      <span className="text-sm font-medium">24/7 Security</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        name="furnished"
-                        checked={formData.furnished}
-                        onChange={handleInputChange}
-                        className="rounded border-input"
-                      />
-                      <span className="text-sm font-medium">Furnished</span>
-                    </label>
+                    {[
+                      { name: "featured", label: "Featured" },
+                      { name: "garden", label: "Garden" },
+                      { name: "pool", label: "Pool" },
+                      { name: "security", label: "24/7 Security" },
+                      { name: "furnished", label: "Furnished" },
+                    ].map(({ name, label }) => (
+                      <label key={name} className="flex items-center space-x-2">
+                        <input type="checkbox" name={name} checked={formData[name as keyof PropertyFormData] as boolean} onChange={handleInputChange} className="rounded border-input" />
+                        <span className="text-sm font-medium">{label}</span>
+                      </label>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -772,45 +562,25 @@ const handleSubmit = async (e: React.FormEvent) => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Eye className="w-5 h-5" />
-                    <span>Preview</span>
+                    <Eye className="w-5 h-5" /><span>Preview</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {formData.featured && (
-                      <Badge className="luxury-gradient text-white">Featured</Badge>
-                    )}
-                    <h3 className="font-bold text-foreground">
-                      {formData.title || "Title"}
-                    </h3>
+                    {formData.featured && <Badge className="luxury-gradient text-white">Featured</Badge>}
+                    <h3 className="font-bold text-foreground">{formData.title || "Title"}</h3>
                     <div className="flex items-center space-x-1 text-muted-foreground">
                       <MapPin className="w-4 h-4" />
-                      <span className="text-sm">
-                        {formData.location && formData.city 
-                          ? `${formData.location}, ${formData.city}`
-                          : "Location"}
-                      </span>
+                      <span className="text-sm">{formData.location && formData.city ? `${formData.location}, ${formData.city}` : "Location"}</span>
                     </div>
                     <div className="flex items-center space-x-1 text-primary">
                       <DollarSign className="w-4 h-4" />
-                      <span className="font-bold">
-                        {formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Price"}
-                      </span>
+                      <span className="font-bold">{formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Price"}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Bed className="w-4 h-4" />
-                        <span>{formData.bedrooms || "0"}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Bath className="w-4 h-4" />
-                        <span>{formData.bathrooms || "0"}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Square className="w-4 h-4" />
-                        <span>{formData.area || "0"}m²</span>
-                      </div>
+                      <div className="flex items-center space-x-1"><Bed className="w-4 h-4" /><span>{formData.bedrooms || "0"}</span></div>
+                      <div className="flex items-center space-x-1"><Bath className="w-4 h-4" /><span>{formData.bathrooms || "0"}</span></div>
+                      <div className="flex items-center space-x-1"><Square className="w-4 h-4" /><span>{formData.area || "0"}m²</span></div>
                     </div>
                   </div>
                 </CardContent>

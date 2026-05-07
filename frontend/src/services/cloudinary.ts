@@ -2,6 +2,7 @@
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface CloudinaryUploadResult {
   publicId: string;
@@ -69,3 +70,133 @@ export const getCloudinaryUrl = (
 
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${publicId}`;
 };
+
+ 
+// ── Types space ────────────────────────────────────────────────────────────────────
+ 
+export interface SpaceFile {
+  _id: string;
+  name: string;
+  url: string;
+  resourceType: 'image' | 'video' | 'raw';
+  format: string;
+  size: number;
+  sizeFormatted: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+ 
+export interface SpaceInfo {
+  name: string;
+  spaceId: string;
+  allowUpload: boolean;
+  description: string;
+}
+ 
+export interface SpaceFilesResponse {
+  success: boolean;
+  data: SpaceInfo & { files: SpaceFile[] };
+}
+ 
+// ── Upload d'un fichier dans un espace (via backend — signé) ─────────────────
+ 
+/**
+ * Upload un fichier vers un espace de partage.
+ * Passe obligatoirement par le backend — jamais directement vers Cloudinary.
+ *
+ * @param spaceId   - ex: "SPACE-A3K9X"
+ * @param file      - File object (depuis un <input type="file">)
+ * @param spaceToken - JWT d'espace obtenu après /api/spaces/access
+ * @param onProgress - callback optionnel (0–100)
+ */
+export async function uploadFileToSpace(
+  spaceId: string,
+  file: File,
+  spaceToken: string,
+  onProgress?: (percent: number) => void
+): Promise<SpaceFile> {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', file);
+ 
+    const xhr = new XMLHttpRequest();
+ 
+    // Suivi de la progression
+    if (onProgress) {
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      });
+    }
+ 
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 201) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response.data);
+        } catch {
+          reject(new Error('Réponse invalide du serveur'));
+        }
+      } else {
+        try {
+          const error = JSON.parse(xhr.responseText);
+          reject(new Error(error.message || `Erreur ${xhr.status}`));
+        } catch {
+          reject(new Error(`Erreur HTTP ${xhr.status}`));
+        }
+      }
+    });
+ 
+    xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
+    xhr.addEventListener('abort', () => reject(new Error('Upload annulé')));
+ 
+    xhr.open('POST', `${API_BASE_URL}/api/spaces/${spaceId}/files`);
+    xhr.setRequestHeader('Authorization', `Bearer ${spaceToken}`);
+    xhr.send(formData);
+  });
+}
+ 
+// ── Récupérer les fichiers d'un espace ───────────────────────────────────────
+ 
+export async function getSpaceFilesFromCloud(
+  spaceId: string,
+  spaceToken: string
+): Promise<SpaceFilesResponse['data']> {
+  const res = await fetch(`${API_BASE_URL}/api/spaces/${spaceId}/files`, {
+    headers: { Authorization: `Bearer ${spaceToken}` },
+  });
+ 
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Erreur ${res.status}`);
+  }
+ 
+  const data: SpaceFilesResponse = await res.json();
+  return data.data;
+}
+ 
+// ── Authentification à un espace ─────────────────────────────────────────────
+ 
+export interface SpaceAccessResponse {
+  token: string;
+  space: SpaceInfo;
+}
+ 
+export async function authenticateSpace(
+  spaceId: string,
+  password: string
+): Promise<SpaceAccessResponse> {
+  const res = await fetch(`${API_BASE_URL}/api/spaces/access`, {
+    method  : 'POST',
+    headers : { 'Content-Type': 'application/json' },
+    body    : JSON.stringify({ spaceId, password }),
+  });
+ 
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'Identifiant ou mot de passe incorrect');
+  }
+ 
+  return data;
+}

@@ -14,7 +14,9 @@ import {
   Share2,
   TrendingUp,
   Home,
-  Building
+  Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
 import { getCloudinaryUrl } from "@/services/cloudinary";
@@ -23,7 +25,9 @@ const Blog = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All Posts"); // ✅ New state
+  const [selectedCategory, setSelectedCategory] = useState<string>("All Posts");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -43,7 +47,12 @@ const Blog = () => {
     fetchArticles();
   }, []);
 
-  // ✅ Transform articles for display
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  // Transform articles for display
   const blogPosts = articles.map(article => ({
     id: article._id,
     title: article.title,
@@ -53,27 +62,157 @@ const Blog = () => {
     createdAt: article.createdAt,
     views: article.views?.toString() || "0",
     comments: article.comments || 0,
-    category: article.category, // Must match values in `categories`
+    category: article.category,
     image: article.image || "/api/placeholder/800/400",
     featured: article.featured || false
   }));
 
-  // ✅ List of displayed categories
-  const categories = [
-    "All Posts",
-    "Market Analysis",
-    "Investment",
-    "Location Spotlight",
-    "Sustainability",
-    "Technology",
-    "Global Markets"
-  ];
+  // Extraire les catégories uniques dynamiquement
+  const dynamicCategories = Array.from(
+    new Set(articles.map(article => article.category).filter(Boolean))
+  ).sort();
 
-  // ✅ Dynamic filtering
+  const categories = ["All Posts", ...dynamicCategories];
+
+  // Dynamic filtering
   const filteredPosts = blogPosts.filter(post => {
     if (selectedCategory === "All Posts") return true;
-    return post.category === selectedCategory; // ✅ Ensure `post.category` matches exactly
+    return post.category === selectedCategory;
   });
+
+  // Get non-featured posts sorted by date
+  const nonFeaturedPosts = filteredPosts
+    .filter(post => !post.featured)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Pagination calculations
+  const totalPages = Math.ceil(nonFeaturedPosts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPosts = nonFeaturedPosts.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    // Scroll to the Latest Articles section
+    const latestSection = document.getElementById('latest-articles');
+    if (latestSection) {
+      latestSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const siblingCount = 1;
+    const pageNumbers: (number | string)[] = [];
+
+    // Toujours afficher la première page
+    pageNumbers.push(1);
+
+    // Calculer la plage de pages à afficher autour de la page actuelle
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
+
+    // Afficher les pointillés à gauche si nécessaire
+    const showLeftDots = leftSiblingIndex > 2;
+    const showRightDots = rightSiblingIndex < totalPages - 1;
+
+    // Si on est proche du début (pages 1-4)
+    if (!showLeftDots && showRightDots) {
+      const leftRange = 3 + 2 * siblingCount;
+      for (let i = 2; i <= Math.min(leftRange, totalPages - 1); i++) {
+        pageNumbers.push(i);
+      }
+      if (totalPages > leftRange + 1) {
+        pageNumbers.push('...');
+      }
+    }
+    // Si on est proche de la fin
+    else if (showLeftDots && !showRightDots) {
+      pageNumbers.push('...');
+      const rightRange = 3 + 2 * siblingCount;
+      for (let i = Math.max(totalPages - rightRange, 2); i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    // Si on est au milieu
+    else if (showLeftDots && showRightDots) {
+      pageNumbers.push('...');
+      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+        pageNumbers.push(i);
+      }
+      pageNumbers.push('...');
+    }
+    // Si le nombre total de pages est petit (moins de 7 pages)
+    else {
+      for (let i = 2; i <= totalPages - 1; i++) {
+        pageNumbers.push(i);
+      }
+    }
+
+    // Toujours afficher la dernière page (si elle existe et n'est pas la première)
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+
+    return (
+      <div className="flex flex-col items-center space-y-4 mt-12">
+        {/* Navigation avec boutons */}
+        <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="min-w-[90px]"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Previous
+          </Button>
+
+          <div className="flex items-center space-x-1">
+            {pageNumbers.map((pageNumber, index) => {
+              if (pageNumber === '...') {
+                return (
+                  <span key={`dots-${index}`} className="px-3 text-muted-foreground">
+                    ...
+                  </span>
+                );
+              }
+
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "luxury" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNumber as number)}
+                  className={`min-w-[40px] ${currentPage === pageNumber ? "text-white" : ""}`}
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="min-w-[90px]"
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+
+        {/* Info sur la page actuelle */}
+        <p className="text-sm text-muted-foreground font-lora">
+          Page {currentPage} of {totalPages} • Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, nonFeaturedPosts.length)} of {nonFeaturedPosts.length} articles
+        </p>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -137,11 +276,11 @@ const Blog = () => {
             <div className="font-lora flex flex-wrap gap-2 justify-center">
               {categories.map((category) => (
                 <Button
-                  key={category} // ✅ Use category as key
+                  key={category}
                   variant={selectedCategory === category ? "luxury" : "outline"}
                   size="sm"
                   className="rounded-full"
-                  onClick={() => setSelectedCategory(category)} // ✅ Click handler
+                  onClick={() => setSelectedCategory(category)}
                 >
                   {category}
                 </Button>
@@ -151,7 +290,6 @@ const Blog = () => {
         </section>
 
         {/* Featured Post */}
-        
         {filteredPosts.filter(post => post.featured).map((post) => (
           <section key={post.id} className="py-16 bg-background">
             <div className="container mx-auto px-6">
@@ -164,10 +302,10 @@ const Blog = () => {
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto">
                     <img
-                    src={getCloudinaryUrl(post.image, 800, 600)}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
+                      src={getCloudinaryUrl(post.image, 800, 600)}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
                     <Badge variant="secondary" className="font-lora w-fit mb-4">
@@ -199,8 +337,7 @@ const Blog = () => {
         ))}
 
         {/* Blog Posts Grid */}
-        
-        <section className="py-20 bg-cream/30">
+        <section id="latest-articles" className="py-20 bg-cream/30">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -212,9 +349,7 @@ const Blog = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[...filteredPosts].filter(post => ! post.featured)
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-          .map((post) => (
+              {currentPosts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
@@ -248,17 +383,14 @@ const Blog = () => {
               ))}
             </div>
 
-            {filteredPosts.filter(post => !post.featured).length === 0 && (
+            {/* Pagination */}
+            {renderPagination()}
+
+            {nonFeaturedPosts.length === 0 && (
               <div className="text-center py-12">
                 <p className="font-lora text-muted-foreground">No articles in this category.</p>
               </div>
             )}
-
-            <div className="font-lora text-center mt-12">
-              <Button variant="elegant" size="lg">
-                Load More Articles
-              </Button>
-            </div>
           </div>
         </section>
       </main>

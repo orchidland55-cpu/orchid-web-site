@@ -29,7 +29,7 @@ const Properties = () => {
       setLoading(true);
       try {
         const data = await apiService.getAllProperties();
-        console.log("🚀 Properties received:", data); // DEBUG
+        // console.log("🚀 Properties received:", data); // DEBUG
 
         // Filter only available properties
         const availableProperties = data.filter(

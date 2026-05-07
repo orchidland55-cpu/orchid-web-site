@@ -1,5 +1,5 @@
 // API service pour la communication avec le backend
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface PropertyFormData {
   title: string;
@@ -170,6 +170,75 @@ export interface UpdateUserPayload {
   role?: UserRole;
   password?: string; // optionnel — uniquement si l'admin veut le changer
 }
+// ── Types SpaceFiles ────────────────────────────────────────────────────────
+export interface SpaceFile {
+  _id: string;
+  name: string;
+  url: string;
+  resourceType: 'image' | 'video' | 'raw';
+  format: string;
+  size: number;
+  sizeFormatted: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+ 
+export interface SpaceData {
+  _id: string;
+  name: string;
+  spaceId: string;
+  allowUpload: boolean;
+  description: string;
+  isActive: boolean;
+  filesCount: number;
+  totalSize?: string;
+  createdBy?: { name: string; email: string };
+  createdAt: string;
+  updatedAt: string;
+}
+ 
+export interface SpaceDataWithPassword extends SpaceData {
+  passwordPlain: string;    // retourné UNE SEULE FOIS à la création
+}
+ 
+export interface CreateSpacePayload {
+  name: string;
+  password: string;
+  allowUpload?: boolean;
+  description?: string;
+}
+ 
+export interface UpdateSpacePayload {
+  name?: string;
+  description?: string;
+  allowUpload?: boolean;
+  isActive?: boolean;
+  password?: string;
+}
+ 
+export interface SpaceAccessPayload {
+  spaceId: string;
+  password: string;
+}
+ 
+export interface SpaceAccessResponse {
+  success: boolean;
+  token: string;
+  space: {
+    name: string;
+    spaceId: string;
+    allowUpload: boolean;
+    description: string;
+  };
+}
+ 
+export interface SpaceFilesData {
+  name: string;
+  spaceId: string;
+  allowUpload: boolean;
+  description: string;
+  files: SpaceFile[];
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -262,18 +331,34 @@ class ApiService {
     return data;
   }
 
-  async verifyToken(): Promise<boolean> {
-    const token = localStorage.getItem("adminToken");
-    if (!token) return false;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
+  // async verifyToken(): Promise<boolean> {
+  //   const token = localStorage.getItem("adminToken");
+  //   if (!token) return false;
+  //   try {
+  //     const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     return res.ok;
+  //   } catch {
+  //     return false;
+  //   }
+  // }
+
+  async verifyToken(): Promise<{ valid: boolean; role?: string }> {
+  const token = localStorage.getItem("adminToken");
+  if (!token) return { valid: false };
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return { valid: false };
+    const data = await res.json();
+    return { valid: true, role: data.user.role }; // ← data.user.role
+  } catch {
+    return { valid: false };
   }
+}
+  
 
   async getAdmins(): Promise<Admin[]> {
     const res = await this.request<{ success: boolean; data: Admin[] }>('/api/auth/admins');
@@ -293,6 +378,11 @@ class ApiService {
   /** Récupère tous les utilisateurs (admin + editor). */
   async getUsers(): Promise<AppUser[]> {
     const res = await this.request<{ success: boolean; data: AppUser[] }>('/api/users');
+    return res.data;
+  }
+
+  async getAssignableUsers(): Promise<{ _id: string; name: string }[]> {
+    const res = await this.request<{ success: boolean; data: { _id: string; name: string }[] }>('/api/users/assignable');
     return res.data;
   }
 
@@ -514,6 +604,7 @@ class ApiService {
   async createPostulation(formData: FormData): Promise<Postulation> {
     const url = `${API_BASE_URL}/postulations`;
     const token = localStorage.getItem("adminToken");
+    
 
     try {
       const response = await fetch(url, {
@@ -574,6 +665,92 @@ class ApiService {
     } catch (error) {
       console.error('Erreur tracking page view:', error);
     }
+  }
+   /** Liste tous les espaces. */
+  async getSpaces(): Promise<SpaceData[]> {
+    const res = await this.request<{ success: boolean; data: SpaceData[] }>('/api/spaces');
+    return res.data;
+  }
+ 
+  /**
+   * Crée un espace.
+   * Retourne le mot de passe en clair dans `passwordPlain` — à afficher UNE SEULE FOIS.
+   */
+  async createSpace(payload: CreateSpacePayload): Promise<SpaceDataWithPassword> {
+    const res = await this.request<{ success: boolean; data: SpaceDataWithPassword }>(
+      '/api/spaces',
+      { method: 'POST', body: JSON.stringify(payload) }
+    );
+    return res.data;
+  }
+ 
+  /** Met à jour un espace. */
+  async updateSpace(id: string, payload: UpdateSpacePayload): Promise<SpaceData> {
+    const body = { ...payload };
+    if (!body.password) delete body.password;   // ne pas envoyer un mot de passe vide
+    const res = await this.request<{ success: boolean; data: SpaceData }>(
+      `/api/spaces/${id}`,
+      { method: 'PUT', body: JSON.stringify(body) }
+    );
+    return res.data;
+  }
+ 
+  /** Supprime un espace et tous ses fichiers Cloudinary. */
+  async deleteSpace(id: string): Promise<void> {
+    await this.request<void>(`/api/spaces/${id}`, { method: 'DELETE' });
+  }
+ 
+  /** Détail d'un espace avec ses fichiers (pour l'admin). */
+  async getSpaceById(id: string): Promise<SpaceData & { files: SpaceFile[] }> {
+    const res = await this.request<{ success: boolean; data: SpaceData & { files: SpaceFile[] } }>(
+      `/api/spaces/${id}`
+    );
+    return res.data;
+  }
+ 
+  /** Supprime un fichier d'un espace (admin). */
+  async deleteSpaceFile(spaceId: string, fileId: string): Promise<void> {
+    await this.request<void>(`/api/spaces/${spaceId}/files/${fileId}`, {
+      method: 'DELETE',
+    });
+  }
+ 
+  // ============================================================
+  // ESPACES DE PARTAGE (visiteur)
+  // ============================================================
+ 
+  /**
+   * Authentifie un visiteur sur un espace.
+   * Retourne un JWT scopé à stocker en sessionStorage (pas localStorage).
+   */
+  async accessSpace(spaceId: string, password: string): Promise<SpaceAccessResponse> {
+    const res = await fetch(`${API_BASE_URL}/api/spaces/access`, {
+      method  : 'POST',
+      headers : { 'Content-Type': 'application/json' },
+      body    : JSON.stringify({ spaceId, password }),
+    });
+ 
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Identifiant ou mot de passe incorrect');
+    return data;
+  }
+ 
+  /**
+   * Récupère les fichiers d'un espace (visiteur authentifié).
+   * @param spaceId   - ex: "SPACE-A3K9X"
+   * @param spaceToken - JWT d'espace (depuis sessionStorage)
+   */
+  async getSpaceFiles(spaceId: string, spaceToken: string): Promise<SpaceFilesData> {
+    const res = await fetch(`${API_BASE_URL}/api/spaces/${spaceId}/files`, {
+      headers: { Authorization: `Bearer ${spaceToken}` },
+    });
+ 
+    const data = await res.json();
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('__EXPIRED__');
+      throw new Error(data.message || 'Erreur de chargement');
+    }
+    return data.data;
   }
 }
 

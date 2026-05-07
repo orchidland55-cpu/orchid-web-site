@@ -13,7 +13,10 @@ import {
   Shield,
   Users
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+
+
 
 const Invest = () => {
   const [formData, setFormData] = useState({
@@ -24,6 +27,22 @@ const Invest = () => {
     message: ""
   });
 
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({
+    type: null,
+    message: ""
+  });
+
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+  };
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -32,29 +51,53 @@ const Invest = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  try {
-    const response = await fetch("http://localhost:3000/invest", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(formData),
-});
-    const data = await response.json();
-
-    if (response.ok) {
-      alert("Merci ! Nous avons reçu votre demande.");
-      setFormData({ fullName: "", email: "", phone: "", investmentService: "", message: "" });
-    } else {
-      alert(data.error || "Une erreur est survenue.");
+    // Vérifier que reCAPTCHA est validé
+    if (!recaptchaToken) {
+     setStatus({
+        type: "error",
+        message: "Veuillez valider le reCAPTCHA"
+      });
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    alert("Erreur réseau.");
-  }
-};
 
+    try {
+      const response = await fetch("http://localhost:3000/invest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          recaptchaToken  // Envoyer le token au backend
+        }),
+      });
+      
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus({
+        type: "success",
+        message: "Message sent successfully! We will respond to you soon."
+      });
+        setFormData({ fullName: "", email: "", phone: "", investmentService: "", message: "" });
+        setRecaptchaToken(null);
+        // Réinitialiser le reCAPTCHA
+        recaptchaRef.current?.reset();
+      } else {
+        setStatus({
+         type: "error",
+         message: data.error || "Une erreur est survenue."
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus({
+        type: "error",
+        message: "Erreur réseau."
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -278,25 +321,35 @@ const Invest = () => {
                         </div>
 
                         {/* reCAPTCHA placeholder */}
-                        <div className="flex items-center space-x-3">
-                          <input type="checkbox" id="recaptcha" className="w-4 h-4" />
-                          <label htmlFor="recaptcha" className="font-lora text-sm text-muted-foreground">
-                            I'm not a robot
-                          </label>
-                          <div className="font-lora ml-auto text-xs text-muted-foreground">
-                            RECAPTCHA
-                          </div>
+                        <div className="flex justify-center">
+                          <ReCAPTCHA
+                           sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
+                            onChange={handleRecaptchaChange}
+                          />
                         </div>
 
                         <div className="text-center pt-4">
                           <Button
                             type="submit"
-                            className=" bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury"
+                            disabled={!recaptchaToken}  // Désactiver si pas validé
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             SEND
                           </Button>
                         </div>
                       </form>
+                      {status.type && (
+                        <div
+                          className={`mb-6 flex items-center gap-3 px-4 py-3 rounded-lg border ${
+                           status.type === "success"
+                             ? "bg-green-50 border-green-300 text-green-700"
+                              : "bg-red-50 border-red-300 text-red-700"
+                          }`}
+                        >
+                         {status.type === "success" ? "✅" : "❌"}
+                         <span className="font-medium">{status.message}</span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>

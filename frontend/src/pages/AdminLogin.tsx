@@ -17,7 +17,6 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Vérification via le token JWT (plus via le simple booléen)
   useEffect(() => {
     const checkExistingSession = async () => {
       const token = localStorage.getItem("adminToken");

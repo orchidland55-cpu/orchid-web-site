@@ -38,126 +38,16 @@ import {
   TrendingUp,
   CheckCircle,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Plus,        // ✅ Ajout icône Plus
+  X            // ✅ Ajout icône X pour fermer
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
 import { apiService, ArticleFormData, Admin } from "@/services/api";
 import { uploadToCloudinary } from "@/services/cloudinary";
 import RichTextEditor from "@/components/RichTextEditor";
-
-
-
-const SEOAnalyzer = ({ formData }) => {
-  const calculateSEOScore = () => {
-    let score = 0;
-    const factors = [];
-
-    // SEO Title
-    if (formData.seoTitle) {
-      if (formData.seoTitle.length >= 30 && formData.seoTitle.length <= 60) {
-        score += 20;
-        factors.push({ type: 'success', text: 'Optimal SEO title (30-60 characters)' });
-      } else {
-        factors.push({ type: 'warning', text: `SEO title: ${formData.seoTitle.length} characters (recommended: 30-60)` });
-      }
-    } else {
-      factors.push({ type: 'error', text: 'Missing SEO title' });
-    }
-
-    // Meta Description
-    if (formData.metaDescription) {
-      if (formData.metaDescription.length >= 120 && formData.metaDescription.length <= 160) {
-        score += 20;
-        factors.push({ type: 'success', text: 'Optimal meta description (120-160 characters)' });
-      } else {
-        factors.push({ type: 'warning', text: `Meta description: ${formData.metaDescription.length} characters (recommended: 120-160)` });
-      }
-    } else {
-      factors.push({ type: 'error', text: 'Missing meta description' });
-    }
-
-    // Slug
-    if (formData.slug) {
-      score += 15;
-      factors.push({ type: 'success', text: 'Custom URL defined' });
-    } else {
-      factors.push({ type: 'warning', text: 'Custom URL recommended' });
-    }
-
-    // Focus Keyword
-    if (formData.focusKeyword) {
-      score += 15;
-      factors.push({ type: 'success', text: 'Primary keyword set' });
-
-      // Check presence in title
-      if (formData.seoTitle && formData.seoTitle.toLowerCase().includes(formData.focusKeyword.toLowerCase())) {
-        score += 10;
-        factors.push({ type: 'success', text: 'Keyword present in SEO title' });
-      } else {
-        factors.push({ type: 'warning', text: 'Keyword missing from SEO title' });
-      }
-
-      // Check presence in meta description
-      if (formData.metaDescription && formData.metaDescription.toLowerCase().includes(formData.focusKeyword.toLowerCase())) {
-        score += 10;
-        factors.push({ type: 'success', text: 'Keyword present in meta description' });
-      } else {
-        factors.push({ type: 'warning', text: 'Keyword missing from meta description' });
-      }
-    } else {
-      factors.push({ type: 'error', text: 'Missing primary keyword' });
-    }
-
-    // Image with alt text
-    if (formData.image && formData.imageAlt) {
-      score += 10;
-      factors.push({ type: 'success', text: 'Image with alt text defined' });
-    } else if (formData.image) {
-      factors.push({ type: 'warning', text: 'Image without alt text' });
-    }
-
-    return { score, factors };
-  };
-
-  const { score, factors } = calculateSEOScore();
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getScoreLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Needs Improvement';
-    return 'Poor';
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="font-medium">SEO Score</h4>
-        <div className="flex items-center space-x-2">
-          <span className={`font-bold ${getScoreColor(score)}`}>{score}/100</span>
-          <span className="text-sm text-muted-foreground">({getScoreLabel(score)})</span>
-        </div>
-      </div>
-      <Progress value={score} className="h-2" />
-      <div className="space-y-2">
-        {factors.map((factor, index) => (
-          <div key={index} className="flex items-start space-x-2 text-sm">
-            {factor.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />}
-            {factor.type === 'warning' && <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
-            {factor.type === 'error' && <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
-            <span className="text-muted-foreground">{factor.text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+import SEOAnalyzer from "@/components/Seoanalyzer";
 
 const AdminAddArticle = () => {
   const navigate = useNavigate();
@@ -194,10 +84,23 @@ const AdminAddArticle = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(true);
 
+  // ✅ États pour l'ajout de catégorie inline
+  const [categories, setCategories] = useState([
+    "Market Analysis",
+    "Investment",
+    "Location Spotlight",
+    "Sustainability",
+    "Technology",
+    "Global Markets",
+  ]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategoryValue, setNewCategoryValue] = useState("");
+
   useEffect(() => {
     const loadAdmins = async () => {
       try {
-        const data = await apiService.getAdmins();
+        const data = await apiService.getAssignableUsers();
+        console.log('data:', data);
         setAdmins(data);
       } catch (error) {
         console.error('Erreur chargement admins:', error);
@@ -207,6 +110,23 @@ const AdminAddArticle = () => {
     };
     loadAdmins();
   }, []);
+
+  // ✅ Handler ajout de nouvelle catégorie
+  const handleAddCategory = () => {
+    const trimmed = newCategoryValue.trim();
+    if (!trimmed) return;
+
+    if (!categories.includes(trimmed)) {
+      setCategories((prev) => [...prev, trimmed]);
+    }
+
+    // Sélectionne automatiquement la nouvelle catégorie
+    setFormData((prev) => ({ ...prev, category: trimmed }));
+
+    // Reset
+    setNewCategoryValue("");
+    setShowNewCategoryInput(false);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -244,57 +164,44 @@ const AdminAddArticle = () => {
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  setImageFile(file);
-  // Preview local immédiat pendant l'upload
-  setImagePreview(URL.createObjectURL(file));
-  setIsUploading(true);
-  setUploadProgress(0);
-
-  try {
-    const result = await uploadToCloudinary(
-      file,
-      "orchid/blog",
-      (percent) => setUploadProgress(percent)
-    );
-    // On stocke uniquement le publicId en BDD
-    setFormData((prev) => ({ ...prev, image: result.publicId }));
-  } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    showToast({
-      type: "error",
-      title: "Upload Error",
-      message: "Failed to upload image. Please try again.",
-      duration: 3000,
-    });
-  } finally {
-    setIsUploading(false);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setIsUploading(true);
     setUploadProgress(0);
-  }
-};
+
+    try {
+      const result = await uploadToCloudinary(
+        file,
+        "orchid/blog",
+        (percent) => setUploadProgress(percent)
+      );
+      setFormData((prev) => ({ ...prev, image: result.publicId }));
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      showToast({
+        type: "error",
+        title: "Upload Error",
+        message: "Failed to upload image. Please try again.",
+        duration: 3000,
+      });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Validate required fields
-      if (!formData.title.trim()) {
-        throw new Error("Title is required");
-      }
-      if (!formData.excerpt.trim()) {
-        throw new Error("Excerpt is required");
-      }
-      if (!formData.content.trim()) {
-        throw new Error("Content is required");
-      }
-      if (!formData.person.trim()) {
-        throw new Error("Admin is required");
-      }
-      if (!formData.category.trim()) {
-        throw new Error("Category is required");
-      }
+      if (!formData.title.trim()) throw new Error("Title is required");
+      if (!formData.excerpt.trim()) throw new Error("Excerpt is required");
+      if (!formData.content.trim()) throw new Error("Content is required");
+      if (!formData.person.trim()) throw new Error("Admin is required");
+      if (!formData.category.trim()) throw new Error("Category is required");
 
       const articleData: ArticleFormData = {
         title: formData.title,
@@ -369,15 +276,6 @@ const AdminAddArticle = () => {
     }
   };
 
-  const categories = [
-    "Market Analysis",
-    "Investment",
-    "Location Spotlight",
-    "Sustainability",
-    "Technology",
-    "Global Markets",
-  ];
-
   const generatePreviewUrl = () => {
     const baseUrl = "https://monsite.com";
     return `${baseUrl}/${formData.slug || 'article-title'}`;
@@ -398,28 +296,16 @@ const AdminAddArticle = () => {
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">
-                    New Article
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    Create a new blog article
-                  </p>
+                  <h1 className="text-2xl font-bold text-foreground">New Article</h1>
+                  <p className="text-sm text-muted-foreground">Create a new blog article</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={handleSaveDraft}
-                  disabled={isLoading}
-                >
+                <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
                   <Save className="w-4 h-4 mr-2" />
                   Save Draft
                 </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
+                <Button onClick={handleSubmit} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Globe className="w-4 h-4 mr-2" />
                   {isLoading ? "Publishing..." : "Publish"}
                 </Button>
@@ -442,9 +328,7 @@ const AdminAddArticle = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Article Title *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Article Title *</label>
                     <Input
                       name="title"
                       value={formData.title}
@@ -455,9 +339,7 @@ const AdminAddArticle = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Article Content *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Article Content *</label>
                     <RichTextEditor
                       value={formData.content}
                       onChange={handleContentChange}
@@ -481,9 +363,7 @@ const AdminAddArticle = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      SEO Title *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">SEO Title *</label>
                     <Input
                       name="seoTitle"
                       value={formData.seoTitle}
@@ -491,14 +371,10 @@ const AdminAddArticle = () => {
                       placeholder="Search engine optimized title (30-60 characters)"
                       maxLength={60}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formData.seoTitle.length}/60 characters
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{formData.seoTitle.length}/60 characters</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Meta Description *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Meta Description *</label>
                     <Textarea
                       name="excerpt"
                       value={formData.excerpt}
@@ -507,14 +383,10 @@ const AdminAddArticle = () => {
                       rows={3}
                       required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formData.metaDescription.length}/160 characters
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{formData.metaDescription.length}/160 characters</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Article URL (Slug)
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Article URL (Slug)</label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-border bg-muted text-muted-foreground text-sm">
                         monsite.com/
@@ -527,37 +399,27 @@ const AdminAddArticle = () => {
                         className="rounded-l-none"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Final URL: {generatePreviewUrl()}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Final URL: {generatePreviewUrl()}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Primary Keyword
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Primary Keyword</label>
                     <Input
                       name="focusKeyword"
                       value={formData.focusKeyword}
                       onChange={handleInputChange}
                       placeholder="luxury real estate, investment..."
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      The keyword you want to rank for
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">The keyword you want to rank for</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Canonical URL (Optional)
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Canonical URL (Optional)</label>
                     <Input
                       name="canonicalUrl"
                       value={formData.canonicalUrl}
                       onChange={handleInputChange}
                       placeholder="https://monsite.com/main-article"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Useful to avoid duplicate content
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Useful to avoid duplicate content</p>
                   </div>
 
                   {/* Open Graph */}
@@ -568,50 +430,20 @@ const AdminAddArticle = () => {
                     </h4>
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Facebook/LinkedIn Title (Optional)
-                        </label>
-                        <Input
-                          name="ogTitle"
-                          value={formData.ogTitle}
-                          onChange={handleInputChange}
-                          placeholder="Title optimized for Facebook and LinkedIn"
-                        />
+                        <label className="block text-sm font-medium text-foreground mb-2">Facebook/LinkedIn Title (Optional)</label>
+                        <Input name="ogTitle" value={formData.ogTitle} onChange={handleInputChange} placeholder="Title optimized for Facebook and LinkedIn" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Facebook/LinkedIn Description (Optional)
-                        </label>
-                        <Textarea
-                          name="ogDescription"
-                          value={formData.ogDescription}
-                          onChange={handleInputChange}
-                          placeholder="Description for sharing on Facebook and LinkedIn"
-                          rows={2}
-                        />
+                        <label className="block text-sm font-medium text-foreground mb-2">Facebook/LinkedIn Description (Optional)</label>
+                        <Textarea name="ogDescription" value={formData.ogDescription} onChange={handleInputChange} placeholder="Description for sharing on Facebook and LinkedIn" rows={2} />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Twitter Title (Optional)
-                        </label>
-                        <Input
-                          name="twitterTitle"
-                          value={formData.twitterTitle}
-                          onChange={handleInputChange}
-                          placeholder="Title optimized for Twitter"
-                        />
+                        <label className="block text-sm font-medium text-foreground mb-2">Twitter Title (Optional)</label>
+                        <Input name="twitterTitle" value={formData.twitterTitle} onChange={handleInputChange} placeholder="Title optimized for Twitter" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Twitter Description (Optional)
-                        </label>
-                        <Textarea
-                          name="twitterDescription"
-                          value={formData.twitterDescription}
-                          onChange={handleInputChange}
-                          placeholder="Description for sharing on Twitter"
-                          rows={2}
-                        />
+                        <label className="block text-sm font-medium text-foreground mb-2">Twitter Description (Optional)</label>
+                        <Textarea name="twitterDescription" value={formData.twitterDescription} onChange={handleInputChange} placeholder="Description for sharing on Twitter" rows={2} />
                       </div>
                     </div>
                   </div>
@@ -629,86 +461,43 @@ const AdminAddArticle = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Select an image from your computer
-                      </label>
+                      <label className="block text-sm font-medium text-foreground mb-2">Select an image from your computer</label>
                       <div className="flex items-center space-x-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                          id="image-upload"
-                        />
-                        <label
-                          htmlFor="image-upload"
-                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-border rounded-md bg-background hover:bg-muted/50 transition-colors"
-                        >
+                        <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="image-upload" />
+                        <label htmlFor="image-upload" className="cursor-pointer inline-flex items-center px-4 py-2 border border-border rounded-md bg-background hover:bg-muted/50 transition-colors">
                           <Upload className="w-4 h-4 mr-2" />
                           Choose Image
                         </label>
-                        {imageFile && (
-                          <span className="text-sm text-muted-foreground">
-                            {imageFile.name}
-                          </span>
-                        )}
+                        {imageFile && <span className="text-sm text-muted-foreground">{imageFile.name}</span>}
                         {isUploading && (
-                         <div className="w-full mt-2">
-                           <div className="bg-gray-200 rounded-full h-2">
-                             <div
-                               className="bg-primary h-2 rounded-full transition-all duration-300"
-                               style={{ width: `${uploadProgress}%` }}
-                             />
-                           </div>
-                           <p className="text-xs text-muted-foreground mt-1">
-                             Uploading... {uploadProgress}%
-                           </p>
-                         </div>
+                          <div className="w-full mt-2">
+                            <div className="bg-gray-200 rounded-full h-2">
+                              <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Uploading... {uploadProgress}%</p>
+                          </div>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Accepted formats: JPG, PNG, GIF (recommended: 800x400px)
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">Accepted formats: JPG, PNG, GIF (recommended: 800x400px)</p>
                     </div>
                     <div className="border-t pt-4">
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Or use an image URL
-                      </label>
-                      <Input
-                        name="image"
-                        value={formData.image}
-                        onChange={handleInputChange}
-                        placeholder="https://example.com/image.jpg"
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-2">Or use an image URL</label>
+                      <Input name="image" value={formData.image} onChange={handleInputChange} placeholder="https://example.com/image.jpg" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Image Alt Text *
-                      </label>
-                      <Input
-                        name="imageAlt"
-                        value={formData.imageAlt}
-                        onChange={handleInputChange}
-                        placeholder="Description for accessibility and SEO"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Important for accessibility and search ranking
-                      </p>
+                      <label className="block text-sm font-medium text-foreground mb-2">Image Alt Text *</label>
+                      <Input name="imageAlt" value={formData.imageAlt} onChange={handleInputChange} placeholder="Description for accessibility and SEO" />
+                      <p className="text-xs text-muted-foreground mt-1">Important for accessibility and search ranking</p>
                     </div>
                   </div>
-
                   {(imagePreview || formData.image) && (
                     <div className="mt-4">
-                      <p className="text-sm font-medium text-foreground mb-2">
-                        Preview:
-                      </p>
+                      <p className="text-sm font-medium text-foreground mb-2">Preview:</p>
                       <img
                         src={imagePreview || formData.image}
                         alt={formData.imageAlt || "Preview"}
                         className="w-full h-48 object-cover rounded-lg border"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://via.placeholder.com/800x400?text=Image+not+found";
-                        }}
+                        onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/800x400?text=Image+not+found"; }}
                       />
                     </div>
                   )}
@@ -727,7 +516,17 @@ const AdminAddArticle = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SEOAnalyzer formData={formData} />
+                  <SEOAnalyzer
+                    seoTitle={formData.seoTitle}
+                    metaDescription={formData.excerpt}
+                    slug={formData.slug}
+                    focusKeyword={formData.focusKeyword}
+                    content={formData.content}
+                    image={formData.image}
+                    imageAlt={formData.imageAlt}
+                    ogTitle={formData.ogTitle}
+                    twitterTitle={formData.twitterTitle}
+                  />
                 </CardContent>
               </Card>
 
@@ -741,9 +540,7 @@ const AdminAddArticle = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Admin *
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Assigned User *</label>
                     <select
                       name="person"
                       value={formData.person}
@@ -752,39 +549,65 @@ const AdminAddArticle = () => {
                       required
                       disabled={adminsLoading}
                     >
-                      <option value="">
-                        {adminsLoading ? "Loading..." : "Select admin"}
-                      </option>
+                      <option value="">{adminsLoading ? "Loading..." : "Select user"}</option>
                       {admins.map((admin) => (
-                        <option key={admin._id} value={admin.name}>
-                          {admin.name}
-                        </option>
+                        <option key={admin._id} value={admin.name}>{admin.name}</option>
                       ))}
                     </select>
                   </div>
+
+                  {/* ✅ Category avec bouton "+" pour ajout inline */}
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Category *
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
-                      required
-                    >
-                      <option value="">Select category</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="block text-sm font-medium text-foreground mb-2">Category *</label>
+                    <div className="flex items-center gap-2">
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        className="flex-1 h-10 px-3 rounded-md border border-border bg-background text-sm"
+                        required
+                      >
+                        <option value="">Select category</option>
+                        {categories.map((category) => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewCategoryInput((prev) => !prev)}
+                        className="h-10 w-10 flex items-center justify-center rounded-md border border-border hover:bg-muted transition-colors"
+                        title="Add a category"
+                      >
+                        {showNewCategoryInput
+                          ? <X className="w-4 h-4" />
+                          : <Plus className="w-4 h-4" />
+                        }
+                      </button>
+                    </div>
+                    {showNewCategoryInput && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <Input
+                          value={newCategoryValue}
+                          onChange={(e) => setNewCategoryValue(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
+                          placeholder="New category..."
+                          className="flex-1 h-10 text-sm"
+                          autoFocus
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleAddCategory}
+                          size="sm"
+                          className="h-10"
+                        >
+                          OK
+                        </Button>
+                      </div>
+                    )}
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Publication Status
-                    </label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Publication Status</label>
                     <select
                       name="status"
                       value={formData.status}
@@ -809,9 +632,7 @@ const AdminAddArticle = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="border border-border rounded-lg p-3 bg-muted/30">
-                      <div className="text-sm text-muted-foreground mb-1">
-                        {generatePreviewUrl()}
-                      </div>
+                      <div className="text-sm text-muted-foreground mb-1">{generatePreviewUrl()}</div>
                       <h3 className="text-primary text-lg leading-tight hover:underline cursor-pointer">
                         {formData.seoTitle || formData.title || "Article Title"}
                       </h3>
@@ -819,9 +640,7 @@ const AdminAddArticle = () => {
                         {formData.metaDescription || formData.excerpt || "Article meta description..."}
                       </p>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Preview how this will appear in Google search results
-                    </div>
+                    <div className="text-xs text-muted-foreground">Preview how this will appear in Google search results</div>
                   </div>
                 </CardContent>
               </Card>
@@ -837,13 +656,9 @@ const AdminAddArticle = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <Badge variant="secondary">
-                        {formData.category || "Category"}
-                      </Badge>
+                      <Badge variant="secondary">{formData.category || "Category"}</Badge>
                     </div>
-                    <h3 className="font-bold text-foreground">
-                      {formData.title || "Article Title"}
-                    </h3>
+                    <h3 className="font-bold text-foreground">{formData.title || "Article Title"}</h3>
                     <p className="text-sm text-muted-foreground mt-1 leading-snug">
                       {formData.metaDescription || formData.excerpt || "Article meta description..."}
                     </p>
@@ -856,7 +671,7 @@ const AdminAddArticle = () => {
                     {formData.content && (
                       <div className="mt-4 p-2 bg-muted/50 rounded text-xs">
                         <p className="font-medium mb-2">Content Preview:</p>
-                        <div 
+                        <div
                           className="prose prose-xs max-w-none"
                           dangerouslySetInnerHTML={{ __html: formData.content.slice(0, 200) + '...' }}
                         />

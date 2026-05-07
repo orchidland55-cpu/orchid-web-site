@@ -17,7 +17,7 @@ const News = () => {
       setLoading(true);
       try {
         const articlesData = await apiService.getAllArticles();
-        console.log("🚀 Articles received from backend:", articlesData); // DEBUG
+        // console.log("🚀 Articles received from backend:", articlesData); // DEBUG
 
         // Filter only published articles (status: "published")
         const publishedArticles = articlesData.filter(

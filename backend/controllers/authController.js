@@ -27,7 +27,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'editor') {
       return res.status(403).json({ message: 'Accès réservé aux administrateurs' });
     }
 

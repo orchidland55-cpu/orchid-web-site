@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Building, Save, Eye, ArrowLeft, Upload, MapPin, DollarSign,
-  Bed, Bath, Square, Star, Camera, Trash2,
+  Bed, Bath, Square, Star, Camera, Trash2,TrendingUp,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
   List, ListOrdered, Link2, ImageIcon, Quote, Palette, Plus,
 } from "lucide-react";
@@ -15,6 +15,7 @@ import PageTransition from "@/components/PageTransition";
 import { apiService, PropertyFormData } from "@/services/api";
 import { uploadToCloudinary } from "@/services/cloudinary";
 import RichTextEditor from "@/components/RichTextEditor";
+import SEOAnalyzer from "@/components/Seoanalyzer";
 
 // ─── Clé localStorage (identique à AdminAddProperty) ─────────────────────────
 const STORAGE_KEY = "orchid_property_types";
@@ -81,6 +82,14 @@ const AdminEditProperty = () => {
     featured: false, mainImage: "", additionalImages: [], amenities: "",
     yearBuilt: "", parking: "", garden: false, pool: false,
     security: false, furnished: false, person: "admin",
+    // ── SEO ──────────────────────────────────────
+  seoTitle: "",
+  metaDescription: "",
+  slug: "",
+  focusKeyword: "",
+  imageAlt: "",
+  ogTitle: "",
+  twitterTitle: "",
   });
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState<File[]>([]);
@@ -112,28 +121,36 @@ const AdminEditProperty = () => {
     try {
       const propertyData = await apiService.getPropertyById(id);
       const loaded: PropertyFormData = {
-        title: propertyData.title,
-        description: propertyData.description,
-        price: propertyData.price.toString(),
-        location: propertyData.location,
-        city: propertyData.city,
-        type: propertyData.type,
-        bedrooms: propertyData.bedrooms.toString(),
-        bathrooms: propertyData.bathrooms.toString(),
-        area: propertyData.area.toString(),
-        status: propertyData.status,
-        featured: propertyData.featured,
-        mainImage: propertyData.mainImage,
-        additionalImages: propertyData.additionalImages || [],
-        amenities: propertyData.amenities?.join(", ") || "",
-        yearBuilt: propertyData.yearBuilt ? propertyData.yearBuilt.toString() : "",
-        parking: propertyData.parking,
-        garden: propertyData.garden,
-        pool: propertyData.pool,
-        security: propertyData.security,
-        furnished: propertyData.furnished,
-        person: propertyData.person || "admin",
-      };
+  title: propertyData.title,
+  description: propertyData.description,
+  price: propertyData.price.toString(),
+  location: propertyData.location,
+  city: propertyData.city,
+  type: propertyData.type,
+  bedrooms: propertyData.bedrooms.toString(),
+  bathrooms: propertyData.bathrooms.toString(),
+  area: propertyData.area.toString(),
+  status: propertyData.status,
+  featured: propertyData.featured,
+  mainImage: propertyData.mainImage,
+  additionalImages: propertyData.additionalImages || [],
+  amenities: propertyData.amenities?.join(", ") || "",
+  yearBuilt: propertyData.yearBuilt ? propertyData.yearBuilt.toString() : "",
+  parking: propertyData.parking,
+  garden: propertyData.garden,
+  pool: propertyData.pool,
+  security: propertyData.security,
+  furnished: propertyData.furnished,
+  person: propertyData.person || "admin",
+  // ── SEO ──────────────────────────────────────
+  seoTitle: propertyData.seoTitle || "",
+  metaDescription: propertyData.metaDescription || "",
+  slug: propertyData.slug || "",
+  focusKeyword: propertyData.focusKeyword || "",
+  imageAlt: propertyData.imageAlt || "",
+  ogTitle: propertyData.ogTitle || "",
+  twitterTitle: propertyData.twitterTitle || "",
+};
       setFormData(loaded);
       setMainImagePreview(propertyData.mainImage);
       if (propertyData.additionalImages?.length > 0) {
@@ -273,7 +290,7 @@ const AdminEditProperty = () => {
   }
 
   return (
-    <PageTransition>
+    // <PageTransition>
       <div className="min-h-screen bg-background">
         <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
@@ -522,7 +539,117 @@ const AdminEditProperty = () => {
                   </div>
                 </CardContent>
               </Card>
+              {/* SEO */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <span>SEO</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        SEO Title
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          ({formData.seoTitle.length}/60)
+                        </span>
+                      </label>
+                      <Input
+                        name="seoTitle"
+                        value={formData.seoTitle}
+                        onChange={handleInputChange}
+                        placeholder="Ex : Villa de luxe à Marrakech — Orchid"
+                        maxLength={60}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Mot-clé principal
+                      </label>
+                      <Input
+                        name="focusKeyword"
+                        value={formData.focusKeyword}
+                        onChange={handleInputChange}
+                        placeholder="Ex : villa luxe Marrakech"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                     Meta Description
+                     <span className="ml-2 text-xs text-muted-foreground">
+                       ({formData.metaDescription.length}/160)
+                     </span>
+                    </label>
+                    <Textarea
+                     name="metaDescription"
+                     value={formData.metaDescription}
+                     onChange={handleInputChange}
+                     placeholder="Courte description pour Google (120–160 caractères recommandés)"
+                     rows={3}
+                     maxLength={160}
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Slug (URL)
+                      </label>
+                      <Input
+                       name="slug"
+                       value={formData.slug}
+                       onChange={handleInputChange}
+                       placeholder="villa-luxe-marrakech"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Minuscules, tirets uniquement, sans espaces
+                     </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Image Alt Text
+                    </label>
+                    <Input
+                      name="imageAlt"
+                      value={formData.imageAlt}
+                     onChange={handleInputChange}
+                     placeholder="Ex : Villa de luxe avec piscine à Marrakech"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Open Graph Title
+                    </label>
+                    <Input
+                      name="ogTitle"
+                      value={formData.ogTitle}
+                      onChange={handleInputChange}
+                      placeholder="Titre pour Facebook / LinkedIn"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Twitter Card Title
+                    </label>
+                    <Input
+                      name="twitterTitle"
+                       value={formData.twitterTitle}
+                        onChange={handleInputChange}
+                        placeholder="Titre pour Twitter / X"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              </Card> 
             </div>
+            
 
             {/* Sidebar */}
             <div className="space-y-6">
@@ -558,6 +685,27 @@ const AdminEditProperty = () => {
                   </div>
                 </CardContent>
               </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>SEO Analysis</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SEOAnalyzer
+                   seoTitle={formData.seoTitle}
+                   metaDescription={formData.metaDescription}
+                   slug={formData.slug}
+                   focusKeyword={formData.focusKeyword}
+                   content={formData.description}
+                   image={formData.mainImage}
+                   imageAlt={formData.imageAlt}
+                   ogTitle={formData.ogTitle}
+                   twitterTitle={formData.twitterTitle}
+                  />
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader>
@@ -589,7 +737,7 @@ const AdminEditProperty = () => {
           </form>
         </main>
       </div>
-    </PageTransition>
+    // </PageTransition>
   );
 };
 

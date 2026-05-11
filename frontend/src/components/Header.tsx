@@ -190,17 +190,6 @@ const Header = () => {
                   <Link to="/blog" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     Blog
                   </Link>
-
-                  {/* Liens secondaires dans le menu mobile */}
-                  <div className="flex items-center gap-3 pt-2 border-t border-border">
-                    <Link to="/Scr" onClick={() => setIsMenuOpen(false)} className="text-[10px] font-lora text-muted-foreground hover:text-primary uppercase tracking-widest">
-                      Orchid Island CSR
-                    </Link>
-                    <span className="text-border text-xs">|</span>
-                    <Link to="/postulation" onClick={() => setIsMenuOpen(false)} className="text-[10px] font-lora text-muted-foreground hover:text-primary uppercase tracking-widest">
-                      Careers
-                    </Link>
-                  </div>
                 </nav>
 
                 <div className="font-lora flex space-x-2">
@@ -227,53 +216,8 @@ const Header = () => {
           </div>
         </div>
 
-         {/* ══ TOP BAR ══════════════════════════════════════════════════════════ */}
-        <div className="bg-[#0d2340] border-b border-white/10">
-          <div className="container mx-auto px-6 flex items-center justify-between h-9">
-
-            {/* Liens de navigation secondaire — droite */}
-            <div className="flex items-center text-[10px] font-lora tracking-widest uppercase">
-              <Link
-                to="/Scr"
-                className="text-white/65 hover:text-[#b8972e] transition-colors duration-200"
-              >
-                Orchid Island CSR
-              </Link>
-              <span className="mx-2 text-white/25">|</span>
-              <Link
-                to="/postulation"
-                className="text-white/65 hover:text-[#b8972e] transition-colors duration-200"
-              >
-                Careers
-              </Link>
-            </div>
-
-            {/* Icônes réseaux sociaux — gauche */}
-            <div className="flex items-center gap-3.5">
-              {socialLinks.map(({ href, icon: Icon, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="text-[#b8972e] hover:text-[#d4af50] transition-colors duration-200"
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                </a>
-              ))}
-            </div>
-
-          </div>
-        </div>
-
       </header>
-
-      {/*
-        Espaceur : top-bar h-9 (36px) + main nav py-4 + logo h-12 + borders ≈ 116px
-        Ajustez si nécessaire.
-      */}
-      <div className="h-[116px]" aria-hidden="true" />
+      <div className="h-[80px]" aria-hidden="true" />
     </>
   );
 };

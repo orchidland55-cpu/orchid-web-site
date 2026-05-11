@@ -23,10 +23,11 @@ const seedAdmin = async () => {
     }
 
     const admin = await User.create({
-      name: process.env.ADMIN_NAME,
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
+      name: "Perry_Dev",
+      email: "orchidland55@gmail.com",
       role: 'admin',
+      passwordSet: false
+
     });
 
     console.log('✅ Admin créé avec succès :', admin.email);

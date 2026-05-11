@@ -50,7 +50,7 @@ const Footer = () => {
               <li><a href="/properties" className="text-ivory-white/80 hover:text-primary transition-smooth">Property Sales</a></li>
               <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">Custom Acquisition</a></li>
               <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">High-End Rental</a></li>
-              <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">Investment Advice</a></li>
+              <li><a href="/invest" className="text-ivory-white/80 hover:text-primary transition-smooth">Investment Advice</a></li>
               <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">Wealth Management</a></li>
             </ul>
           </div>
@@ -79,6 +79,11 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div>
+            <h4 className="font-playfair font-semibold text-xl mb-6">Our Actions</h4>
+            <ul className="font-lora space-y-3">
+              <li><a href="/Scr" className="text-ivory-white/80 hover:text-primary transition-smooth">Orchid Island CSR</a></li>
+              <li><a href="/postulation" className="text-ivory-white/80 hover:text-primary transition-smooth">Careers</a></li>
+            </ul><br />
             <h4 className="font-playfair font-semibold text-xl mb-6">Newsletter</h4>
             <p className="font-lora text-ivory-white/80 mb-4">
               Receive our latest news and exclusive properties.

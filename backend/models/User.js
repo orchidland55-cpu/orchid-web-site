@@ -18,7 +18,9 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.passwordSet === true; // ← requis seulement une fois le mot de passe défini
+      },
       minlength: 8,
     },
     role: {
@@ -27,7 +29,6 @@ const UserSchema = new mongoose.Schema(
       default: 'editor',
     },
 
-    // ── Champs pour le flux "définir son mot de passe" ──────────────────────
     resetPasswordToken: {
       type: String,
       default: null,
@@ -36,9 +37,6 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    // Indique si l'utilisateur a déjà défini son mot de passe
-    // false = compte créé par un admin, email envoyé, en attente
-    // true  = mot de passe défini, compte actif
     passwordSet: {
       type: Boolean,
       default: false,
@@ -49,13 +47,12 @@ const UserSchema = new mongoose.Schema(
 
 // Hash automatique avant chaque save (uniquement si password modifié)
 UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next(); // ← garde si password vide
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-// Méthode pour comparer le mot de passe
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

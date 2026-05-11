@@ -20,6 +20,7 @@ import {
   Square,
   Star,
   Camera,
+  TrendingUp,
   Bold,
   Italic,
   Underline,
@@ -36,6 +37,7 @@ import {
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import RichTextEditor from "@/components/RichTextEditor";
+import SEOAnalyzer from "@/components/Seoanalyzer";
 
 // ─── Clé localStorage pour les types custom ───────────────────────────────────
 const STORAGE_KEY = "orchid_property_types";
@@ -120,6 +122,14 @@ const AdminAddProperty = () => {
     security: false,
     furnished: false,
     person: "",
+    // ── SEO ──────────────────────────────────────
+    seoTitle: "",
+    metaDescription: "",
+    slug: "",
+    focusKeyword: "",
+    imageAlt: "",
+    ogTitle: "",
+    twitterTitle: "",
   });
 
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
@@ -530,6 +540,115 @@ const AdminAddProperty = () => {
                 </div>
               </CardContent>
             </Card>
+            {/* SEO */}
+            <Card>
+              <CardHeader>
+               <CardTitle className="flex items-center space-x-2">
+                 <TrendingUp className="w-5 h-5" />
+                  <span>SEO</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                     SEO Title
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({formData.seoTitle.length}/60)
+                      </span>
+                    </label>
+                    <Input
+                     name="seoTitle"
+                     value={formData.seoTitle}
+                     onChange={handleInputChange}
+                     placeholder="Ex : Villa de luxe à Marrakech — Orchid"
+                     maxLength={60}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Mot-clé principal
+                    </label>
+                    <Input
+                     name="focusKeyword"
+                     value={formData.focusKeyword}
+                      onChange={handleInputChange}
+                     placeholder="Ex : villa luxe Marrakech"
+                    />
+                  </div>
+                </div>
+                    
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                   Meta Description
+                   <span className="ml-2 text-xs text-muted-foreground">
+                     ({formData.metaDescription.length}/160)
+                   </span>
+                  </label>
+                  <Textarea
+                    name="metaDescription"
+                    value={formData.metaDescription}
+                    onChange={handleInputChange}
+                    placeholder="Courte description pour Google (120–160 caractères recommandés)"
+                    rows={3}
+                    maxLength={160}
+                  />
+                </div>
+
+    <div className="grid md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Slug (URL)
+        </label>
+        <Input
+          name="slug"
+          value={formData.slug}
+          onChange={handleInputChange}
+          placeholder="villa-luxe-marrakech"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Minuscules, tirets uniquement, sans espaces
+        </p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Image Alt Text
+        </label>
+        <Input
+          name="imageAlt"
+          value={formData.imageAlt}
+          onChange={handleInputChange}
+          placeholder="Ex : Villa de luxe avec piscine à Marrakech"
+        />
+      </div>
+    </div>
+
+    <div className="grid md:grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Open Graph Title
+        </label>
+        <Input
+          name="ogTitle"
+          value={formData.ogTitle}
+          onChange={handleInputChange}
+          placeholder="Titre pour Facebook / LinkedIn"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Twitter Card Title
+        </label>
+        <Input
+          name="twitterTitle"
+          value={formData.twitterTitle}
+          onChange={handleInputChange}
+          placeholder="Titre pour Twitter / X"
+        />
+      </div>
+    </div>
+  </CardContent>
+</Card>
           </div>
 
           {/* Sidebar */}
@@ -576,6 +695,28 @@ const AdminAddProperty = () => {
                 </div>
               </CardContent>
             </Card>
+            {/* SEO Analysis */}
+              <Card>
+  <CardHeader>
+    <CardTitle className="flex items-center space-x-2">
+      <TrendingUp className="w-5 h-5" />
+      <span>SEO Analysis</span>
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    <SEOAnalyzer
+      seoTitle={formData.seoTitle}
+      metaDescription={formData.metaDescription}
+      slug={formData.slug}
+      focusKeyword={formData.focusKeyword}
+      content={formData.description}
+      image={formData.mainImage}
+      imageAlt={formData.imageAlt}
+      ogTitle={formData.ogTitle}
+      twitterTitle={formData.twitterTitle}
+    />
+  </CardContent>
+</Card>
 
             <Card>
               <CardHeader>

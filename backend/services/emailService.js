@@ -1,38 +1,12 @@
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// ── Transporter ───────────────────────────────────────────────────────────────
+// ── Client Resend ─────────────────────────────────────────────────────────────
 
-// Basculer entre Gmail (prod) et Mailtrap (dev) selon NODE_ENV
-const isProduction = process.env.NODE_ENV === 'production';
-console.log("ENV:", {
-  NODE_ENV: process.env.NODE_ENV,
-  MAILTRAP_USER: process.env.MAILTRAP_USER,
-  MAILTRAP_PASS: process.env.MAILTRAP_PASS,
-  GMAIL_USER: process.env.GMAIL_USER,
-});
-const transporter = nodemailer.createTransport(
-  isProduction
-    ? {
-        // ── PRODUCTION : Gmail ──
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-      }
-    : {
-        // ── DÉVELOPPEMENT : Mailtrap ──
-        host: 'sandbox.smtp.mailtrap.io',
-        port: 2525,
-        auth: {
-          user: process.env.MAILTRAP_USER,
-          pass: process.env.MAILTRAP_PASS,
-        },
-      }
-);
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// En dev, on log les emails au lieu de les envoyer si pas de clé configurée
+const isDev = process.env.NODE_ENV !== 'production';
 
 // ── Template : invitation à définir le mot de passe ──────────────────────────
 
@@ -44,6 +18,13 @@ const transporter = nodemailer.createTransport(
  */
 async function sendSetPasswordEmail(to, name, token) {
   const link = `${process.env.FRONTEND_URL}/set-password?token=${token}`;
+
+  // ── Mode dev sans clé Resend : log console ──
+  if (isDev && !process.env.RESEND_API_KEY) {
+    console.log('\n📧 [DEV] Email non envoyé — lien de définition du mot de passe :');
+    console.log(`   → ${link}\n`);
+    return;
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -121,8 +102,8 @@ async function sendSetPasswordEmail(to, name, token) {
     </html>
   `;
 
-  await transporter.sendMail({
-    from: process.env.ADMIN_EMAIL || '"Orchid Island" <no-reply@orchidisland.com>',
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'Orchid Island <onboarding@resend.dev>',
     to,
     subject: 'Bienvenue — Définissez votre mot de passe',
     html,

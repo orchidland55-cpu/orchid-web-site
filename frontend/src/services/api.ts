@@ -23,6 +23,14 @@ export interface PropertyFormData {
   security: boolean;
   furnished: boolean;
   person: string;
+  // ── SEO ──────────────────────────────────────
+  seoTitle: string;
+  metaDescription: string;
+  slug: string;
+  focusKeyword: string;
+  imageAlt: string;
+  ogTitle: string;
+  twitterTitle: string;
 }
 
 export interface PropertyData {
@@ -47,6 +55,14 @@ export interface PropertyData {
   security: boolean;
   furnished: boolean;
   person: string;
+  // ── SEO ──────────────────────────────────────
+  seoTitle?: string;
+  metaDescription?: string;
+  slug?: string;
+  focusKeyword?: string;
+  imageAlt?: string;
+  ogTitle?: string;
+  twitterTitle?: string;
 }
 
 export interface Property extends PropertyData {
@@ -344,17 +360,60 @@ class ApiService {
   //   }
   // }
 
-  async verifyToken(): Promise<{ valid: boolean; role?: string }> {
+//   async verifyToken(): Promise<{ valid: boolean; role?: string }> {
+//     const token = localStorage.getItem("adminToken");
+//     if (!token) return { valid: false };
+//     try {
+//       const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+//       headers: { Authorization: `Bearer ${token}` },
+//     });
+//     if (!res.ok) return { valid: false };
+//     const data = await res.json();
+//     return { valid: true, role: data.user.role }; // ← data.user.role
+//   } catch {
+//     return { valid: false };
+//   }
+// }
+
+async verifyToken(): Promise<{ valid: boolean; role?: string }> {
   const token = localStorage.getItem("adminToken");
-  if (!token) return { valid: false };
+
+  if (!token) {
+    return { valid: false };
+  }
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-      headers: { Authorization: `Bearer ${token}` },
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-    if (!res.ok) return { valid: false };
+
+    // Token invalide ou expiré
+    if (res.status === 401) {
+      localStorage.removeItem("adminToken");
+
+      return { valid: false };
+    }
+
+    // Autre erreur backend
+    if (!res.ok) {
+      return { valid: false };
+    }
+
     const data = await res.json();
-    return { valid: true, role: data.user.role }; // ← data.user.role
-  } catch {
+
+    return {
+      valid: true,
+      role: data.user.role,
+    };
+
+  } catch (error) {
+
+    // Erreur réseau → on NE supprime PAS forcément le token
+    console.error("verifyToken error:", error);
+
     return { valid: false };
   }
 }

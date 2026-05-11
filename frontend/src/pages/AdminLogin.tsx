@@ -17,26 +17,37 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // useEffect(() => {
+  //   const checkExistingSession = async () => {
+  //     const token = localStorage.getItem("adminToken");
+  //     if (!token) return;
+
+  //     try {
+  //       const isValid = await apiService.verifyToken();
+  //       if (isValid) {
+  //         navigate("/admin/dashboard");
+  //       } else {
+  //         // Token expiré ou invalide → on nettoie
+  //         apiService.logout();
+  //       }
+  //     } catch {
+  //       apiService.logout();
+  //     }
+  //   };
+
+  //   checkExistingSession();
+  // }, [navigate]);
   useEffect(() => {
-    const checkExistingSession = async () => {
-      const token = localStorage.getItem("adminToken");
-      if (!token) return;
+  const checkExistingSession = async () => {
+    const result = await apiService.verifyToken();
 
-      try {
-        const isValid = await apiService.verifyToken();
-        if (isValid) {
-          navigate("/admin/dashboard");
-        } else {
-          // Token expiré ou invalide → on nettoie
-          apiService.logout();
-        }
-      } catch {
-        apiService.logout();
-      }
-    };
+    if (result.valid) {
+      navigate("/admin/dashboard");
+    }
+  };
 
-    checkExistingSession();
-  }, [navigate]);
+  checkExistingSession();
+}, []);
 
   // ✅ Login sécurisé via l'API backend (plus de credentials hardcodés)
   const handleLogin = async (e: React.FormEvent) => {

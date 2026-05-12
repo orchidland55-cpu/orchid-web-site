@@ -13,7 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute"; // ✅ AJOUTÉ
 import Postulation from "@/pages/Postulation";
 import NotFound from "@/pages/NotFound";
 import Index from "@/pages/Index";
-import Blog from "./pages/Blog";
+import Blog from "./pages/blog";
 import About from "./pages/About";
 import Scr from "./pages/SCR";
 import Properties from "./pages/Properties";

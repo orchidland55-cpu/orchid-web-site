@@ -1,8 +1,7 @@
 import React from "react";
 
 const WhatsAppButton: React.FC = () => {
-  // ⚠️ VÉRIFIEZ ce numéro - remplacez par votre numéro WhatsApp réel
-  const phoneNumber = "212661868888"; // Format: 212XXXXXXXXX (sans espaces ni tirets)
+  const phoneNumber = "212661868888"; 
   const message = "Bonjour ! Je suis intéressé par vos services immobiliers. Pouvez-vous m'aider ?";
 
   return (
@@ -12,8 +11,8 @@ const WhatsAppButton: React.FC = () => {
       rel="noopener noreferrer"
       style={{
         position: "fixed",
-        bottom: "20px", // 🔽 WhatsApp reste en bas
-        right: "90px",
+        bottom: "20px",
+        right: "20px",
         width: "60px",
         height: "60px",
         backgroundColor: "#ccac36", // ✅ couleur inchangée

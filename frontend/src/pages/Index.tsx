@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import OurPartners from "@/components/Ourpartners";
 
+
 const Index = () => {
   return (
     <div className="min-h-screen">

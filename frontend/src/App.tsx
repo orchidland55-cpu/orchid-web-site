@@ -43,13 +43,14 @@ import PrivacyPolicy from "./pages/Privacypolicy ";
 import TermsAndConditions from "./pages/Termsandconditions";
 import LegalNotice from "./pages/Legalnotice";
 import SetPassword from "./pages/SetPassword";
+import ChatbaseWidget from "@/components/ChatbaseWidget";
 
 import SpaceManager from "./components/SpaceManager";
 import SpaceAccess from "./pages/SpaceAccess";
 import SpaceView from "./pages/SpaceView";
 import SpaceManagerPage from "./pages/SpaceManagerPage";
 
-import Chatbot from "./components/Chatbot";
+// import Chatbot from "./components/Chatbot";
 import WhatsAppButton from "./components/WhatsAppButton";
 
 const queryClient = new QueryClient();
@@ -194,7 +195,8 @@ function App() {
             </Routes>
 
             {/* Chatbot et WhatsApp visibles sur toutes les pages */}
-            <Chatbot />
+            {/* <Chatbot /> */}
+            <ChatbaseWidget />
             <WhatsAppButton />
 
             {/* Toasters et notifications */}

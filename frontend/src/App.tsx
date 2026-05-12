@@ -44,6 +44,7 @@ import TermsAndConditions from "./pages/Termsandconditions";
 import LegalNotice from "./pages/Legalnotice";
 import SetPassword from "./pages/SetPassword";
 import ChatbaseWidget from "@/components/ChatbaseWidget";
+import { Analytics } from "@vercel/analytics/next"
 
 import SpaceManager from "./components/SpaceManager";
 import SpaceAccess from "./pages/SpaceAccess";
@@ -196,6 +197,7 @@ function App() {
 
             {/* Chatbot et WhatsApp visibles sur toutes les pages */}
             {/* <Chatbot /> */}
+            <Analytics/>
             <ChatbaseWidget />
             <WhatsAppButton />
 

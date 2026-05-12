@@ -67,6 +67,7 @@ function App() {
               v7_relativeSplatPath: true }
             }>
             <ScrollToTop />
+            <Analytics/>
             <AnalyticsTracker />
             <Routes >
 
@@ -197,7 +198,7 @@ function App() {
 
             {/* Chatbot et WhatsApp visibles sur toutes les pages */}
             {/* <Chatbot /> */}
-            <Analytics/>
+            
             <ChatbaseWidget />
             <WhatsAppButton />
 

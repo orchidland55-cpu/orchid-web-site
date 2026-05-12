@@ -61,11 +61,13 @@ const Header = () => {
 
               {/* Logo */}
               <div className="flex items-center space-x-3">
-                <img
-                  src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png"
-                  alt="Orchid Island Logo"
-                  className="h-12 w-auto"
-                />
+                <Link to="/">
+                  <img
+                    src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png"
+                    alt="Orchid Island Logo"
+                    className="h-12 w-auto"
+                  />
+                </Link>
               </div>
 
               {/* Desktop Navigation */}

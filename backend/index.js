@@ -41,7 +41,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ===== Middlewares =====
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}));
 app.use(bodyParser.json({ limit: '150mb' }));
 app.use(bodyParser.urlencoded({ limit: '150mb', extended: true }));
 // app.use(fileUpload()); // middleware pour gérer les fichiers

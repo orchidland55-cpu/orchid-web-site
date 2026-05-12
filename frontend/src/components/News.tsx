@@ -54,9 +54,9 @@ const News = () => {
       <section id="news" className="py-20 bg-background">
         <div className="container mx-auto px-6 text-center">
           <p className="font-lora text-red-500 text-lg">{error}</p>
-          <p className="text-muted-foreground mt-2">
+          {/* <p className="text-muted-foreground mt-2">
             Make sure the backend is running at <code>http://localhost:3000</code>
-          </p>
+          </p> */}
         </div>
       </section>
     );

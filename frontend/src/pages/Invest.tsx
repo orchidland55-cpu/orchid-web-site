@@ -64,7 +64,7 @@ const Invest = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/invest", {
+      const response = await fetch("https://orchid-web-site-production.up.railway.app/invest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -289,7 +289,7 @@ const AdminDashboard = () => {
                 <Link to="/space-manager">
                   <Button variant="outline" size="sm">
                     <Home className="w-4 h-4 mr-2" />
-                    Manage Customer Space
+                    Data Room
                   </Button>
                 </Link>
               )}

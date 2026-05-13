@@ -133,7 +133,7 @@ const Header = () => {
               <div className="font-lora hidden lg:flex items-center space-x-4">
                 <form onSubmit={handleNewsletterSubmit} className="flex items-center space-x-2" />
                 <Link to="/invest">
-                  <Button variant="luxury" size="sm">INVEST! (New)</Button>
+                  <Button variant="luxury" size="sm">INVEST</Button>
                 </Link>
                 <Link to="/contact">
                   <Button variant="elegant" size="sm">Contact Us</Button>
@@ -196,7 +196,7 @@ const Header = () => {
 
                 <div className="font-lora flex space-x-2">
                   <Link to="/invest" className="flex-1">
-                    <Button variant="luxury" size="sm" className="w-full">INVEST! (New)</Button>
+                    <Button variant="luxury" size="sm" className="w-full">INVEST</Button>
                   </Link>
                   <Link to="/contact" className="flex-1">
                     <Button variant="elegant" size="sm" className="w-full">Contact Us</Button>

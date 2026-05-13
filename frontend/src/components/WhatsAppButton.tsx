@@ -15,7 +15,7 @@ const WhatsAppButton: React.FC = () => {
         right: "20px",
         width: "60px",
         height: "60px",
-        backgroundColor: "#ccac36", // ✅ couleur inchangée
+        backgroundColor: "#1e7e0b", // ✅ couleur inchangée
         borderRadius: "50%",
         display: "flex",
         justifyContent: "center",

@@ -63,35 +63,29 @@ const PropertiesPage = () => {
     );
   };
 
-  // const formatPrice = (price: number) => {
-  //   return new Intl.NumberFormat('en-US', {
-  //     style: 'decimal',
-  //     minimumFractionDigits: 0,
-  //   }).format(price) + ' MAD';
-  // };
   const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
-  const localeMap = {
-    MAD: "fr-MA",
-    USD: "en-US",
-    EUR: "fr-FR",
+    const localeMap = {
+      MAD: "fr-MA",
+      USD: "en-US",
+      EUR: "fr-FR",
+    };
+
+    const symbolMap = {
+      MAD: "MAD",
+      USD: "$",
+      EUR: "€",
+    };
+
+    const formatted = new Intl.NumberFormat(localeMap[currency], {
+     style: "decimal",
+     minimumFractionDigits: 0,
+    }).format(price);
+
+    // Symbole avant pour USD/EUR, après pour MAD
+    return currency === "MAD"
+      ? `${formatted} MAD`
+      : `${symbolMap[currency]}${formatted}`;
   };
-
-  const symbolMap = {
-    MAD: "MAD",
-    USD: "$",
-    EUR: "€",
-  };
-
-  const formatted = new Intl.NumberFormat(localeMap[currency], {
-    style: "decimal",
-    minimumFractionDigits: 0,
-  }).format(price);
-
-  // Symbole avant pour USD/EUR, après pour MAD
-  return currency === "MAD"
-    ? `${formatted} MAD`
-    : `${symbolMap[currency]}${formatted}`;
-};
 
   // Extraire les types uniques de propriétés
   const propertyTypes = Array.from(
@@ -439,7 +433,6 @@ const PropertiesPage = () => {
                             <div className="flex items-center justify-between mt-auto">
                               <div>
                                 <div className="text-2xl font-bold text-primary">
-                                  {/* {formatPrice(property.price)} */}
                                   {formatPrice(property.price, property.currency) }
                                 </div>
                                 <div className="text-xs text-muted-foreground">

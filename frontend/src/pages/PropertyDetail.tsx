@@ -177,12 +177,28 @@ const PropertyDetail = () => {
     }
   };
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency || "MAD",
-      minimumFractionDigits: 0,
+  const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
+    const localeMap = {
+      MAD: "fr-MA",
+      USD: "en-US",
+      EUR: "fr-FR",
+    };
+
+    const symbolMap = {
+      MAD: "MAD",
+      USD: "$",
+      EUR: "€",
+    };
+
+    const formatted = new Intl.NumberFormat(localeMap[currency], {
+    style: "decimal",
+    minimumFractionDigits: 0,
     }).format(price);
+
+    // Symbole avant pour USD/EUR, après pour MAD
+    return currency === "MAD"
+      ? `${formatted} MAD`
+      : `${symbolMap[currency]}${formatted}`;
   };
 
   // ✅ Mapping for status labels
@@ -381,7 +397,7 @@ const PropertyDetail = () => {
                     <span className="text-lg">{property.location}</span>
                   </div>
                   <div className="text-3xl font-bold text-primary">
-                    {formatPrice(property.price, "MAD")}
+                    {formatPrice(property.price, property.currency)}
                   </div>
                 </div>
 

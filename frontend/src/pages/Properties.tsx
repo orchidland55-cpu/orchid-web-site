@@ -64,17 +64,8 @@ const PropertiesPage = () => {
   };
 
   const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
-    const localeMap = {
-      MAD: "fr-MA",
-      USD: "en-US",
-      EUR: "fr-FR",
-    };
-
-    const symbolMap = {
-      MAD: "MAD",
-      USD: "$",
-      EUR: "€",
-    };
+    const localeMap = {MAD: "fr-MA", USD: "en-US", EUR: "fr-FR",};
+    const symbolMap = {MAD: "MAD", USD: "$", EUR: "€",};
 
     const formatted = new Intl.NumberFormat(localeMap[currency], {
      style: "decimal",

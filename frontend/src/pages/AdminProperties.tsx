@@ -70,6 +70,18 @@ const AdminProperties = () => {
     new Set(properties.map(property => property.type).filter(Boolean))
   ).sort();
 
+  const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
+  const localeMap = { MAD: "fr-MA", USD: "en-US", EUR: "fr-FR" };
+  const symbolMap = { MAD: "MAD", USD: "$", EUR: "€" };
+  const formatted = new Intl.NumberFormat(localeMap[currency], {
+    style: "decimal",
+    minimumFractionDigits: 0,
+  }).format(price);
+  return currency === "MAD"
+    ? `${formatted} MAD`
+    : `${symbolMap[currency]}${formatted}`;
+};
+
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -249,7 +261,6 @@ const AdminProperties = () => {
 
   if (error) {
     return (
-      <PageTransition>
         <div className="min-h-screen bg-background">
           <header className="bg-white border-b border-border shadow-sm">
             <div className="container mx-auto px-6 py-4">
@@ -282,7 +293,7 @@ const AdminProperties = () => {
             </Card>
           </main>
         </div>
-      </PageTransition>
+      
     );
   }
 
@@ -393,7 +404,7 @@ const AdminProperties = () => {
                   
                   <div className="flex items-center space-x-1 text-primary mb-3">
                     <DollarSign className="w-4 h-4" />
-                    <span className="text-lg font-bold">{property.price} MAD</span>
+                    <span className="text-lg font-bold">{formatPrice(property.price, property.currency)}</span>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">

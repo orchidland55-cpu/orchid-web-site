@@ -25,7 +25,7 @@ const PropertiesPage = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [priceRange, setPriceRange] = useState("all");
+  const [filterCity, setFilterCity] = useState("all");
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,7 +38,7 @@ const PropertiesPage = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterType, priceRange]);
+  }, [searchTerm, filterType, filterCity]);
 
   const loadProperties = async () => {
     setIsLoading(true);
@@ -82,21 +82,17 @@ const PropertiesPage = () => {
   const propertyTypes = Array.from(
     new Set(properties.map(property => property.type).filter(Boolean))
   ).sort();
+  const propertyCities = Array.from(
+    new Set(properties.map(property => property.city).filter(Boolean))
+  ).sort();
 
   const filteredProperties = properties.filter(property => {
     const searchText = `${property.title} ${property.location} ${property.city}`.toLowerCase();
     const matchesSearch = searchText.includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
-    const matchesPrice = (() => {
-      switch (priceRange) {
-        case "0-5M":   return property.price <= 5000000;
-        case "5M-15M": return property.price > 5000000  && property.price <= 15000000;
-        case "15M-30M":return property.price > 15000000 && property.price <= 30000000;
-        case "30M+":   return property.price > 30000000;
-        default:       return true;
-      }
-    })();
-    return matchesSearch && matchesType && matchesPrice;
+    const matchesCity = filterCity === "all" || property.city.toLowerCase() === filterCity.toLowerCase();
+
+    return matchesSearch && matchesType && matchesCity;
   });
 
   // Pagination calculations
@@ -296,18 +292,17 @@ const PropertiesPage = () => {
                       </select>
                     </div>
 
-                    {/* Price Filter */}
+                    {/* City Filter */}
                     <div>
                       <select
-                        value={priceRange}
-                        onChange={(e) => setPriceRange(e.target.value)}
+                        value={filterCity}
+                        onChange={(e) => setFilterCity(e.target.value)}
                         className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        <option value="all">All Prices</option>
-                        <option value="0-5M">0 - 5M MAD</option>
-                        <option value="5M-15M">5M - 15M MAD</option>
-                        <option value="15M-30M">15M - 30M MAD</option>
-                        <option value="30M+">30M+ MAD</option>
+                        <option value="all">All Cities</option>
+                        {propertyCities.map((city) => (
+                         <option key={city} value={city}>{city}</option>
+                        ))}
                       </select>
                     </div>
 

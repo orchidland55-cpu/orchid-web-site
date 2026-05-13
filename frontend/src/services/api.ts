@@ -23,6 +23,8 @@ export interface PropertyFormData {
   security: boolean;
   furnished: boolean;
   person: string;
+  currency: "MAD" | "USD" | "EUR"; // ✅ Devise
+  videos: string[];                 // ✅ URLs vidéos Cloudinary
   // ── SEO ──────────────────────────────────────
   seoTitle: string;
   metaDescription: string;
@@ -55,6 +57,8 @@ export interface PropertyData {
   security: boolean;
   furnished: boolean;
   person: string;
+  currency: "MAD" | "USD" | "EUR"; // ✅ Devise
+  videos: string[];                 // ✅ URLs vidéos Cloudinary
   // ── SEO ──────────────────────────────────────
   seoTitle?: string;
   metaDescription?: string;
@@ -522,6 +526,10 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
       security: formData.security,
       furnished: formData.furnished,
       person: formData.person.substring(0, 100),
+      currency: formData.currency || "MAD",               // ✅ Devise
+      videos: Array.isArray(formData.videos)              // ✅ Vidéos
+        ? formData.videos.filter(url => url && url.startsWith('http')).slice(0, 10)
+        : [],
     };
   }
 

@@ -11,6 +11,15 @@ export interface CloudinaryUploadResult {
   height: number;
 }
 
+export interface CloudinaryVideoUploadResult {
+  publicId: string;
+  url: string;
+  duration: number;
+  format: string;
+}
+
+// ── Upload image ──────────────────────────────────────────────────────────────
+
 export const uploadToCloudinary = (
   file: File,
   folder: string = "orchid",
@@ -51,7 +60,52 @@ export const uploadToCloudinary = (
   });
 };
 
-// Construit l'URL optimisée à partir du publicId
+// ── Upload vidéo ──────────────────────────────────────────────────────────────
+// Même logique que uploadToCloudinary mais pointe vers /video/upload
+
+export const uploadVideoToCloudinary = (
+  file: File,
+  folder: string = "orchid/videos",
+  onProgress?: (percent: number) => void
+): Promise<CloudinaryVideoUploadResult> => {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+    formData.append("folder", folder);
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        resolve({
+          publicId: data.public_id,
+          url: data.secure_url,
+          duration: data.duration || 0,
+          format: data.format || "",
+        });
+      } else {
+        reject(new Error(`Video upload failed: ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Video upload failed"));
+
+    // ✅ /video/upload au lieu de /image/upload
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`);
+    xhr.send(formData);
+  });
+};
+
+// ── URL optimisée image ───────────────────────────────────────────────────────
+
 export const getCloudinaryUrl = (
   publicId: string,
   width?: number,
@@ -71,9 +125,8 @@ export const getCloudinaryUrl = (
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${publicId}`;
 };
 
- 
 // ── Types space ────────────────────────────────────────────────────────────────────
- 
+
 export interface SpaceFile {
   _id: string;
   name: string;
@@ -85,30 +138,21 @@ export interface SpaceFile {
   uploadedBy: string;
   uploadedAt: string;
 }
- 
+
 export interface SpaceInfo {
   name: string;
   spaceId: string;
   allowUpload: boolean;
   description: string;
 }
- 
+
 export interface SpaceFilesResponse {
   success: boolean;
   data: SpaceInfo & { files: SpaceFile[] };
 }
- 
+
 // ── Upload d'un fichier dans un espace (via backend — signé) ─────────────────
- 
-/**
- * Upload un fichier vers un espace de partage.
- * Passe obligatoirement par le backend — jamais directement vers Cloudinary.
- *
- * @param spaceId   - ex: "SPACE-A3K9X"
- * @param file      - File object (depuis un <input type="file">)
- * @param spaceToken - JWT d'espace obtenu après /api/spaces/access
- * @param onProgress - callback optionnel (0–100)
- */
+
 export async function uploadFileToSpace(
   spaceId: string,
   file: File,
@@ -118,10 +162,9 @@ export async function uploadFileToSpace(
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append('file', file);
- 
+
     const xhr = new XMLHttpRequest();
- 
-    // Suivi de la progression
+
     if (onProgress) {
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
@@ -129,7 +172,7 @@ export async function uploadFileToSpace(
         }
       });
     }
- 
+
     xhr.addEventListener('load', () => {
       if (xhr.status === 201) {
         try {
@@ -147,18 +190,18 @@ export async function uploadFileToSpace(
         }
       }
     });
- 
+
     xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
     xhr.addEventListener('abort', () => reject(new Error('Upload annulé')));
- 
+
     xhr.open('POST', `${API_BASE_URL}/api/spaces/${spaceId}/files`);
     xhr.setRequestHeader('Authorization', `Bearer ${spaceToken}`);
     xhr.send(formData);
   });
 }
- 
+
 // ── Récupérer les fichiers d'un espace ───────────────────────────────────────
- 
+
 export async function getSpaceFilesFromCloud(
   spaceId: string,
   spaceToken: string
@@ -166,23 +209,23 @@ export async function getSpaceFilesFromCloud(
   const res = await fetch(`${API_BASE_URL}/api/spaces/${spaceId}/files`, {
     headers: { Authorization: `Bearer ${spaceToken}` },
   });
- 
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `Erreur ${res.status}`);
   }
- 
+
   const data: SpaceFilesResponse = await res.json();
   return data.data;
 }
- 
+
 // ── Authentification à un espace ─────────────────────────────────────────────
- 
+
 export interface SpaceAccessResponse {
   token: string;
   space: SpaceInfo;
 }
- 
+
 export async function authenticateSpace(
   spaceId: string,
   password: string
@@ -192,11 +235,11 @@ export async function authenticateSpace(
     headers : { 'Content-Type': 'application/json' },
     body    : JSON.stringify({ spaceId, password }),
   });
- 
+
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.message || 'Identifiant ou mot de passe incorrect');
   }
- 
+
   return data;
 }

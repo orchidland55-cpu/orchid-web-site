@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiService, PropertyFormData, Admin } from "@/services/api";
-import { uploadToCloudinary } from "@/services/cloudinary";
+import { uploadToCloudinary, uploadVideoToCloudinary } from "@/services/cloudinary";
 import {
   Building,
   Save,
@@ -21,19 +21,9 @@ import {
   Star,
   Camera,
   TrendingUp,
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-  Link2,
-  ImageIcon,
-  Quote,
-  Palette,
+  Video,
   Plus,
+  X,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import RichTextEditor from "@/components/RichTextEditor";
@@ -49,13 +39,26 @@ const BASE_PROPERTY_TYPES = [
   "Land", "Mall", "Office", "Warehouse", "Resort",
 ];
 
+// ─── Villes de suggestion pour le combobox ────────────────────────────────────
+const SUGGESTED_CITIES = [
+  "Casablanca", "Rabat", "Marrakech", "Fes", "Tangier",
+  "Agadir", "Meknes", "Oujda", "Kenitra", "Tetouan",
+  "Safi", "El Jadida", "Beni Mellal", "Nador", "Settat",
+];
+
+// ─── Devises disponibles ──────────────────────────────────────────────────────
+const CURRENCIES = [
+  { value: "MAD", label: "MAD", symbol: "د.م." },
+  { value: "USD", label: "USD", symbol: "$" },
+  { value: "EUR", label: "EUR", symbol: "€" },
+];
+
 // ─── Hook partagé pour gérer les types ───────────────────────────────────────
 function usePropertyTypes() {
   const [propertyTypes, setPropertyTypes] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       const custom: string[] = stored ? JSON.parse(stored) : [];
-      // Merge base + custom sans doublons
       return [...new Set([...BASE_PROPERTY_TYPES, ...custom])];
     } catch {
       return BASE_PROPERTY_TYPES;
@@ -67,32 +70,89 @@ function usePropertyTypes() {
   const addCustomType = () => {
     const trimmed = newType.trim();
     if (!trimmed) return;
-
-    // Vérifier les doublons (insensible à la casse)
     const alreadyExists = propertyTypes.some(
       (t) => t.toLowerCase() === trimmed.toLowerCase()
     );
-    if (alreadyExists) {
-      setNewType("");
-      return;
-    }
-
+    if (alreadyExists) { setNewType(""); return; }
     const updated = [...propertyTypes, trimmed];
     setPropertyTypes(updated);
-
-    // Persister uniquement les types custom dans localStorage
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       const custom: string[] = stored ? JSON.parse(stored) : [];
       localStorage.setItem(STORAGE_KEY, JSON.stringify([...custom, trimmed]));
-    } catch {
-      console.error("localStorage write failed");
-    }
-
+    } catch { console.error("localStorage write failed"); }
     setNewType("");
   };
 
   return { propertyTypes, newType, setNewType, addCustomType };
+}
+
+// ─── Combobox City ────────────────────────────────────────────────────────────
+interface CityComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function CityCombobox({ value, onChange }: CityComboboxProps) {
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = SUGGESTED_CITIES.filter((c) =>
+    c.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  // Sync si la valeur externe change (ex: reset du formulaire)
+  useEffect(() => { setInputValue(value); }, [value]);
+
+  // Fermer le dropdown si clic en dehors
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    onChange(e.target.value);
+    setOpen(true);
+  };
+
+  const handleSelect = (city: string) => {
+    setInputValue(city);
+    onChange(city);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <Input
+        value={inputValue}
+        onChange={handleInput}
+        onFocus={() => setOpen(true)}
+        placeholder="Type or select a city..."
+      />
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-50 w-full mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
+          {filtered.map((city) => (
+            <li
+              key={city}
+              onMouseDown={() => handleSelect(city)}
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground ${
+                city === value ? "bg-accent/50 font-medium" : ""
+              }`}
+            >
+              {city}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
@@ -104,6 +164,7 @@ const AdminAddProperty = () => {
     title: "",
     description: "",
     price: "",
+    currency: "MAD",          // ✅ Devise par défaut
     location: "",
     city: "",
     type: "",
@@ -114,6 +175,7 @@ const AdminAddProperty = () => {
     featured: false,
     mainImage: "",
     additionalImages: [],
+    videos: [],               // ✅ Vidéos
     amenities: "",
     yearBuilt: "",
     parking: "",
@@ -122,7 +184,6 @@ const AdminAddProperty = () => {
     security: false,
     furnished: false,
     person: "",
-    // ── SEO ──────────────────────────────────────
     seoTitle: "",
     metaDescription: "",
     slug: "",
@@ -140,11 +201,14 @@ const AdminAddProperty = () => {
   const [isUploadingAdditional, setIsUploadingAdditional] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // ✅ Admins dynamiques
+  // ✅ États pour les vidéos
+  const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(true);
 
-  // ✅ Types de propriété dynamiques
   const { propertyTypes, newType, setNewType, addCustomType } = usePropertyTypes();
 
   useEffect(() => {
@@ -216,6 +280,46 @@ const AdminAddProperty = () => {
     setIsUploadingAdditional(false);
   };
 
+  // ✅ Upload vidéo vers Cloudinary
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setIsUploadingVideo(true);
+    setVideoUploadProgress(0);
+
+    for (const file of files) {
+      // Aperçu local temporaire (blob URL)
+      const localPreview = URL.createObjectURL(file);
+      setVideoPreviews((prev) => [...prev, localPreview]);
+      try {
+        const result = await uploadVideoToCloudinary(
+          file,
+          "orchid/properties/videos",
+          (percent) => setVideoUploadProgress(percent)
+        );
+        // Remplacer le blob URL par l'URL Cloudinary définitive
+        setVideoPreviews((prev) =>
+          prev.map((p) => (p === localPreview ? result.url : p))
+        );
+        setFormData((prev) => ({ ...prev, videos: [...prev.videos, result.url] }));
+      } catch (error) {
+        console.error(`Video upload error for ${file.name}:`, error);
+        setVideoPreviews((prev) => prev.filter((p) => p !== localPreview));
+        alert(`Failed to upload video "${file.name}". Please try again.`);
+      }
+    }
+    setIsUploadingVideo(false);
+    setVideoUploadProgress(0);
+  };
+
+  const removeVideo = (index: number) => {
+    setVideoPreviews((prev) => prev.filter((_, i) => i !== index));
+    setFormData((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index),
+    }));
+  };
+
   const removeAdditionalImage = (index: number) => {
     setAdditionalImageFiles((prev) => prev.filter((_, i) => i !== index));
     setAdditionalImagePreviews((prev) => prev.filter((_, i) => i !== index));
@@ -255,7 +359,8 @@ const AdminAddProperty = () => {
     }
   };
 
-  const cities = ["Casablanca", "Rabat", "Marrakech", "Fes", "Tangier", "Agadir", "Meknes", "Oujda"];
+  // Devise sélectionnée
+  const selectedCurrency = CURRENCIES.find((c) => c.value === formData.currency) || CURRENCIES[0];
 
   return (
     <div className="min-h-screen bg-background">
@@ -291,6 +396,7 @@ const AdminAddProperty = () => {
       <main className="container mx-auto px-6 py-8">
         <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -310,10 +416,10 @@ const AdminAddProperty = () => {
                     required
                   />
                 </div>
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Property Type *</label>
-                    {/* ✅ Select dynamique */}
                     <select
                       name="type"
                       value={formData.type}
@@ -326,7 +432,6 @@ const AdminAddProperty = () => {
                         <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
-                    {/* ✅ Champ pour ajouter un type custom */}
                     <div className="flex gap-2 mt-2">
                       <Input
                         value={newType}
@@ -349,18 +454,39 @@ const AdminAddProperty = () => {
                       Les types ajoutés sont sauvegardés automatiquement
                     </p>
                   </div>
+
+                  {/* ✅ Prix + Devise groupés */}
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Price (MAD) *</label>
-                    <Input
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      placeholder="2500000"
-                      type="number"
-                      required
-                    />
+                    <label className="block text-sm font-medium text-foreground mb-2">Price *</label>
+                    <div className="flex">
+                      {/* Select devise à gauche */}
+                      <select
+                        name="currency"
+                        value={formData.currency}
+                        onChange={handleInputChange}
+                        className="h-10 px-2 rounded-l-md border border-r-0 border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        {CURRENCIES.map((c) => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                      {/* Input prix à droite */}
+                      <Input
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        placeholder="2500000"
+                        type="number"
+                        required
+                        className="rounded-l-none flex-1"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Devise sélectionnée : {selectedCurrency.symbol} ({selectedCurrency.label})
+                    </p>
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Description *</label>
                   <RichTextEditor
@@ -388,20 +514,16 @@ const AdminAddProperty = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
+                  {/* ✅ Combobox City */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">City *</label>
-                    <select
-                      name="city"
+                    <CityCombobox
                       value={formData.city}
-                      onChange={handleInputChange}
-                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                      required
-                    >
-                      <option value="">Select city</option>
-                      {cities.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFormData((prev) => ({ ...prev, city: val }))}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select from suggestions or type any city
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">District/Area *</label>
@@ -457,15 +579,17 @@ const AdminAddProperty = () => {
               </CardContent>
             </Card>
 
-            {/* Images */}
+            {/* Images & Vidéos */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Camera className="w-5 h-5" />
-                  <span>Images</span>
+                  <span>Images & Videos</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+
+                {/* Main Image */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Main Image *</label>
                   <div className="space-y-4">
@@ -498,6 +622,7 @@ const AdminAddProperty = () => {
                   )}
                 </div>
 
+                {/* Additional Images */}
                 <div className="border-t pt-4">
                   <label className="block text-sm font-medium text-foreground mb-2">Additional Images</label>
                   <div className="space-y-4">
@@ -538,13 +663,81 @@ const AdminAddProperty = () => {
                     )}
                   </div>
                 </div>
+
+                {/* ✅ Videos */}
+                <div className="border-t pt-4">
+                  <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                    <Video className="w-4 h-4" />
+                    Videos
+                  </label>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="file"
+                        accept="video/*"
+                        multiple
+                        onChange={handleVideoChange}
+                        className="hidden"
+                        id="videos-upload"
+                      />
+                      <label
+                        htmlFor="videos-upload"
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Add video(s)
+                      </label>
+                      <span className="text-sm text-muted-foreground">{formData.videos.length} video(s)</span>
+                      {isUploadingVideo && (
+                        <div className="flex-1">
+                          <div className="bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-primary h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${videoUploadProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Uploading video... {videoUploadProgress}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Formats acceptés : MP4, MOV, AVI, WebM — stockés sur Cloudinary
+                    </p>
+
+                    {/* Previews vidéos */}
+                    {videoPreviews.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {videoPreviews.map((src, index) => (
+                          <div key={index} className="relative rounded-lg border overflow-hidden bg-black">
+                            <video
+                              src={src}
+                              controls
+                              className="w-full h-40 object-contain"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeVideo(index)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600 shadow"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
               </CardContent>
             </Card>
+
             {/* SEO */}
             <Card>
               <CardHeader>
-               <CardTitle className="flex items-center space-x-2">
-                 <TrendingUp className="w-5 h-5" />
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5" />
                   <span>SEO</span>
                 </CardTitle>
               </CardHeader>
@@ -552,103 +745,46 @@ const AdminAddProperty = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
-                     SEO Title
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        ({formData.seoTitle.length}/60)
-                      </span>
+                      SEO Title
+                      <span className="ml-2 text-xs text-muted-foreground">({formData.seoTitle.length}/60)</span>
                     </label>
-                    <Input
-                     name="seoTitle"
-                     value={formData.seoTitle}
-                     onChange={handleInputChange}
-                     placeholder="Ex : Villa de luxe à Marrakech — Orchid"
-                     maxLength={60}
-                    />
+                    <Input name="seoTitle" value={formData.seoTitle} onChange={handleInputChange} placeholder="Ex : Villa de luxe à Marrakech — Orchid" maxLength={60} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Mot-clé principal
-                    </label>
-                    <Input
-                     name="focusKeyword"
-                     value={formData.focusKeyword}
-                      onChange={handleInputChange}
-                     placeholder="Ex : villa luxe Marrakech"
-                    />
+                    <label className="block text-sm font-medium text-foreground mb-2">Mot-clé principal</label>
+                    <Input name="focusKeyword" value={formData.focusKeyword} onChange={handleInputChange} placeholder="Ex : villa luxe Marrakech" />
                   </div>
                 </div>
-                    
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                   Meta Description
-                   <span className="ml-2 text-xs text-muted-foreground">
-                     ({formData.metaDescription.length}/160)
-                   </span>
+                    Meta Description
+                    <span className="ml-2 text-xs text-muted-foreground">({formData.metaDescription.length}/160)</span>
                   </label>
-                  <Textarea
-                    name="metaDescription"
-                    value={formData.metaDescription}
-                    onChange={handleInputChange}
-                    placeholder="Courte description pour Google (120–160 caractères recommandés)"
-                    rows={3}
-                    maxLength={160}
-                  />
+                  <Textarea name="metaDescription" value={formData.metaDescription} onChange={handleInputChange} placeholder="Courte description pour Google (120–160 caractères recommandés)" rows={3} maxLength={160} />
                 </div>
-
-    <div className="grid md:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          Slug (URL)
-        </label>
-        <Input
-          name="slug"
-          value={formData.slug}
-          onChange={handleInputChange}
-          placeholder="villa-luxe-marrakech"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Minuscules, tirets uniquement, sans espaces
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          Image Alt Text
-        </label>
-        <Input
-          name="imageAlt"
-          value={formData.imageAlt}
-          onChange={handleInputChange}
-          placeholder="Ex : Villa de luxe avec piscine à Marrakech"
-        />
-      </div>
-    </div>
-
-    <div className="grid md:grid-cols-2 gap-4">
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          Open Graph Title
-        </label>
-        <Input
-          name="ogTitle"
-          value={formData.ogTitle}
-          onChange={handleInputChange}
-          placeholder="Titre pour Facebook / LinkedIn"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          Twitter Card Title
-        </label>
-        <Input
-          name="twitterTitle"
-          value={formData.twitterTitle}
-          onChange={handleInputChange}
-          placeholder="Titre pour Twitter / X"
-        />
-      </div>
-    </div>
-  </CardContent>
-</Card>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Slug (URL)</label>
+                    <Input name="slug" value={formData.slug} onChange={handleInputChange} placeholder="villa-luxe-marrakech" />
+                    <p className="text-xs text-muted-foreground mt-1">Minuscules, tirets uniquement, sans espaces</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Image Alt Text</label>
+                    <Input name="imageAlt" value={formData.imageAlt} onChange={handleInputChange} placeholder="Ex : Villa de luxe avec piscine à Marrakech" />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Open Graph Title</label>
+                    <Input name="ogTitle" value={formData.ogTitle} onChange={handleInputChange} placeholder="Titre pour Facebook / LinkedIn" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Twitter Card Title</label>
+                    <Input name="twitterTitle" value={formData.twitterTitle} onChange={handleInputChange} placeholder="Titre pour Twitter / X" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
@@ -695,29 +831,31 @@ const AdminAddProperty = () => {
                 </div>
               </CardContent>
             </Card>
-            {/* SEO Analysis */}
-              <Card>
-  <CardHeader>
-    <CardTitle className="flex items-center space-x-2">
-      <TrendingUp className="w-5 h-5" />
-      <span>SEO Analysis</span>
-    </CardTitle>
-  </CardHeader>
-  <CardContent>
-    <SEOAnalyzer
-      seoTitle={formData.seoTitle}
-      metaDescription={formData.metaDescription}
-      slug={formData.slug}
-      focusKeyword={formData.focusKeyword}
-      content={formData.description}
-      image={formData.mainImage}
-      imageAlt={formData.imageAlt}
-      ogTitle={formData.ogTitle}
-      twitterTitle={formData.twitterTitle}
-    />
-  </CardContent>
-</Card>
 
+            {/* SEO Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>SEO Analysis</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SEOAnalyzer
+                  seoTitle={formData.seoTitle}
+                  metaDescription={formData.metaDescription}
+                  slug={formData.slug}
+                  focusKeyword={formData.focusKeyword}
+                  content={formData.description}
+                  image={formData.mainImage}
+                  imageAlt={formData.imageAlt}
+                  ogTitle={formData.ogTitle}
+                  twitterTitle={formData.twitterTitle}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Preview */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -733,15 +871,27 @@ const AdminAddProperty = () => {
                     <MapPin className="w-4 h-4" />
                     <span className="text-sm">{formData.location && formData.city ? `${formData.location}, ${formData.city}` : "Location"}</span>
                   </div>
+                  {/* ✅ Affichage prix + devise dans la preview */}
                   <div className="flex items-center space-x-1 text-primary">
                     <DollarSign className="w-4 h-4" />
-                    <span className="font-bold">{formData.price ? `${parseInt(formData.price).toLocaleString()} MAD` : "Price"}</span>
+                    <span className="font-bold">
+                      {formData.price
+                        ? `${parseInt(formData.price).toLocaleString()} ${formData.currency}`
+                        : "Price"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1"><Bed className="w-4 h-4" /><span>{formData.bedrooms || "0"}</span></div>
                     <div className="flex items-center space-x-1"><Bath className="w-4 h-4" /><span>{formData.bathrooms || "0"}</span></div>
                     <div className="flex items-center space-x-1"><Square className="w-4 h-4" /><span>{formData.area || "0"}m²</span></div>
                   </div>
+                  {/* ✅ Indicateur vidéos dans la preview */}
+                  {formData.videos.length > 0 && (
+                    <div className="flex items-center space-x-1 text-muted-foreground text-sm">
+                      <Video className="w-4 h-4" />
+                      <span>{formData.videos.length} video{formData.videos.length > 1 ? "s" : ""}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

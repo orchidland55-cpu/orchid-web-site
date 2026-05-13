@@ -4,6 +4,7 @@ const propertySchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   price: Number,
+  currency: { type: String, enum: ["MAD", "USD", "EUR"], default: "MAD" }, // ✅ Devise
   location: String,
   city: String,
   type: String,
@@ -14,20 +15,21 @@ const propertySchema = new mongoose.Schema({
   featured: { type: Boolean, default: false },
   mainImage: {
     type: String,
-    maxlength: 15000000 // ✅ 15 Mo pour les chaînes base64 haute qualité
+    maxlength: 15000000
   },
   additionalImages: [{
     type: String,
-    maxlength: 15000000 // ✅ 15 Mo pour chaque image supplémentaire haute qualité
+    maxlength: 15000000
   }],
-  amenities: [String],        // array of strings
+  videos: [{ type: String }],  // ✅ URLs vidéos Cloudinary
+  amenities: [String],
   yearBuilt: Number,
   parking: String,
   garden: { type: Boolean, default: false },
   pool: { type: Boolean, default: false },
   security: { type: Boolean, default: false },
   furnished: { type: Boolean, default: false },
-  person: { type: String, required: true } // ✅ Admin associé
+  person: { type: String, required: true }
 }, { timestamps: true });
 
 module.exports = mongoose.models.Property || mongoose.model('Property', propertySchema);

@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Building, Save, Eye, ArrowLeft, Upload, MapPin, DollarSign,
+  Building, Save, Eye, ArrowLeft, Upload, MapPin,
   Bed, Bath, Square, Star, Camera, Trash2, TrendingUp, Video, Plus, X,
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
@@ -876,7 +876,6 @@ const AdminEditProperty = () => {
                   </div>
                   {/* ✅ Prix + devise dans la preview */}
                   <div className="flex items-center space-x-1 text-primary">
-                    <DollarSign className="w-4 h-4" />
                     <span className="font-bold">
                       {formData.price
                         ? `${parseInt(formData.price).toLocaleString()} ${formData.currency}`

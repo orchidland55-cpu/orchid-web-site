@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   Upload,
   MapPin,
-  DollarSign,
   Bed,
   Bath,
   Square,
@@ -873,7 +872,6 @@ const AdminAddProperty = () => {
                   </div>
                   {/* ✅ Affichage prix + devise dans la preview */}
                   <div className="flex items-center space-x-1 text-primary">
-                    <DollarSign className="w-4 h-4" />
                     <span className="font-bold">
                       {formData.price
                         ? `${parseInt(formData.price).toLocaleString()} ${formData.currency}`

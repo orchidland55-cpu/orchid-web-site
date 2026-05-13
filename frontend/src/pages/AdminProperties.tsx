@@ -10,9 +10,7 @@ import {
   Search,
   Edit,
   Trash2,
-  Eye,
   MapPin,
-  DollarSign,
   ArrowLeft,
   Filter,
   Bed,
@@ -403,7 +401,6 @@ const AdminProperties = () => {
                   </div>
                   
                   <div className="flex items-center space-x-1 text-primary mb-3">
-                    <DollarSign className="w-4 h-4" />
                     <span className="text-lg font-bold">{formatPrice(property.price, property.currency)}</span>
                   </div>
                   

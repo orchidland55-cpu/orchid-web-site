@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, FileText, Mail, Phone, User, MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Postulation = () => {
   const [formData, setFormData] = useState({
@@ -37,6 +38,14 @@ const Postulation = () => {
       ...prev,
       [field]: file
     }));
+  };
+
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
   };
 
   const handleSelectChange = (value: string) => {
@@ -285,6 +294,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                       )}
                     </div>
                   </div>
+                  {/* reCAPTCHA placeholder */}
+                  <div className="mb-4">
+                    <ReCAPTCHA
+                      sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
+                      onChange={handleRecaptchaChange}
+                    />
+                  </div>
 
                   {/* Submit Button */}
                   <div className="pt-6">
@@ -293,6 +309,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       variant="luxury"
                       size="lg"
                       className="w-full font-lora text-lg"
+                      disabled={!recaptchaToken}
                     >
                       Submit Application
                     </Button>

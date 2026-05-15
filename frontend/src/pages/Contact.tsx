@@ -5,20 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Send,
-  MessageCircle,
-  Calendar,
-  User,
-  Building,
-  Globe
-} from "lucide-react";
-import { useState } from "react";
+import { MapPin, Phone, Clock, Send, MessageCircle, Calendar} from "lucide-react";
+import { useRef,useState } from "react";
 import ScheduleMeetingModal from "@/components/ScheduleMeetingModal";
+import ReCAPTCHA from "react-google-recaptcha";
+
 
 const Contact = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -37,6 +28,13 @@ const Contact = () => {
       ...prev,
       [name]: value
     }));
+  };
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,12 +102,6 @@ const Contact = () => {
       description: "Call us anytime"
     },
     {
-      icon: Mail,
-      title: "Email",
-      details: ["info@orchidisland.com", "sales@orchidisland.com"],
-      description: "Send us a message"
-    },
-    {
       icon: MapPin,
       title: "Office",
       details: ["Centre d’affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Morocco"],
@@ -120,27 +112,6 @@ const Contact = () => {
       title: "Hours",
       details: ["Mon - Fri: 9:00 - 18:00", "Sat: 10:00 - 16:00"],
       description: "Business hours"
-    }
-  ];
-
-  const offices = [
-    {
-      city: "Casablanca",
-      address: "123 Luxury Avenue, Marina District",
-      phone: "+212 618-688-888",
-      email: "casablanca@orchidisland.com"
-    },
-    {
-      city: "Rabat",
-      address: "456 Royal Street, Souissi",
-      phone: "+212 618-688-888",
-      email: "rabat@orchidisland.com"
-    },
-    {
-      city: "Marrakech",
-      address: "Centre d’affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Morocc",
-      phone: "+212 618-688-888",
-      email: "marrakech@orchidisland.com"
     }
   ];
 
@@ -170,7 +141,7 @@ const Contact = () => {
         {/* Contact Info Cards */}
         <section className="py-16 bg-background">
           <div className="container mx-auto px-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
               {contactInfo.map((info, index) => (
                 <Card key={index} className="text-center hover:shadow-luxury transition-all duration-300">
                   <CardContent className="p-6">
@@ -193,8 +164,8 @@ const Contact = () => {
 
         {/* Contact Form & Map */}
         <section className="py-20 bg-cream/30">
-          <div className="container mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-12">
+          <div className="container">
+            <div className="grid lg:grid-cols gap-12">
               {/* Contact Form */}
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
@@ -304,61 +275,24 @@ const Contact = () => {
                       {submitMessage}
                     </div>
                   )}
-
+                  {/* reCAPTCHA placeholder */}
+                    <div className="mb-4">
+                   <ReCAPTCHA
+                     sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
+                      onChange={handleRecaptchaChange}
+                    />
+                  </div>
+                  <div className="grid lg:grid-cols-2 gap-12">
                   <Button
                     type="submit"
                     variant="luxury"
                     size="lg"
                     className="w-full"
-                    disabled={isSubmitting}
+                    disabled={!recaptchaToken || isSubmitting}
                   >
                     <Send className="w-5 h-5 mr-2" />
                     {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
-                </form>
-              </div>
-
-              {/* Office Locations */}
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                  Our Offices
-                </h2>
-                <p className="text-lg text-muted-foreground mb-8">
-                  Visit us at any of our luxury real estate offices across Morocco.
-                </p>
-
-                <div className="space-y-6">
-                  {offices.map((office, index) => (
-                    <Card key={index} className="hover:shadow-luxury transition-all duration-300">
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 luxury-gradient rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Building className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-foreground mb-2">{office.city}</h3>
-                            <div className="space-y-2 text-muted-foreground">
-                              <div className="flex items-center space-x-2">
-                                <MapPin className="w-4 h-4" />
-                                <span>{office.address}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Phone className="w-4 h-4" />
-                                <span>{office.phone}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Mail className="w-4 h-4" />
-                                <span>{office.email}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="mt-8">
                   <Button
                     variant="elegant"
                     size="lg"
@@ -369,6 +303,16 @@ const Contact = () => {
                     Schedule a Visit
                   </Button>
                 </div>
+                </form>
+              </div>
+              {/* Map */}
+              <div className="h-96 rounded-lg overflow-hidden">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.6460753537453!2d-8.025032399999997!3d31.6435395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8bf0da58cc444bb%3A0xae64f92fc9524f5!2sOrchid%20Island%20Real%20Estate!5e0!3m2!1sen!2sma!4v1773534817924!5m2!1sen!2sma"
+                  className="w-full h-full"
+                  allowFullScreen
+                  loading="lazy"
+                />
               </div>
             </div>
           </div>

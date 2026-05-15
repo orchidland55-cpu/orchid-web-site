@@ -70,30 +70,28 @@ const Footer = () => {
                 <Phone className="w-5 h-5 text-primary" />
                 <p className="text-ivory-white/80">+212 6 18 68 88 88</p>
               </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-primary" />
-                <p className="text-ivory-white/80">contact@orchidisland.ma</p>
-              </div>
             </div>
           </div>
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-playfair font-semibold text-xl mb-6">Our Actions</h4>
+            <h4 className="font-playfair font-semibold text-xl mb-6">Quick Links</h4>
             <ul className="font-lora space-y-3">
               <li><a href="/Scr" className="text-ivory-white/80 hover:text-primary transition-smooth">Orchid Island CSR</a></li>
               <li><a href="/postulation" className="text-ivory-white/80 hover:text-primary transition-smooth">Careers</a></li>
+              <li><a href="/services" className="text-ivory-white/80 hover:text-primary transition-smooth">Services</a></li>
+              <li><a href="/" className="text-ivory-white/80 hover:text-primary transition-smooth">Home</a></li>
             </ul><br />
-            <h4 className="font-playfair font-semibold text-xl mb-6">Newsletter</h4>
+            {/* <h4 className="font-playfair font-semibold text-xl mb-6">Newsletter</h4>
             <p className="font-lora text-ivory-white/80 mb-4">
               Receive our latest news and exclusive properties.
-            </p>
-            <Link
+            </p> */}
+            {/* <Link
               to="/Postulation"
               className="inline-block bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury"
             >
               <span className="font-lora text-lg font-bold">Apply</span>
-            </Link>
+            </Link> */}
           </div>
 
         </div>

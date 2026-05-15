@@ -18,3 +18,8 @@ Allow: /
 
 User-agent: GPTBot
 Allow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://orchid-immo-web-site.vercel.app/sitemap.xml

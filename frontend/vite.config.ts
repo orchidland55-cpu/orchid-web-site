@@ -42,6 +42,7 @@ export default defineConfig(async ({ mode }) => {
       Sitemap({
         hostname: 'https://orchid-immo-web-site.vercel.app/',
         dynamicRoutes: [...staticRoutes, ...dynamicRoutes],
+        generateRobotsTxt: false,
         exclude: [
           '/admin',
           '/admin/*',

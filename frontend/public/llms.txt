@@ -1,0 +1,17 @@
+# Orchid Immobilier
+
+> Agence immobilière de luxe spécialisée dans les propriétés haut de gamme au Maroc (Marrakech, Casablanca, Rabat, Tanger).
+
+## Services
+- Vente de villas, riads, appartements et propriétés de prestige
+- Conseil en investissement immobilier au Maroc
+- Gestion de biens immobiliers de luxe
+
+## Propriétés
+- Toutes nos propriétés disponibles : https://orchid-immo-web-site.vercel.app/properties
+
+## Blog
+- Articles et actualités immobilières : https://orchid-immo-web-site.vercel.app/blog
+
+## Contact
+- https://orchid-immo-web-site.vercel.app/contact

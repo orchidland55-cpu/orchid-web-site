@@ -2,26 +2,13 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { apiService, Article } from "@/services/api";
-import {
-  Calendar,
-  Clock,
-  ArrowLeft,
-  FileText,
-  Heart,
-  Bookmark,
-  ChevronRight,
-} from "lucide-react";
+import { Calendar, Clock, ArrowLeft, FileText, ChevronRight } from "lucide-react";
 import ShareButton from '@/components/ShareButton';
 import { getCloudinaryUrl } from "@/services/cloudinary";
+import { Helmet } from 'react-helmet-async';
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -128,8 +115,35 @@ const ArticleDetail = () => {
     );
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": article.title,
+    "description": article.excerpt,
+    "image": article.image,
+    "url": `https://orchid-immo-web-site.vercel.app/blog/${article.slug || article._id}`,
+    "datePublished": article.createdAt,
+    "dateModified": article.updatedAt,
+    "author": {
+      "@type": "Person",
+      "name": article.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Orchid Immobilier",
+     "url": "https://orchid-immo-web-site.vercel.app"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{article.title} | Orchid Immobilier</title>
+        <meta name="description" content={article.excerpt?.substring(0, 160)} />
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      </Helmet>
       <main>
         {/* Article Header */}
         <section className="py-12">

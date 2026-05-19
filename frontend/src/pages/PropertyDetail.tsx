@@ -5,23 +5,10 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MapPin,
-  Bed,
-  Bath,
-  Square,
-  ArrowLeft,
-  Building,
-  Home,
-  ChevronLeft,
-  ChevronRight,
-  Leaf,
-  Waves,
-  Shield,
-  Sofa,
-} from "lucide-react";
+import { MapPin, Bed, Bath, Square, ArrowLeft, Building, Home, ChevronLeft, ChevronRight, Leaf, Waves, Shield, Sofa} from "lucide-react";
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
+import { Helmet } from 'react-helmet-async';
 
 const PropertyDetail = () => {
   // `id` contient désormais soit un slug ("luxury-palace-marrakech"),
@@ -97,6 +84,34 @@ const PropertyDetail = () => {
       </div>
     );
   }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    "name": property.title,
+    "description": property.description?.replace(/<[^>]*>/g, '').substring(0, 300),
+    "url": `https://orchid-immo-web-site.vercel.app/properties/${property.slug || property._id}`,
+    "image": property.mainImage,
+    "price": property.price,
+    "priceCurrency": property.currency || "MAD",
+    "floorSize": {
+      "@type": "QuantitativeValue",
+      "value": property.area,
+      "unitCode": "MTK"
+    },
+    "numberOfRooms": property.bedrooms,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": property.city,
+      "addressRegion": property.location,
+     "addressCountry": "MA"
+   },
+    "offeredBy": {
+      "@type": "RealEstateAgent",
+      "name": "Orchid Immobilier",
+      "url": "https://orchid-immo-web-site.vercel.app"
+    }
+  };
 
   // Construire la liste d'images
   const imagesToShow: string[] = [];
@@ -188,6 +203,13 @@ const PropertyDetail = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>{property.title} | Orchid Immobilier</title>
+        <meta name="description" content={property.description?.replace(/<[^>]*>/g, '').substring(0, 160)} />
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      </Helmet>
       <Header />
       <main>
         {/* Back navigation */}

@@ -1,12 +1,15 @@
 const BASE_URL = 'https://orchid-web-site-production.up.railway.app'
 
-// ✅ Interfaces pour typer les réponses
 interface Article {
   _id: string
+  slug?: string
+  status?: string
 }
 
 interface Property {
   _id: string
+  slug?: string
+  status?: string
 }
 
 export async function fetchDynamicRoutes(): Promise<string[]> {
@@ -16,15 +19,20 @@ export async function fetchDynamicRoutes(): Promise<string[]> {
       fetch(`${BASE_URL}/properties`),
     ])
 
-    // ✅ On type explicitement avec "as"
-    const articlesData = await articlesRes.json() as Article[] | { data: Article[] }
+    const articlesData  = await articlesRes.json()  as Article[]  | { data: Article[] }
     const propertiesData = await propertiesRes.json() as Property[] | { data: Property[] }
 
-    const articles = Array.isArray(articlesData) ? articlesData : articlesData.data
+    const articles   = Array.isArray(articlesData)   ? articlesData   : articlesData.data
     const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData.data
 
-    const blogRoutes = articles.map((a) => `/blog/${a._id}`)
-    const propertyRoutes = properties.map((p) => `/properties/${p._id}`)
+    // ✅ Slug en priorité, _id en fallback (rétrocompatibilité)
+    const blogRoutes = articles
+      .filter((a) => a.status === 'published')        // uniquement les articles publiés
+      .map((a) => `/blog/${a.slug || a._id}`)
+
+    const propertyRoutes = properties
+      .filter((p) => p.status === 'available' || p.status === 'sold') // exclut les drafts
+      .map((p) => `/properties/${p.slug || p._id}`)
 
     console.log(`✅ ${blogRoutes.length} articles | ${propertyRoutes.length} propriétés`)
 

@@ -320,7 +320,7 @@ const CSR = () => {
                 The Orchidisland and Anouar Association invites individuals, corporations, and community groups to join its mission. Whether through donations, volunteering, or partnerships, your support can help expand the association's impactful programs and foster a more inclusive and compassionate society.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center animate-bounce-in">
-                <Link to="/contact">
+                <Link to="/contact-us">
                   <Button
                     size="lg"
                     className="font-lora color:#082648  text-white px-8 py-3 transition-all duration-300 hover:scale-105"

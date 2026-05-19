@@ -82,7 +82,7 @@ const FAQ = () => {
               Our team of experts is available to answer all your personalized questions 
               about luxury real estate in Morocco.
             </p>
-            <Link to="/contact" className="bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
+            <Link to="/contact-us" className="bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
                          <button>Contact Us</button> 
                         </Link>
            

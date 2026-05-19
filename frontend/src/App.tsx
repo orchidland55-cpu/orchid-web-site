@@ -72,16 +72,16 @@ function App() {
 
               {/* ===== Routes publiques ===== */}
               <Route path="/" element={<Index />} />
-              <Route path="/postulation" element={<Postulation />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/Scr" element={<Scr />} />
-              <Route path="/about" element={<About />} />
+              <Route path="/contact-us/careers/" element={<Postulation />} />
+              <Route path="/real-estate-guide-orchid-island-marrakech" element={<Blog />} />
+              <Route path="/corporate-social-responsibility" element={<Scr />} />
+              <Route path="/about-us" element={<About />} />
               <Route path="/properties" element={<Properties />} />
-              <Route path="/invest" element={<Invest />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/blog/:id" element={<ArticleDetail />} />
+              <Route path="/investment-orchidisland" element={<Invest />} />
+              <Route path="/contact-us" element={<Contact />} />
+              <Route path="/real-estate-guide-orchid-island-marrakech/:id" element={<ArticleDetail />} />
               <Route path="/properties/:id" element={<PropertyDetail />} />
-              <Route path="/services/data-centers" element={<DataCentersPage />} />
+              <Route path="/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform" element={<DataCentersPage />} />
               <Route path="/services" element={<Services />} />
               <Route path="/services/hospitality" element={<HospitalityService />} />
               <Route path="/services/healthcare" element={<HealthcareService />} />

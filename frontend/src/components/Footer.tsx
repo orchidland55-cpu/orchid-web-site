@@ -48,10 +48,10 @@ const Footer = () => {
             <h4 className="font-playfair font-semibold text-xl mb-6">Our Services</h4>
             <ul className="font-lora space-y-3">
               <li><a href="/properties" className="text-ivory-white/80 hover:text-primary transition-smooth">Property Sales</a></li>
-              <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">Custom Acquisition</a></li>
-              <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">High-End Rental</a></li>
-              <li><a href="/invest" className="text-ivory-white/80 hover:text-primary transition-smooth">Investment Advice</a></li>
-              <li><a href="/contact" className="text-ivory-white/80 hover:text-primary transition-smooth">Wealth Management</a></li>
+              <li><a href="/contact-us" className="text-ivory-white/80 hover:text-primary transition-smooth">Custom Acquisition</a></li>
+              <li><a href="/contact-us" className="text-ivory-white/80 hover:text-primary transition-smooth">High-End Rental</a></li>
+              <li><a href="/investment-orchidisland" className="text-ivory-white/80 hover:text-primary transition-smooth">Investment Advice</a></li>
+              <li><a href="/contact-us" className="text-ivory-white/80 hover:text-primary transition-smooth">Wealth Management</a></li>
             </ul>
           </div>
 
@@ -77,21 +77,11 @@ const Footer = () => {
           <div>
             <h4 className="font-playfair font-semibold text-xl mb-6">Quick Links</h4>
             <ul className="font-lora space-y-3">
-              <li><a href="/Scr" className="text-ivory-white/80 hover:text-primary transition-smooth">Orchid Island CSR</a></li>
-              <li><a href="/postulation" className="text-ivory-white/80 hover:text-primary transition-smooth">Careers</a></li>
+              <li><a href="/corporate-social-responsibility" className="text-ivory-white/80 hover:text-primary transition-smooth">Orchid Island CSR</a></li>
+              <li><a href="/contact-us/careers/" className="text-ivory-white/80 hover:text-primary transition-smooth">Careers</a></li>
               <li><a href="/services" className="text-ivory-white/80 hover:text-primary transition-smooth">Services</a></li>
               <li><a href="/" className="text-ivory-white/80 hover:text-primary transition-smooth">Home</a></li>
-            </ul><br />
-            {/* <h4 className="font-playfair font-semibold text-xl mb-6">Newsletter</h4>
-            <p className="font-lora text-ivory-white/80 mb-4">
-              Receive our latest news and exclusive properties.
-            </p> */}
-            {/* <Link
-              to="/Postulation"
-              className="inline-block bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury"
-            >
-              <span className="font-lora text-lg font-bold">Apply</span>
-            </Link> */}
+            </ul>
           </div>
 
         </div>

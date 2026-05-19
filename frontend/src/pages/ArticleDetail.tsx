@@ -9,11 +9,12 @@ import { Calendar, Clock, ArrowLeft, FileText, ChevronRight } from "lucide-react
 import ShareButton from '@/components/ShareButton';
 import { getCloudinaryUrl } from "@/services/cloudinary";
 import { Helmet } from 'react-helmet-async';
+import Footer from "@/components/Footer";
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
 // ---------------------------------------------------------------------------
-const articlePath = (a: Article) => `/blog/${a.slug || a._id}`;
+const articlePath = (a: Article) => `/real-estate-guide-orchid-island-marrakech/${a.slug || a._id}`;
 
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -103,7 +104,7 @@ const ArticleDetail = () => {
             <p className="font-lora text-muted-foreground mb-8">
               {error || "The article you're looking for doesn't exist."}
             </p>
-            <Link to="/blog">
+            <Link to="/real-estate-guide-orchid-island-marrakech">
               <Button variant="default">
                 <ArrowLeft className="font-playfair w-4 h-4 mr-2" />
                 Back to Blog
@@ -121,7 +122,7 @@ const ArticleDetail = () => {
     "headline": article.title,
     "description": article.excerpt,
     "image": article.image,
-    "url": `https://orchid-immo-web-site.vercel.app/blog/${article.slug || article._id}`,
+    "url": `https://orchid-immo-web-site.vercel.app/real-estate-guide-orchid-island-marrakech/${article.slug || article._id}`,
     "datePublished": article.createdAt,
     "dateModified": article.updatedAt,
     "author": {
@@ -149,7 +150,7 @@ const ArticleDetail = () => {
         <section className="py-12">
           <div className="font-playfair container mx-auto px-6">
             <Link
-              to="/blog"
+              to="/real-estate-guide-orchid-island-marrakech"
               className="inline-flex items-center text-primary hover:text-primary/80 mb-8 transition-colors duration-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -385,7 +386,7 @@ const ArticleDetail = () => {
               )}
 
               <div className="font-lora text-center mt-12">
-                <Link to="/blog">
+                <Link to="/real-estate-guide-orchid-island-marrakech">
                   <Button variant="default" size="lg">
                     View All Articles
                     <ChevronRight className="w-4 h-4 ml-2" />
@@ -396,6 +397,7 @@ const ArticleDetail = () => {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 };

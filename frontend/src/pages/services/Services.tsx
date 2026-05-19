@@ -277,7 +277,7 @@ const Services = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="luxury" size="lg" asChild>
-                  <Link to="/contact">
+                  <Link to="/contact-us">
                     Request Investment Brief
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Link>

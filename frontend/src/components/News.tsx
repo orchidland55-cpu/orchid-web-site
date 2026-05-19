@@ -12,7 +12,7 @@ const News = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const articlePath = (id: string, slug?: string) =>
-  `/blog/${slug || id}`;
+  `/real-estate-guide-orchid-island-marrakech/${slug || id}`;
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -188,7 +188,7 @@ const News = () => {
 
         {/* Call to Action */}
         <div className="text-center">
-          <Link to={`/blog`}>
+          <Link to={`/real-estate-guide-orchid-island-marrakech`}>
             <Button variant="elegant" size="lg" className="font-playfair text-lg px-10 py-6 h-auto">
               View All Articles
             </Button>

@@ -25,7 +25,7 @@ import { getCloudinaryUrl } from "@/services/cloudinary";
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
 // ---------------------------------------------------------------------------
 const articlePath = (id: string, slug?: string) =>
-  `/blog/${slug || id}`;
+  `/real-estate-guide-orchid-island-marrakech/${slug || id}`;
 
 const Blog = () => {
   const [articles, setArticles] = useState<Article[]>([]);

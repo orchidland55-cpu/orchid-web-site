@@ -55,7 +55,7 @@ const IndividualsService = () => (
           </div>
           <div className="flex justify-center gap-4 flex-wrap">
             <Button variant="luxury" size="lg" asChild>
-              <Link to="/contact">Request a Private Consultation <ArrowRight className="w-5 h-5 ml-2" /></Link>
+              <Link to="/contact-us">Request a Private Consultation <ArrowRight className="w-5 h-5 ml-2" /></Link>
             </Button>
             <Button variant="elegant" size="lg" asChild>
               <Link to="/services">All Services</Link>
@@ -186,7 +186,7 @@ const IndividualsService = () => (
             looking to acquire, invest, structure, or protect — we are here to deliver.
           </p>
           <Button variant="luxury" size="lg" asChild>
-            <Link to="/contact">
+            <Link to="/contact-us">
               Request a Private Consultation <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
           </Button>

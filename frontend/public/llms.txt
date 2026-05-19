@@ -1,17 +1,87 @@
-# Orchid Immobilier
+# Orchid Island Real estate Marrakech
 
-> Agence immobilière de luxe spécialisée dans les propriétés haut de gamme au Maroc (Marrakech, Casablanca, Rabat, Tanger).
+> Agence immobilière marocaine spécialisée dans les propriétés de luxe et de prestige à Marrakech .
+> Fondée pour accompagner les acheteurs locaux et internationaux dans leurs projets immobiliers haut de gamme au Maroc.
 
-## Services
-- Vente de villas, riads, appartements et propriétés de prestige
+## À propos
+
+Orchid Immobilier est une agence immobilière de référence au Maroc, spécialisée dans la vente et l'acquisition de biens immobiliers de luxe.
+Notre portefeuille comprend des villas, riads, appartements de standing, propriétés avec piscine, domaines et terrains dans les villes les plus prisées du Maroc.
+Nous accompagnons aussi bien les résidents marocains que les investisseurs étrangers (de toutes horizons) souhaitant acquérir un bien immobilier au Maroc.
+
+## Zones géographiques couvertes
+
+- Marrakech
+- Casablanca
+- Rabat 
+- Tanger 
+- Agadir 
+- Essaouira
+- Ifrane
+- Sahel atlantique 
+- Et d'autres ville du Maroc
+
+## Types de biens proposés
+
+- Villas de luxe avec piscine
+- Riads traditionnels (médina et périphérie)
+- Appartements de standing et penthouses
+- Propriétés avec jardins et espaces verts
+- Domaines et grandes propriétés
+- Terrains constructibles en zone premium
+- Biens avec vue mer ou vue montagne
+
+## Services proposés
+
+- Vente de biens immobiliers de prestige
+- Recherche personnalisée de propriétés sur mesure
 - Conseil en investissement immobilier au Maroc
-- Gestion de biens immobiliers de luxe
+- Accompagnement juridique et administratif pour les acquéreurs étrangers
+- Estimation et évaluation de biens
+- Mise en relation avec des notaires, architectes et décorateurs partenaires
 
-## Propriétés
-- Toutes nos propriétés disponibles : https://orchid-immo-web-site.vercel.app/properties
+## Pourquoi investir dans l'immobilier de luxe au Maroc
 
-## Blog
-- Articles et actualités immobilières : https://orchid-immo-web-site.vercel.app/blog
+- Marché stable avec une forte demande internationale
+- Prix compétitifs par rapport aux marchés européens comparables
+- Fiscalité avantageuse pour les résidents non-habituels (RNH)
+- Cadre de vie exceptionnel : climat, culture, gastronomie
+- Forte rentabilité locative saisonnière (notamment à Marrakech et Agadir)
+- Facilité d'acquisition pour les étrangers (pas de restrictions majeures)
+- Devise stable : dirham marocain (MAD) indexé EUR/USD
 
-## Contact
-- https://orchid-immo-web-site.vercel.app/contact
+## Clientèle
+
+Orchid Island Real estate Marrakech s'adresse à :
+- Acheteurs marocains résidents cherchant une résidence principale ou secondaire de standing
+- Marocains résidant à l'étranger (MRE) souhaitant investir au pays
+- Investisseurs français, belges, suisses, européens et d'autres pays du monde attirés par le marché marocain
+- Investisseurs du Golfe (Émirats, Arabie Saoudite, Qatar, Koweït)
+- Retraités cherchant une résidence secondaire ou principale au soleil
+
+## Blog et ressources
+
+Notre blog publie régulièrement des articles de fond sur :
+- Les tendances du marché immobilier de luxe au Maroc
+- Les quartiers les plus prisés ville par ville
+- Les conseils pratiques pour acheter au Maroc en tant qu'étranger
+- Les aspects fiscaux et juridiques de l'acquisition immobilière
+- Les meilleures zones pour la rentabilité locative
+
+## Liens importants
+
+- Site principal : https://orchid-immo-web-site.vercel.app
+- A propos de nous : https://orchid-immo-web-site.vercel.app/about-us
+- Toutes nos propriétés : https://orchid-immo-web-site.vercel.app/properties
+- Blog immobilier : https://orchid-immo-web-site.vercel.app/real-estate-guide-orchid-island-marrakech
+- Nous contacter : https://orchid-immo-web-site.vercel.app/contact-us
+- Investir au Maroc : https://orchid-immo-web-site.vercel.app/investment-orchidisland
+- Nos services : https://orchid-immo-web-site.vercel.app/services
+
+## Langues
+
+Le site et l'équipe sont disponibles enanglais, français, Espagnole et arabe.
+
+## Localisation
+
+Maroc — Marrakech.

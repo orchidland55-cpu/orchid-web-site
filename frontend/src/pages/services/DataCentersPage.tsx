@@ -167,7 +167,7 @@ const DataCentersPage = () => {
               transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
               className="flex flex-wrap justify-center gap-4"
             >
-              <Link to="/contact">
+              <Link to="/contact-us">
                 <Button variant="luxury" size="lg">
                   Request Investment Information
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -593,7 +593,7 @@ const DataCentersPage = () => {
                 expansion. Investors and strategic partners may request
                 additional information and partnership details.
               </p>
-              <Link to="/contact">
+              <Link to="/contact-us">
                 <Button variant="luxury" size="lg">
                   Request Investment Brief
                   <ArrowRight className="w-4 h-4 ml-2" />

@@ -491,7 +491,7 @@ const AboutUs = () => {
                 Discover how we collaborate with local associations to improve
                 community life and contribute to Morocco's social development.
               </p>
-              <Link to="/Scr">
+              <Link to="/corporate-social-responsibility">
                 <Button variant="elegant" size="lg" className="font-lora text-lg px-8 py-3 h-auto font-semibold">
                   Discover Our Commitment
                 </Button>
@@ -510,7 +510,7 @@ const AboutUs = () => {
             and discover how we can help you realize your real estate ambitions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-           <Link to="/contact" className=" bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
+           <Link to="/contact-us" className=" bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
                                      <button className="font-lora text-lg px-8  py-3 h-auto  h- font-bold text-center">Contact Us</button>
                                     </Link>
                                      <Link to="/properties">

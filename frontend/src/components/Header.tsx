@@ -15,7 +15,7 @@ const XIcon = ({ className }: { className?: string }) => (
 const services = [
   { label: "Hospitality",          path: "/services/hospitality" },
   { label: "Healthcare",           path: "/services/healthcare" },
-  { label: "Data Centers",         path: "/services/data-centers" },
+  { label: "Data Centers",         path: "/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform" },
   { label: "Retail",               path: "/services/retail" },
   { label: "Industrial & Offices", path: "/services/industrial-offices" },
   { label: "Logistics",            path: "/services/logistics" },
@@ -75,7 +75,7 @@ const Header = () => {
                 <Link to="/" className="font-playfair text-foreground hover:text-primary transition-smooth">
                   Home
                 </Link>
-                <Link to="/about" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link to="/about-us" className="font-playfair text-foreground hover:text-primary transition-smooth">
                   About us
                 </Link>
 
@@ -124,7 +124,7 @@ const Header = () => {
                 <Link to="/properties" className="font-playfair text-foreground hover:text-primary transition-smooth">
                   Properties
                 </Link>
-                <Link to="/blog" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link to="/real-estate-guide-orchid-island-marrakech" className="font-playfair text-foreground hover:text-primary transition-smooth">
                   Blog
                 </Link>
               </nav>
@@ -132,10 +132,10 @@ const Header = () => {
               {/* CTA Buttons */}
               <div className="font-lora hidden lg:flex items-center space-x-4">
                 <form onSubmit={handleNewsletterSubmit} className="flex items-center space-x-2" />
-                <Link to="/invest">
+                <Link to="/investment-orchidisland">
                   <Button variant="luxury" size="sm">INVEST</Button>
                 </Link>
-                <Link to="/contact">
+                <Link to="/contact-us">
                   <Button variant="elegant" size="sm">Contact Us</Button>
                 </Link>
                 <LanguageSwitcher />
@@ -157,7 +157,7 @@ const Header = () => {
                   <Link to="/" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     Home
                   </Link>
-                  <Link to="/about" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
+                  <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     About us
                   </Link>
 
@@ -189,16 +189,16 @@ const Header = () => {
                   <Link to="/properties" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     Properties
                   </Link>
-                  <Link to="/blog" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
+                  <Link to="/real-estate-guide-orchid-island-marrakech" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     Blog
                   </Link>
                 </nav>
 
                 <div className="font-lora flex space-x-2">
-                  <Link to="/invest" className="flex-1">
+                  <Link to="/investment-orchidisland" className="flex-1">
                     <Button variant="luxury" size="sm" className="w-full">INVEST</Button>
                   </Link>
-                  <Link to="/contact" className="flex-1">
+                  <Link to="/contact-us" className="flex-1">
                     <Button variant="elegant" size="sm" className="w-full">Contact Us</Button>
                   </Link>
                 </div>

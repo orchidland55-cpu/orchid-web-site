@@ -55,7 +55,7 @@ const HospitalityService = () => (
           </div>
           <div className="flex justify-center gap-4 flex-wrap">
             <Button variant="luxury" size="lg" asChild>
-              <Link to="/contact">Request Investment Brief <ArrowRight className="w-5 h-5 ml-2" /></Link>
+              <Link to="/contact-us">Request Investment Brief <ArrowRight className="w-5 h-5 ml-2" /></Link>
             </Button>
             <Button variant="elegant" size="lg" asChild>
               <Link to="/services">All Services</Link>
@@ -182,7 +182,7 @@ const HospitalityService = () => (
             across Africa, the Middle East, and Europe.
           </p>
           <Button variant="luxury" size="lg" asChild>
-            <Link to="/contact">
+            <Link to="/contact-us">
               Request Investment Brief <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
           </Button>

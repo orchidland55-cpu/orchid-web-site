@@ -2,21 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  MapPin,
-  Bed,
-  Bath,
-  Square,
-  Heart,
-  Star,
-  Eye,
-  ArrowRight,
-  Building,
-  Home
-} from "lucide-react";
+import { MapPin, Bed, Bath, Square, Heart, Star, Eye, ArrowRight, Building, Home} from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
 import { getCloudinaryUrl } from "@/services/cloudinary";
+const propertyPath = (property: Property) =>
+  `/properties/${property.slug || property._id}`;
 
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -169,7 +160,7 @@ const Properties = () => {
 
                   {/* Quick View Button */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center font-lora">
-                    <Link to={`/properties/${property._id}`}>
+                    <Link to={propertyPath(property)}>
                       <Button variant="secondary" size="sm" className="bg-white/90 text-foreground hover:bg-white">
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
@@ -248,7 +239,7 @@ const Properties = () => {
                         {Math.round(property.price / property.area).toLocaleString()} MAD/m²
                       </p>
                     </div>
-                    <Link to={`/properties/${property._id}`}>
+                    <Link to={propertyPath(property)}>
                       <Button variant="luxury" size="sm">
                         <ArrowRight className="w-4 h-4" />
                       </Button>

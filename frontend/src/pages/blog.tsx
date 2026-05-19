@@ -21,6 +21,12 @@ import {
 import ShareButton from "@/components/ShareButton";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 
+// ---------------------------------------------------------------------------
+// Helper : slug si disponible, sinon _id (rétrocompatibilité)
+// ---------------------------------------------------------------------------
+const articlePath = (id: string, slug?: string) =>
+  `/blog/${slug || id}`;
+
 const Blog = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,14 +53,13 @@ const Blog = () => {
     fetchArticles();
   }, []);
 
-  // Reset to page 1 when category changes
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory]);
 
-  // Transform articles for display
   const blogPosts = articles.map(article => ({
     id: article._id,
+    slug: article.slug,           // ✅ slug inclus
     title: article.title,
     excerpt: article.excerpt,
     author: article.author,
@@ -67,25 +72,21 @@ const Blog = () => {
     featured: article.featured || false
   }));
 
-  // Extraire les catégories uniques dynamiquement
   const dynamicCategories = Array.from(
     new Set(articles.map(article => article.category).filter(Boolean))
   ).sort();
 
   const categories = ["All Posts", ...dynamicCategories];
 
-  // Dynamic filtering
   const filteredPosts = blogPosts.filter(post => {
     if (selectedCategory === "All Posts") return true;
     return post.category === selectedCategory;
   });
 
-  // Get non-featured posts sorted by date
   const nonFeaturedPosts = filteredPosts
     .filter(post => !post.featured)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Pagination calculations
   const totalPages = Math.ceil(nonFeaturedPosts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -93,7 +94,6 @@ const Blog = () => {
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    // Scroll to the Latest Articles section
     const latestSection = document.getElementById('latest-articles');
     if (latestSection) {
       latestSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -106,58 +106,33 @@ const Blog = () => {
     const siblingCount = 1;
     const pageNumbers: (number | string)[] = [];
 
-    // Toujours afficher la première page
     pageNumbers.push(1);
 
-    // Calculer la plage de pages à afficher autour de la page actuelle
     const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
     const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages - 1);
-
-    // Afficher les pointillés à gauche si nécessaire
     const showLeftDots = leftSiblingIndex > 2;
     const showRightDots = rightSiblingIndex < totalPages - 1;
 
-    // Si on est proche du début (pages 1-4)
     if (!showLeftDots && showRightDots) {
       const leftRange = 3 + 2 * siblingCount;
-      for (let i = 2; i <= Math.min(leftRange, totalPages - 1); i++) {
-        pageNumbers.push(i);
-      }
-      if (totalPages > leftRange + 1) {
-        pageNumbers.push('...');
-      }
-    }
-    // Si on est proche de la fin
-    else if (showLeftDots && !showRightDots) {
+      for (let i = 2; i <= Math.min(leftRange, totalPages - 1); i++) pageNumbers.push(i);
+      if (totalPages > leftRange + 1) pageNumbers.push('...');
+    } else if (showLeftDots && !showRightDots) {
       pageNumbers.push('...');
       const rightRange = 3 + 2 * siblingCount;
-      for (let i = Math.max(totalPages - rightRange, 2); i <= totalPages - 1; i++) {
-        pageNumbers.push(i);
-      }
-    }
-    // Si on est au milieu
-    else if (showLeftDots && showRightDots) {
+      for (let i = Math.max(totalPages - rightRange, 2); i <= totalPages - 1; i++) pageNumbers.push(i);
+    } else if (showLeftDots && showRightDots) {
       pageNumbers.push('...');
-      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
-        pageNumbers.push(i);
-      }
+      for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) pageNumbers.push(i);
       pageNumbers.push('...');
-    }
-    // Si le nombre total de pages est petit (moins de 7 pages)
-    else {
-      for (let i = 2; i <= totalPages - 1; i++) {
-        pageNumbers.push(i);
-      }
+    } else {
+      for (let i = 2; i <= totalPages - 1; i++) pageNumbers.push(i);
     }
 
-    // Toujours afficher la dernière page (si elle existe et n'est pas la première)
-    if (totalPages > 1) {
-      pageNumbers.push(totalPages);
-    }
+    if (totalPages > 1) pageNumbers.push(totalPages);
 
     return (
       <div className="flex flex-col items-center space-y-4 mt-12">
-        {/* Navigation avec boutons */}
         <div className="flex items-center justify-center space-x-2 flex-wrap gap-2">
           <Button
             variant="outline"
@@ -179,7 +154,6 @@ const Blog = () => {
                   </span>
                 );
               }
-
               return (
                 <Button
                   key={pageNumber}
@@ -205,8 +179,6 @@ const Blog = () => {
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
-
-        {/* Info sur la page actuelle */}
         <p className="text-sm text-muted-foreground font-lora">
           Page {currentPage} of {totalPages} • Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, nonFeaturedPosts.length)} of {nonFeaturedPosts.length} articles
         </p>
@@ -323,7 +295,8 @@ const Blog = () => {
                         <span>{post.date}</span>
                       </div>
                     </div>
-                    <Link to={`/blog/${post.id}`}>
+                    {/* ✅ Lien avec slug */}
+                    <Link to={articlePath(post.id, post.slug)}>
                       <Button variant="luxury" className="w-fit">
                         Read Full Article
                         <ArrowRight className="w-4 h-4 ml-2" />
@@ -350,7 +323,8 @@ const Blog = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {currentPosts.map((post) => (
-                <Link key={post.id} to={`/blog/${post.id}`}>
+                /* ✅ Lien avec slug */
+                <Link key={post.id} to={articlePath(post.id, post.slug)}>
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
                       <img
@@ -369,11 +343,6 @@ const Blog = () => {
                       <p className="font-lora text-muted-foreground mb-4 line-clamp-2">
                         {post.excerpt}
                       </p>
-
-                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                        {/* Author removed */}
-                      </div>
-
                       <div className="flex items-center justify-between">
                         <ShareButton showText={false} />
                       </div>
@@ -383,7 +352,6 @@ const Blog = () => {
               ))}
             </div>
 
-            {/* Pagination */}
             {renderPagination()}
 
             {nonFeaturedPosts.length === 0 && (

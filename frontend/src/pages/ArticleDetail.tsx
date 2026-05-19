@@ -20,9 +20,13 @@ import {
   Bookmark,
   ChevronRight,
 } from "lucide-react";
-// ✅ Import du nouveau composant ShareButton
 import ShareButton from '@/components/ShareButton';
 import { getCloudinaryUrl } from "@/services/cloudinary";
+
+// ---------------------------------------------------------------------------
+// Helper : slug si disponible, sinon _id (rétrocompatibilité)
+// ---------------------------------------------------------------------------
+const articlePath = (a: Article) => `/blog/${a.slug || a._id}`;
 
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,7 +46,8 @@ const ArticleDetail = () => {
 
       try {
         setLoading(true);
-        // Main article
+        // getArticleById envoie le param tel quel (slug ou _id)
+        // le backend sait gérer les deux.
         const articleData = await apiService.getArticleById(id);
         if (!articleData || articleData.status !== "published") {
           setError("Article not found or not published");
@@ -51,27 +56,26 @@ const ArticleDetail = () => {
         }
         setArticle(articleData);
 
-        // All articles
         const allArticles = await apiService.getAllArticles();
 
-        // Related articles (same category, published, exclude current)
+        // Articles liés (même catégorie, publiés, excluant l'article courant)
+        // On exclut par _id ET par slug pour éviter tout doublon
         const related = allArticles
           .filter(
             (a) =>
               a.status === "published" &&
-              a._id !== id &&
+              a._id !== articleData._id &&
               a.category === articleData.category
           )
           .slice(0, 4);
         setRelatedArticles(related);
 
-        // Recent articles (excluding current)
+        // Articles récents
         const recent = allArticles
-          .filter((a) => a.status === "published" && a._id !== id)
+          .filter((a) => a.status === "published" && a._id !== articleData._id)
           .sort(
             (a, b) =>
-              new Date(b.createdAt).getTime() -
-              new Date(a.createdAt).getTime()
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
           .slice(0, 3);
         setRecentArticles(recent);
@@ -94,9 +98,7 @@ const ArticleDetail = () => {
             <div className="w-16 h-16 luxury-gradient rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
               <FileText className="w-8 h-8 text-white" />
             </div>
-            <p className="text-foreground font-medium">
-              Loading article...
-            </p>
+            <p className="text-foreground font-medium">Loading article...</p>
           </div>
         </main>
       </div>
@@ -164,9 +166,8 @@ const ArticleDetail = () => {
                   </div>
                 )}
               </div>
-              {/* ✅ Action Buttons — I’ve replaced the "Share" button here too with <ShareButton /> */}
               <div className="font-lora flex items-center justify-center space-x-4 mb-8">
-                <ShareButton /> {/* ✅ Replaced here too — optional */}
+                <ShareButton />
               </div>
             </div>
           </div>
@@ -177,6 +178,7 @@ const ArticleDetail = () => {
           <div className="container mx-auto px-6">
             <div className="max-w-7xl mx-auto">
               <div className="flex flex-col lg:flex-row gap-8">
+
                 {/* Main Article Content */}
                 <div className="flex-1 lg:max-w-4xl">
                   {/* Hero Image */}
@@ -192,8 +194,6 @@ const ArticleDetail = () => {
                     className="prose prose-lg max-w-none text-foreground/90 leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: article.content }}
                   />
-
-                  {/* ✅ "SUMMARY" SECTION REMOVED HERE */}
                 </div>
 
                 {/* Right Sidebar */}
@@ -223,14 +223,11 @@ const ArticleDetail = () => {
                           <div className="flex items-center text-muted-foreground">
                             <Calendar className="w-4 h-4 mr-3 text-primary" />
                             <time>
-                              {new Date(article.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  day: "2-digit",
-                                  month: "long",
-                                  year: "numeric",
-                                }
-                              )}
+                              {new Date(article.createdAt).toLocaleDateString("en-US", {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                              })}
                             </time>
                           </div>
                           {article.readTime && (
@@ -254,9 +251,10 @@ const ArticleDetail = () => {
                         <CardContent className="p-6 pt-0">
                           <div className="space-y-4">
                             {recentArticles.map((recent) => (
+                              /* ✅ Lien avec slug */
                               <Link
                                 key={recent._id}
-                                to={`/blog/${recent._id}`}
+                                to={articlePath(recent)}
                                 className="block group cursor-pointer"
                               >
                                 <div className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
@@ -271,9 +269,7 @@ const ArticleDetail = () => {
                                     </h4>
                                     <div className="font-lora flex items-center text-xs text-muted-foreground">
                                       <Calendar className="w-3 h-3 mr-1" />
-                                      {new Date(
-                                        recent.createdAt
-                                      ).toLocaleDateString("en-US", {
+                                      {new Date(recent.createdAt).toLocaleDateString("en-US", {
                                         day: "2-digit",
                                         month: "short",
                                       })}
@@ -293,14 +289,14 @@ const ArticleDetail = () => {
           </div>
         </section>
 
-        {/* ✅ Social Sharing — Entire section replaced with <ShareButton /> */}
+        {/* Social Sharing */}
         <section className="py-12 border-t border-border">
           <div className="container mx-auto px-6">
             <div className="max-w-4xl">
               <h3 className="font-playfair text-lg font-bold text-foreground mb-4">
                 Share this article
               </h3>
-              <div className="relative"> {/* 👈 Important for positioning */}
+              <div className="relative">
                 <ShareButton />
               </div>
             </div>
@@ -311,7 +307,6 @@ const ArticleDetail = () => {
         <section className="py-20 bg-muted/20">
           <div className="container mx-auto px-6">
             <div className="max-w-7xl mx-auto">
-              {/* Title */}
               <div className="text-center mb-8">
                 <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-2">
                   Articles in the same category
@@ -334,15 +329,13 @@ const ArticleDetail = () => {
                           key={relatedArticle._id}
                           className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3"
                         >
-                          <Link to={`/blog/${relatedArticle._id}`}>
+                          {/* ✅ Lien avec slug */}
+                          <Link to={articlePath(relatedArticle)}>
                             <Card className="h-full bg-card border-border shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
                               <CardHeader className="p-0">
                                 <div className="relative overflow-hidden rounded-t-lg">
                                   <img
-                                    src={
-                                      getCloudinaryUrl(relatedArticle.image, 400, 300) ||
-                                      "/api/placeholder/400/300"
-                                    }
+                                    src={getCloudinaryUrl(relatedArticle.image, 400, 300) || "/api/placeholder/400/300"}
                                     alt={relatedArticle.title}
                                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                                   />
@@ -377,7 +370,6 @@ const ArticleDetail = () => {
                 </div>
               )}
 
-              {/* View All Button */}
               <div className="font-lora text-center mt-12">
                 <Link to="/blog">
                   <Button variant="default" size="lg">

@@ -71,6 +71,7 @@ export interface PropertyData {
 
 export interface Property extends PropertyData {
   _id: string;
+  slug?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,6 +104,7 @@ export interface ArticleData {
 
 export interface Article extends ArticleData {
   _id: string;
+  slug?: string;
   createdAt: string;
   updatedAt: string;
   readTime?: string;

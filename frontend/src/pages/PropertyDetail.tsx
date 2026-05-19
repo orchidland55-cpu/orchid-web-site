@@ -15,16 +15,17 @@ import {
   Home,
   ChevronLeft,
   ChevronRight,
-  // ✅ Icons for amenities
-  Leaf, // For Garden
-  Waves, // For Pool
-  Shield, // For Security
-  Sofa, // For Furnished
+  Leaf,
+  Waves,
+  Shield,
+  Sofa,
 } from "lucide-react";
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
 
 const PropertyDetail = () => {
+  // `id` contient désormais soit un slug ("luxury-palace-marrakech"),
+  // soit un _id MongoDB pour les anciens liens — les deux sont gérés côté backend.
   const { id } = useParams();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,6 @@ const PropertyDetail = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-
 
   useEffect(() => {
     if (!id) {
@@ -44,6 +44,8 @@ const PropertyDetail = () => {
     const fetchProperty = async () => {
       try {
         setLoading(true);
+        // getPropertyById envoie le param tel quel (slug ou _id) ;
+        // le backend sait gérer les deux.
         const data = await apiService.getPropertyById(id);
         if (!data) {
           setError("Property not found");
@@ -64,17 +66,9 @@ const PropertyDetail = () => {
   // Keyboard slider handling
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prevImage();
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        nextImage();
-      }
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); prevImage(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); nextImage(); }
     };
 
     window.addEventListener("keydown", handleKeyPress);
@@ -104,7 +98,7 @@ const PropertyDetail = () => {
     );
   }
 
-  // ✅ Robust and secure correction: handles additionalImages as string or string[]
+  // Construire la liste d'images
   const imagesToShow: string[] = [];
   if (property.mainImage && property.mainImage.trim()) {
     imagesToShow.push(property.mainImage);
@@ -136,20 +130,16 @@ const PropertyDetail = () => {
     }
   }
 
-  console.log("✅ Images loaded:", imagesToShow.length, "total images");
   if (imagesToShow.length === 0) {
-    console.log("❌ No images found, using fallback");
     imagesToShow.push("https://placehold.co/1200x800/f3f4f6/374151?text=No+image");
   }
 
-  // --- Slider logic ---
+  // Slider logic
   const nextImage = () => {
     if (!isTransitioning && imagesToShow.length) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) =>
-          prev === imagesToShow.length - 1 ? 0 : prev + 1
-        );
+        setCurrentImageIndex((prev) => prev === imagesToShow.length - 1 ? 0 : prev + 1);
         setIsTransitioning(false);
       }, 100);
     }
@@ -159,9 +149,7 @@ const PropertyDetail = () => {
     if (!isTransitioning && imagesToShow.length) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) =>
-          prev === 0 ? imagesToShow.length - 1 : prev - 1
-        );
+        setCurrentImageIndex((prev) => prev === 0 ? imagesToShow.length - 1 : prev - 1);
         setIsTransitioning(false);
       }, 100);
     }
@@ -178,30 +166,19 @@ const PropertyDetail = () => {
   };
 
   const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
-    const localeMap = {
-      MAD: "fr-MA",
-      USD: "en-US",
-      EUR: "fr-FR",
-    };
-
-    const symbolMap = {
-      MAD: "MAD",
-      USD: "$",
-      EUR: "€",
-    };
+    const localeMap = { MAD: "fr-MA", USD: "en-US", EUR: "fr-FR" };
+    const symbolMap = { MAD: "MAD", USD: "$", EUR: "€" };
 
     const formatted = new Intl.NumberFormat(localeMap[currency], {
-    style: "decimal",
-    minimumFractionDigits: 0,
+      style: "decimal",
+      minimumFractionDigits: 0,
     }).format(price);
 
-    // Symbole avant pour USD/EUR, après pour MAD
     return currency === "MAD"
       ? `${formatted} MAD`
       : `${symbolMap[currency]}${formatted}`;
   };
 
-  // ✅ Mapping for status labels
   const statusLabel = {
     available: 'Available',
     sold: 'Sold',
@@ -231,45 +208,31 @@ const PropertyDetail = () => {
           <div className="container mx-auto px-6">
             <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-luxury mb-8 group">
               <div className="relative w-full h-full">
-                {imagesToShow.length > 0 ? (
-                  imagesToShow.map((image, index) => (
-                    <div
-                      key={index}
-                      className={`absolute inset-0 transition-all duration-1000 ease-out transform ${
-                        index === currentImageIndex
-                          ? "opacity-100 scale-100 translate-x-0 z-10"
-                          : index < currentImageIndex
-                          ? "opacity-0 scale-110 -translate-x-full z-0"
-                          : "opacity-0 scale-110 translate-x-full z-0"
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`${property.title} - Image ${index + 1}`}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => setSelectedImage(image)}
-                        onError={(e) => {
-                          console.error("❌ Image failed to load at index:", index);
-                          e.currentTarget.src = "https://placehold.co/1200x800/f3f4f6/374151?text=Load+error";
-                        }}
-                        onLoad={() => {
-                          console.log("✅ Image", index + 1, "loaded successfully");
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 pointer-events-none"></div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-gray-200">
-                    <div className="text-center">
-                      <p className="text-gray-500 mb-2">No images available</p>
-                      <p className="text-xs text-gray-400">ID: {property._id}</p>
-                    </div>
+                {imagesToShow.map((image, index) => (
+                  <div
+                    key={index}
+                    className={`absolute inset-0 transition-all duration-1000 ease-out transform ${
+                      index === currentImageIndex
+                        ? "opacity-100 scale-100 translate-x-0 z-10"
+                        : index < currentImageIndex
+                        ? "opacity-0 scale-110 -translate-x-full z-0"
+                        : "opacity-0 scale-110 translate-x-full z-0"
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${property.title} - Image ${index + 1}`}
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => setSelectedImage(image)}
+                      onError={(e) => {
+                        e.currentTarget.src = "https://placehold.co/1200x800/f3f4f6/374151?text=Load+error";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 pointer-events-none"></div>
                   </div>
-                )}
+                ))}
               </div>
 
-              {/* Navigation buttons */}
               {imagesToShow.length > 1 && (
                 <>
                   <button
@@ -289,7 +252,6 @@ const PropertyDetail = () => {
                 </>
               )}
 
-              {/* Image indicators */}
               {imagesToShow.length > 1 && (
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
                   {imagesToShow.map((_, index) => (
@@ -297,16 +259,13 @@ const PropertyDetail = () => {
                       key={index}
                       onClick={() => goToImage(index)}
                       className={`w-3 h-3 rounded-full transition-colors ${
-                        index === currentImageIndex
-                          ? "bg-white"
-                          : "bg-white/50 hover:bg-white/75"
+                        index === currentImageIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
                       }`}
                     />
                   ))}
                 </div>
               )}
 
-              {/* Image counter */}
               {imagesToShow.length > 1 && (
                 <div className="absolute top-6 right-6 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-20">
                   {currentImageIndex + 1} / {imagesToShow.length}
@@ -315,28 +274,27 @@ const PropertyDetail = () => {
             </div>
           </div>
         </section>
+
         {selectedImage !== null && (
           <div
-           className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
-           onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
+            onClick={() => setSelectedImage(null)}
           >
-           <img
+            <img
               src={selectedImage}
               className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl"
               onClick={(e) => e.stopPropagation()}
             />
-
-           {/* bouton fermer */}
             <button
-             className="absolute top-6 right-6 text-white text-3xl"
+              className="absolute top-6 right-6 text-white text-3xl"
               onClick={() => setSelectedImage(null)}
-           >
-             ✕
-           </button>
+            >
+              ✕
+            </button>
           </div>
         )}
 
-        {/* ✅ HORIZONTAL + CENTERED + TEXT-FREE Thumbnail Gallery */}
+        {/* Thumbnails */}
         {imagesToShow.length > 1 && (
           <section className="py-6 bg-background border-b">
             <div className="container mx-auto px-6">
@@ -364,9 +322,7 @@ const PropertyDetail = () => {
                       {index === currentImageIndex && (
                         <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xs font-bold">
-                              {index + 1}
-                            </span>
+                            <span className="text-white text-xs font-bold">{index + 1}</span>
                           </div>
                         </div>
                       )}
@@ -388,7 +344,6 @@ const PropertyDetail = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <Badge variant="default">{statusLabel}</Badge>
-                      {/* ✅ "Featured" Badge REMOVED here */}
                     </div>
                   </div>
                   <h1 className="text-4xl font-bold mb-4">{property.title}</h1>
@@ -411,9 +366,7 @@ const PropertyDetail = () => {
                   <div className="text-center p-4 bg-card rounded-lg border">
                     <Bath className="w-6 h-6 text-primary mx-auto mb-2" />
                     <div className="text-2xl font-bold">{property.bathrooms}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Bathrooms
-                    </div>
+                    <div className="text-sm text-muted-foreground">Bathrooms</div>
                   </div>
                   <div className="text-center p-4 bg-card rounded-lg border">
                     <Square className="w-6 h-6 text-primary mx-auto mb-2" />
@@ -461,7 +414,6 @@ const PropertyDetail = () => {
                   <CardContent className="p-6">
                     <h3 className="text-xl font-bold mb-4">Information</h3>
                     <div className="space-y-3">
-                      {/* Type, Area, Bedrooms, etc. */}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Type</span>
                         <span className="font-medium">{property.type}</span>
@@ -475,9 +427,7 @@ const PropertyDetail = () => {
                         <span className="font-medium">{property.bedrooms}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Bathrooms
-                        </span>
+                        <span className="text-muted-foreground">Bathrooms</span>
                         <span className="font-medium">{property.bathrooms}</span>
                       </div>
                       <div className="flex justify-between">
@@ -485,7 +435,6 @@ const PropertyDetail = () => {
                         <span className="font-medium">{property.yearBuilt}</span>
                       </div>
 
-                      {/* --- Section: Options / Amenities --- */}
                       <div className="mt-6 pt-6 border-t">
                         <h4 className="font-semibold text-sm text-muted-foreground mb-3">Options</h4>
                         <div className="space-y-2">

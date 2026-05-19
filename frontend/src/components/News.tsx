@@ -11,6 +11,8 @@ const News = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const articlePath = (id: string, slug?: string) =>
+  `/blog/${slug || id}`;
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -118,7 +120,7 @@ const News = () => {
                       <p className="font-lora text-white/90 text-lg leading-relaxed mb-6">
                         {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
                       </p>
-                      <Link to={`/blog/${featuredArticle._id}`}>
+                      <Link to={articlePath(featuredArticle._id, featuredArticle.slug)}>
                         <Button variant="luxury" className="w-fit">
                           Read Article
                           <ArrowRight className="w-4 h-4 ml-2" />
@@ -168,7 +170,7 @@ const News = () => {
                     {truncate(article.excerpt || article.content, 80)}
                   </p>
                   <div className="flex items-center justify-end">
-                    <Link to={`/blog/${article._id}`}>
+                    <Link to={articlePath(article._id, article.slug)}>
                       <Button
                         variant="ghost"
                         size="sm"

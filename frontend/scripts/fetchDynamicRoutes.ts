@@ -28,11 +28,11 @@ export async function fetchDynamicRoutes(): Promise<string[]> {
     // ✅ Slug en priorité, _id en fallback (rétrocompatibilité)
     const blogRoutes = articles
       .filter((a) => a.status === 'published')        // uniquement les articles publiés
-      .map((a) => `/real-estate-guide-orchid-island-marrakech/${a.slug || a._id}`)
+      .map((a) => `/${a.slug || a._id}/`)
 
     const propertyRoutes = properties
       .filter((p) => p.status === 'available' || p.status === 'sold') // exclut les drafts
-      .map((p) => `/properties/${p.slug || p._id}`)
+      .map((p) => `/property/${p.slug || p._id}/`)
 
     console.log(`✅ ${blogRoutes.length} articles | ${propertyRoutes.length} propriétés`)
 

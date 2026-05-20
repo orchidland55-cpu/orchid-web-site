@@ -14,7 +14,7 @@ const XIcon = ({ className }: { className?: string }) => (
 // ─── Services submenu items ───────────────────────────────────────────────────
 const services = [
   { label: "Hospitality",          path: "/services/hospitality" },
-  { label: "Healthcare",           path: "/services/healthcare" },
+  { label: "Healthcare",           path: "/healthcare" },
   { label: "Data Centers",         path: "/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform" },
   { label: "Retail",               path: "/services/retail" },
   { label: "Industrial & Offices", path: "/services/industrial-offices" },

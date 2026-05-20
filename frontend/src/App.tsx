@@ -79,12 +79,12 @@ function App() {
               <Route path="/properties" element={<Properties />} />
               <Route path="/investment-orchidisland" element={<Invest />} />
               <Route path="/contact-us" element={<Contact />} />
-              <Route path="/real-estate-guide-orchid-island-marrakech/:id" element={<ArticleDetail />} />
-              <Route path="/properties/:id" element={<PropertyDetail />} />
+              <Route path="/:id" element={<ArticleDetail />} />
+              <Route path="/property/:id" element={<PropertyDetail />} />
               <Route path="/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform" element={<DataCentersPage />} />
               <Route path="/services" element={<Services />} />
               <Route path="/services/hospitality" element={<HospitalityService />} />
-              <Route path="/services/healthcare" element={<HealthcareService />} />
+              <Route path="/healthcare" element={<HealthcareService />} />
               <Route path="/services/retail" element={<RetailService />} />
               <Route path="/services/industrial-offices" element={<IndustrialOfficesService />} />
               <Route path="/services/logistics" element={<LogisticsService />} />

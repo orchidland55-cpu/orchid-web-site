@@ -26,7 +26,7 @@ import { getCloudinaryUrl } from "@/services/cloudinary";
 // pour les propriétés créées avant l'ajout des slugs.
 // ---------------------------------------------------------------------------
 const propertyPath = (property: Property) =>
-  `/properties/${property.slug || property._id}`;
+  `/property/${property.slug || property._id}`;
 
 const PropertiesPage = () => {
   const [favorites, setFavorites] = useState<string[]>([]);

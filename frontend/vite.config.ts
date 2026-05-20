@@ -17,7 +17,7 @@ const staticRoutes = [
   '/services',
   '/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform',
   '/services/hospitality',
-  '/services/healthcare',
+  '/healthcare',
   '/services/retail',
   '/services/industrial-offices',
   '/services/logistics',

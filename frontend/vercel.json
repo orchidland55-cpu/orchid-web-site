@@ -1,6 +1,234 @@
-{"rewrites": [
+{
+  "rewrites": [
   {
     "source": "/(.*)",
     "destination": "/index.html"
   }
-]}
+],
+
+"redirects": [
+    {
+      "source": "/property/apartment-for-sale",
+      "destination": "/property/investment-opportunity",
+      "permanent": true
+    },
+    {
+      "source": "/property/apartment-for-sale/",
+      "destination": "/property/investment-opportunity",
+      "permanent": true
+    },
+    {
+      "source": "/property/luxury-villa-marrakech",
+      "destination": "/property/villa-premium-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/property/luxury-villa-marrakech/",
+      "destination": "/property/villa-premium-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/property/taroudant-off-market-farm-investment",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property/taroudant-off-market-farm-investment/",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property/gueliz-marrakech-land-r5-investment",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property/gueliz-marrakech-land-r5-investment/",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property/luxury-villa-marrakech-akenza-2",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property/luxury-villa-marrakech-akenza-2/",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_city/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_country/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_feature/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_province/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_status/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property_type/:slug*",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/property",
+      "destination": "/properties",
+      "permanent": true
+    },
+    {
+      "source": "/category/africa-investment",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/africa-investment/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/buy-home",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/buy-home/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/buy-property",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/buy-property/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/easiest-tips",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/easiest-tips/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/gitex-and-tech",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/gitex-and-tech/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/real-estate",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/real-estate/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/renting-property",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/renting-property/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/selling-property",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/selling-property/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/uncategorized",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/category/uncategorized/",
+      "destination": "/real-estate-guide-orchid-island-marrakech",
+      "permanent": true
+    },
+    {
+      "source": "/product/basic",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/product/basic/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/product/premium",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/product/premium/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/product/standard",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/product/standard/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/sitemap",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/author/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    }
+  ]
+
+
+}

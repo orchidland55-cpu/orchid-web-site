@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import csrHero from "@/assets/property-1.jpg";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -49,33 +50,6 @@ const AboutUs = () => {
     }
   ];
 
-  // const locations = [
-  //   {
-  //     city: "Casablanca",
-  //     description: "Economic center of Morocco",
-  //     properties: "350+ properties",
-  //     specialties: ["Marina", "Anfa", "Racine"]
-  //   },
-  //   {
-  //     city: "Rabat",
-  //     description: "Administrative capital",
-  //     properties: "280+ properties",
-  //     specialties: ["Souissi", "Hay Riad", "Agdal"]
-  //   },
-  //   {
-  //     city: "Marrakech",
-  //     description: "Pearl of the South",
-  //     properties: "420+ properties",
-  //     specialties: ["Palmeraie", "Hivernage", "Gueliz"]
-  //   },
-  //   {
-  //     city: "Tangier",
-  //     description: "Gateway to Europe",
-  //     properties: "150+ properties",
-  //     specialties: ["Marina Bay", "Malabata", "California"]
-  //   }
-  // ];
-
   const values = [
     {
       icon: Shield,
@@ -96,57 +70,6 @@ const AboutUs = () => {
       icon: TrendingUp,
       title: "Innovation",
       description: "We use the latest technologies to optimize your experience."
-    }
-  ];
-
-  const team = [
-    {
-      name: "Ahmed Benali",
-      role: "CEO & Founder",
-      experience: "20 years of experience",
-      speciality: "Luxury real estate",
-      description: "Graduate of Casablanca Business School, Ahmed founded Orchid Island with the vision of revolutionizing the prestige real estate market in Morocco.",
-      achievements: ["500+ completed transactions", "Complex negotiation expert", "International network"]
-    },
-    {
-      name: "Fatima Alaoui",
-      role: "Sales Director",
-      experience: "15 years of experience",
-      speciality: "Negotiation & Sales",
-      description: "Expert in client relations and commercial strategies, Fatima oversees all sales activities and ensures client satisfaction.",
-      achievements: ["98% satisfaction rate", "Advanced negotiation training", "International clientele specialist"]
-    },
-    {
-      name: "Youssef Tazi",
-      role: "Senior Real Estate Expert",
-      experience: "12 years of experience",
-      speciality: "Valuation & Consulting",
-      description: "Architect by training, Youssef brings his technical expertise to the evaluation and analysis of prestige properties.",
-      achievements: ["Certified real estate appraiser", "Luxury architecture expert", "Investment consulting"]
-    },
-    {
-      name: "Laila Benjelloun",
-      role: "Digital Marketing Manager",
-      experience: "8 years of experience",
-      speciality: "Marketing & Communication",
-      description: "Specialized in digital marketing and communication, Laila develops visibility strategies for our exclusive properties.",
-      achievements: ["Innovative digital campaigns", "Real estate photography", "Premium social media"]
-    },
-    {
-      name: "Omar Fassi",
-      role: "Legal Advisor",
-      experience: "18 years of experience",
-      speciality: "Real Estate Law",
-      description: "Lawyer specialized in real estate law, Omar secures all our transactions and assists our clients with legal aspects.",
-      achievements: ["Property law expert", "International transactions", "Real estate tax consulting"]
-    },
-    {
-      name: "Nadia Chraibi",
-      role: "Wealth Manager",
-      experience: "10 years of experience",
-      speciality: "Management & Investment",
-      description: "Real estate wealth management specialist, Nadia advises our clients on optimizing their investments.",
-      achievements: ["Premium portfolio management", "Investment strategies", "Tax optimization"]
     }
   ];
 
@@ -221,7 +144,7 @@ const AboutUs = () => {
   <div className="relative">
     <div className="w-full h-96 bg-gradient-to-br from-cream to-light-gray rounded-lg shadow-elegant overflow-hidden">
       <img 
-        src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289706/orchid1_pwgnej.jpg" 
+        src={csrHero} 
         alt="Orchid Island Real Estate" 
         className="w-full h-full object-cover rounded-lg"
       />
@@ -252,41 +175,6 @@ const AboutUs = () => {
                   </h3>
                   <p className="font-lora text-muted-foreground text-sm">
                     {value.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Our Team */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our <span className="luxury-gradient bg-clip-text text-transparent">Team</span>
-            </h2>
-            <p className="font-lora text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experienced and passionate professionals, dedicated to your real estate success.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <Card key={index} className="text-center p-6 shadow-elegant hover:shadow-luxury transition-luxury border-0">
-                <CardContent className="p-0">
-                  <div className="w-24 h-24 luxury-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-12 h-12 text-primary-foreground" />
-                  </div>
-                  <h3 className="font-playfair text-xl font-semibold text-foreground mb-2">
-                    {member.name}
-                  </h3>
-                  <Badge className=" bg-deep-blue text-ivory-white font-lora mb-3">
-                    {member.role}
-                  </Badge>
-                  <p className="font-lora text-muted-foreground text-sm mb-2">
-                    {member.experience}
-                  </p>
-                  <p className="font-lora text-primary text-sm font-medium">
-                    {member.speciality}
                   </p>
                 </CardContent>
               </Card>
@@ -348,40 +236,15 @@ const AboutUs = () => {
               <Card className="overflow-hidden shadow-luxury border-0">
                 <CardContent className="p-0">
                   <div className="relative h-96 bg-gradient-to-br from-warm-brown/20 to-luxury-gold/20">
-                    {/* Map Placeholder with Marrakech landmarks */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <Map className="w-16 h-16 text-primary mx-auto mb-4" />
-                        <h3 className="font-playfair text-xl font-semibold text-foreground mb-2">
-                          Interactive Marrakech Map
-                        </h3>
-                        <p className="font-lora text-muted-foreground text-sm">
-                          Prestige zones and exclusive properties
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Location Markers */}
-                    <div className="absolute top-1/4 left-1/3 transform -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-4 h-4 luxury-gradient rounded-full animate-pulse"></div>
-                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-lora text-foreground whitespace-nowrap">
-                        Palmeraie
-                      </span>
-                    </div>
-
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                      <div className="w-4 h-4 luxury-gradient rounded-full animate-pulse"></div>
-                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-lora text-foreground whitespace-nowrap">
-                        Hivernage
-                      </span>
-                    </div>
-
-                    <div className="absolute top-3/4 right-1/3 transform translate-x-1/2 -translate-y-1/2">
-                      <div className="w-4 h-4 luxury-gradient rounded-full animate-pulse"></div>
-                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-lora text-foreground whitespace-nowrap">
-                        Gueliz
-                      </span>
-                    </div>
+                    {/* Map */}
+                    <div className="h-96 rounded-lg overflow-hidden">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.6460753537453!2d-8.025032399999997!3d31.6435395!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8bf0da58cc444bb%3A0xae64f92fc9524f5!2sOrchid%20Island%20Real%20Estate!5e0!3m2!1sen!2sma!4v1773534817924!5m2!1sen!2sma"
+                  className="w-full h-full"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
                   </div>
                 </CardContent>
               </Card>
@@ -407,7 +270,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Palmeraie</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Luxury villas with private pools and landscaped gardens. Average price: 8-25M DH
+                      Luxury villas with private pools and landscaped gardens.
                     </p>
                   </div>
                 </div>
@@ -417,7 +280,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Hivernage</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Modern district with high-end apartments and renovated riads. Average price: 3-12M DH
+                      Modern district with high-end apartments and renovated riads.
                     </p>
                   </div>
                 </div>
@@ -427,7 +290,7 @@ const AboutUs = () => {
                   <div>
                     <h4 className="font-playfair font-semibold text-foreground mb-1">Gueliz</h4>
                     <p className="font-lora text-sm text-muted-foreground">
-                      Modern city center with penthouses and premium offices. Average price: 2-8M DH
+                      Modern city center with penthouses and premium offices.
                     </p>
                   </div>
                 </div>
@@ -443,16 +306,12 @@ const AboutUs = () => {
                     <div className="flex items-center space-x-3">
                       <MapPin className="w-4 h-4 flex-shrink-0" />
                       <span className="font-lora text-sm">
-                        Avenue Mohammed VI, Résidence Al Manar, Gueliz
+                        Centre d'affaire Oualid, Jbel Gueliz 10,40010 Marrakech, Morocco
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-lora text-sm">+212 524 43 21 87</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-lora text-sm">marrakech@orchidisland.ma</span>
+                      <span className="font-lora text-sm">+212 6 18 68 88 88</span>
                     </div>
                   </div>
                 </CardContent>

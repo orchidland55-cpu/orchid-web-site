@@ -212,6 +212,7 @@ app.get('/', (req, res) => {
 
 // ===== CRUD routes for properties =====
 app.get('/properties', propertyController.getAllProperties);
+app.get('/properties/:id', propertyController.getPropertyById);
 
 app.post('/properties', verifyJWT, requireAdminOrEditor, propertyController.addProperty);  // ✅ Éditeurs peuvent créer
 app.put('/properties/:id', verifyJWT, requireAdminOrEditor, propertyController.updateProperty);  // ✅ Éditeurs peuvent modifier

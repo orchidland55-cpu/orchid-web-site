@@ -90,7 +90,7 @@ const PropertyDetail = () => {
     "@type": "RealEstateListing",
     "name": property.title,
     "description": property.description?.replace(/<[^>]*>/g, '').substring(0, 300),
-    "url": `https://orchidisland.immo/properties/${property.slug || property._id}`,
+    "url": `https://orchidisland.immo/property/${property.slug || property._id}`,
     "image": property.mainImage,
     "price": property.price,
     "priceCurrency": property.currency || "MAD",

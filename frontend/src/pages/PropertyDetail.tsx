@@ -21,6 +21,13 @@ const PropertyDetail = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  function fixImgSrc(html: string): string {
+  return html
+    .replace(/data-src="([^"]+)"/g, 'src="$1"')
+    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"');
+}
+
+
   useEffect(() => {
     if (!id) {
       setError("Missing property ID");
@@ -407,7 +414,7 @@ const PropertyDetail = () => {
                   <h2 className="text-2xl font-bold mb-4">Description</h2>
                   <div
                     className="text-lg text-muted-foreground leading-relaxed prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: property.description }}
+                    dangerouslySetInnerHTML={{ __html: fixImgSrc(property.description) }}
                   />
                 </div>
 

@@ -122,7 +122,7 @@ const ArticleDetail = () => {
     "headline": article.title,
     "description": article.excerpt,
     "image": article.image,
-    "url": `https://orchid-immo-web-site.vercel.app/real-estate-guide-orchid-island-marrakech/${article.slug || article._id}`,
+    "url": `https://orchidisland.immo/real-estate-guide-orchid-island-marrakech/${article.slug || article._id}`,
     "datePublished": article.createdAt,
     "dateModified": article.updatedAt,
     "author": {
@@ -132,7 +132,7 @@ const ArticleDetail = () => {
     "publisher": {
       "@type": "Organization",
       "name": "Orchid Immobilier",
-     "url": "https://orchid-immo-web-site.vercel.app"
+     "url": "https://orchidisland.immo"
     }
   };
 

@@ -40,7 +40,7 @@ export default defineConfig(async ({ mode }) => {
       react(),
       mode === 'development' && componentTagger(),
       Sitemap({
-        hostname: 'https://orchid-immo-web-site.vercel.app/',
+        hostname: 'https://orchidisland.immo/',
         dynamicRoutes: [...staticRoutes, ...dynamicRoutes],
         generateRobotsTxt: false,
         exclude: [

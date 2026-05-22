@@ -21,11 +21,11 @@ const PropertyDetail = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  function fixImgSrc(html: string): string {
-  return html
-    .replace(/data-src="([^"]+)"/g, 'src="$1"')
-    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"');
-}
+  const fixImgSrc = (html: string): string => {
+    return html
+      .replace(/data-src="([^"]+)"/g, 'src="$1"')
+      .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"');
+  };
 
 
   useEffect(() => {
@@ -413,10 +413,10 @@ const PropertyDetail = () => {
                 <div>
                   <h2 className="text-2xl font-bold mb-4">Description</h2>
                   <div
-                    className="text-lg text-muted-foreground leading-relaxed prose prose-sm max-w-none"
+                    className="text-lg text-muted-foreground leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-4"
                     dangerouslySetInnerHTML={{ __html: fixImgSrc(property.description) }}
-                  />
-                </div>
+                    />
+                  </div>
 
                 {/* Amenities */}
                 {property.amenities?.length > 0 && (

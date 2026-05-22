@@ -12,7 +12,7 @@ const News = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const articlePath = (id: string, slug?: string) =>
-  `/real-estate-guide-orchid-island-marrakech/${slug || id}`;
+  `/${slug || id}`;
 
   useEffect(() => {
     const loadArticles = async () => {

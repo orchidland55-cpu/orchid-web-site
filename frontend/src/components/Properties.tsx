@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 const propertyPath = (property: Property) =>
-  `/properties/${property.slug || property._id}`;
+  `/${property.slug || property._id}`;
 
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([]);

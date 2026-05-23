@@ -415,7 +415,7 @@ const PropertyDetail = () => {
                   <div
                     className="text-lg text-muted-foreground leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-4"
                     dangerouslySetInnerHTML={{ __html: fixImgSrc(property.description) }}
-                    />
+                  />
                   </div>
 
                 {/* Amenities */}

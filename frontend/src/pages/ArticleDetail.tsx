@@ -14,7 +14,7 @@ import Footer from "@/components/Footer";
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
 // ---------------------------------------------------------------------------
-const articlePath = (a: Article) => `/real-estate-guide-orchid-island-marrakech/${a.slug || a._id}`;
+const articlePath = (a: Article) => `/${a.slug || a._id}`;
 
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +23,13 @@ const ArticleDetail = () => {
   const [recentArticles, setRecentArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  function fixImgSrc(html: string): string {
+  return html
+    .replace(/data-src="([^"]+)"/g, 'src="$1"')
+    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"');
+  }
+
 
   useEffect(() => {
     const fetchArticleAndRelated = async () => {
@@ -207,7 +214,7 @@ const ArticleDetail = () => {
                   {/* Article Content */}
                   <article
                     className="prose prose-lg max-w-none text-foreground/90 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: article.content }}
+                    dangerouslySetInnerHTML={{ __html: fixImgSrc(article.content) }}
                   />
                 </div>
 

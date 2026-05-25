@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import csrHero from "@/assets/property-1.jpg";
 import {
   Award,
   Users,
@@ -13,36 +14,27 @@ const Introduction = () => {
     {
       icon: Building,
       number: "500+",
-      label: "Propriétés Vendues",
-      description: "Transactions réussies"
+      label: "Properties Sold",
+      description: "Successful Transactions"
     },
     {
       icon: Users,
-      number: "1000+",
-      label: "Clients Satisfaits",
-      description: "Depuis notre création"
+      number: "98%",
+      label: "Satisfied clients",
+      description: "Since our creation"
     },
     {
       icon: Award,
       number: "15+",
-      label: "Années d'Expérience",
-      description: "Dans l'immobilier de luxe"
+      label: "Years of experience",
+      description: "In luxury real estate"
     },
     {
-      icon: MapPin,
-      number: "8",
-      label: "Villes Couvertes",
-      description: "À travers le Maroc"
+      icon: Users,
+      number: "85+",
+      label: "Trusted partners",
+      description: "Across Morocco"
     }
-  ];
-
-  const features = [
-    "Expertise reconnue dans l'immobilier de luxe",
-    "Accompagnement personnalisé de A à Z",
-    "Réseau exclusif de propriétés premium",
-    "Service client disponible 24h/7j",
-    "Conseils en investissement immobilier",
-    "Processus transparent et sécurisé"
   ];
 
   return (
@@ -54,7 +46,7 @@ const Introduction = () => {
             {/* Main Image */}
             <div className="relative overflow-hidden rounded-2xl shadow-luxury">
               <img
-                src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289704/hero-villa_diljro.jpg"
+                src={csrHero}
                 alt="Orchid Island - Immobilier de luxe au Maroc"
                 className="w-full h-[500px] object-cover"
               />                            
@@ -74,27 +66,44 @@ const Introduction = () => {
             </div>
               <div className="inline-flex items-center space-x-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
                 <Award className="w-5 h-5 text-primary" />
-                <span className="font-lora text-primary font-medium">À Propos de Nous</span>
+                <span className="font-lora text-primary font-medium">About Us</span>
               </div>
               
               <h2 className="text-4xl md:text-5xl font-playfair font-bold text-foreground mb-6">
-                Votre Partenaire de Confiance en{" "}
+                Your Trusted Partner in{" "}
                 <span className="luxury-gradient bg-clip-text text-transparent">
-                  Immobilier de Luxe
+                  Luxury Real Estate
                 </span>
               </h2>
               
               <p className="font-lora text-xl text-muted-foreground leading-relaxed mb-8">
-                Depuis plus de 15 ans, Orchid Island accompagne une clientèle exigeante 
-                dans la recherche et l'acquisition de propriétés d'exception au Maroc. 
-                Notre expertise et notre réseau exclusif font de nous le leader de 
-                l'immobilier de prestige.
+                For over 15 years, Orchid Island has been guiding an demanding clientele 
+                in the search and acquisition of exceptional properties in Morocco. 
+                Our expertise and exclusive network make us the leader in 
+                luxury real estate.
               </p>
             </div>         
 
             {/* Trust Indicators */}
             <div className="pt-6 border-t border-border">
-             
+              <div className="grid sm:grid-cols-2 gap-6">
+                {achievements.map((item, index) => (
+                  <div key={index} className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 p-3 bg-primary/10 rounded-full">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-foreground">{item.number}</h3>
+                      <p className="font-lora text-lg font-medium text-muted-foreground">
+                        {item.label}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

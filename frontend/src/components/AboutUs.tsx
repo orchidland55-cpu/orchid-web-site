@@ -3,26 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import csrHero from "@/assets/property-1.jpg";
 import { Link } from "react-router-dom";
-import {
-  Users,
-  Award,
-  MapPin,
-  Clock,
-  Star,
-  Shield,
-  TrendingUp,
-  Heart,
-  CheckCircle,
-  Building,
-  Map,
-  Phone,
-  Mail
-} from "lucide-react";
+import { Users, Award, MapPin, Clock, Star, Shield, TrendingUp, Heart, CheckCircle, Building, Map, Phone, Mail } from "lucide-react";
 
 const AboutUs = () => {
   const stats = [
     { number: "15+", label: "Years of experience", icon: Clock },
-    { number: "1,200+", label: "Properties sold", icon: Building },
+    { number: "500+", label: "Properties sold", icon: Building },
     { number: "98%", label: "Satisfied clients", icon: Star },
     { number: "85+", label: "Trusted partners", icon: Users },
   ];

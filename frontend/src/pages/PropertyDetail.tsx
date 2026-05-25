@@ -419,16 +419,10 @@ const PropertyDetail = () => {
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold mb-4">Description</h2>
                   <div
-                    className="text-base sm:text-lg text-muted-foreground leading-relaxed
-                               prose prose-sm sm:prose-base max-w-none
-                               prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:my-4
-                               prose-iframe:max-w-full prose-iframe:rounded-lg
-                               [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-4
-                               [&_iframe]:max-w-full [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:h-auto [&_iframe]:rounded-lg
-                               [&_table]:block [&_table]:overflow-x-auto [&_table]:max-w-full"
+                    className="property-description text-base sm:text-lg text-muted-foreground leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: fixImgSrc(property.description) }}
                   />
-                </div>
+                  </div>
 
                 {/* Amenities */}
                 {property.amenities?.length > 0 && (

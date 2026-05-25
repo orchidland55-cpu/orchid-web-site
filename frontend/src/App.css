@@ -93,3 +93,39 @@
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
 }
+
+/* ── Contenu HTML dynamique : description propriété ── */
+.property-description img {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  object-fit: cover;
+}
+
+.property-description p img {
+  width: auto !important;
+  max-width: 100% !important;
+}
+
+.property-description iframe {
+  max-width: 100% !important;
+  width: 100% !important;
+  aspect-ratio: 16 / 9;
+  height: auto !important;
+  border-radius: 0.5rem;
+}
+
+.property-description table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Conteneurs éventuels autour des images (div, figure, span…) */
+.property-description * {
+  max-width: 100%;
+}

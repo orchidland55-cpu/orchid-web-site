@@ -40,3 +40,56 @@
 .read-the-docs {
   color: #888;
 }
+
+/* ── Contenu article HTML dynamique ─────────────────── */
+.prose img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+/* Images inline (dans un <p> ou du texte) : ne pas forcer 100% */
+.prose p img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  display: inline;
+  border-radius: 0.25rem;
+}
+
+/* Figures avec légende */
+.prose figure {
+  margin: 1.5rem 0;
+  max-width: 100%;
+}
+
+.prose figure img {
+  width: 100%;
+}
+
+.prose figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+/* Iframes (vidéos YouTube etc.) */
+.prose iframe {
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* Tables éventuelles */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}

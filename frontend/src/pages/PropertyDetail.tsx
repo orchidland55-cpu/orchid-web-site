@@ -21,21 +21,32 @@ const PropertyDetail = () => {
 
   // Nettoie le HTML : lazy-load + suppression des dimensions hardcodées
   const fixImgSrc = (html: string): string => {
-    return html
-      .replace(/data-src="([^"]+)"/g, 'src="$1"')
-      .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
-      // Supprime width= et height= en attributs HTML
-      .replace(/<img([^>]*?)\s+width="[^"]*"/g, '<img$1')
-      .replace(/<img([^>]*?)\s+height="[^"]*"/g, '<img$1')
-      // Supprime width/height dans les styles inline
-      .replace(/(<img[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
-        const cleaned = style
-          .replace(/\bwidth\s*:[^;]+;?/g, '')
-          .replace(/\bheight\s*:[^;]+;?/g, '')
-          .trim();
-        return cleaned ? `${pre}style="${cleaned}"` : pre;
-      });
-  };
+  return html
+    // Lazy-load
+    .replace(/data-src="([^"]+)"/g, 'src="$1"')
+    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
+    // Supprime width/height en attributs HTML sur img
+    .replace(/<img([^>]*?)\s+width="[^"]*"/g, '<img$1')
+    .replace(/<img([^>]*?)\s+height="[^"]*"/g, '<img$1')
+    // Supprime width/height dans style="" inline sur img
+    .replace(/(<img[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
+      const cleaned = style
+        .replace(/\bwidth\s*:[^;]+;?/g, '')
+        .replace(/\bheight\s*:[^;]+;?/g, '')
+        .trim();
+      return cleaned ? `${pre}style="${cleaned}"` : pre;
+    })
+    // ✅ NOUVEAU — supprime width inline sur <figure> (ex: style="width: 1920px")
+    .replace(/(<figure[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
+      const cleaned = style
+        .replace(/\bwidth\s*:[^;]+;?/g, '')
+        .replace(/\bheight\s*:[^;]+;?/g, '')
+        .trim();
+      return cleaned ? `${pre}style="${cleaned}"` : pre;
+    })
+    // ✅ NOUVEAU — supprime aussi width= en attribut HTML sur figure
+    .replace(/<figure([^>]*?)\s+width="[^"]*"/g, '<figure$1');
+};
 
   useEffect(() => {
     if (!id) {

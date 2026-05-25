@@ -98,47 +98,58 @@ const News = () => {
           {/* Featured Article (Large) */}
           {featuredArticle && (
             <div className="lg:col-span-2 flex">
-              <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full">
-                <div className="relative h-full">
-                  <img
-                    src={getCloudinaryUrl(featuredArticle.image) || "/placeholder-article.jpg"}
-                    alt={featuredArticle.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="font-lora text-center text-white p-8">
-                      <Badge className="luxury-gradient text-primary-foreground font-lora mb-4">
-                        {featuredArticle.category || "Advice"}
-                      </Badge>
-                      <h3 className="font-playfair text-3xl font-bold mb-4">
-                        {featuredArticle.title}
-                      </h3>
-                      <p className="font-lora text-white/90 text-lg leading-relaxed mb-6">
-                        {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
-                      </p>
-                      <Link to={articlePath(featuredArticle._id, featuredArticle.slug)}>
-                        <Button variant="luxury" className="w-fit">
-                          Read Article
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                  {featuredArticle.featured && (
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
-                        Featured
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </Card>
+              <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full w-full">
+      
+              {/* Hauteur fixe selon breakpoint — évite l'image géante sur desktop */}
+            <div className="relative h-72 sm:h-96 lg:h-[520px]">
+              <img
+                src={getCloudinaryUrl(featuredArticle.image) || "/placeholder-article.jpg"}
+                alt={featuredArticle.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+
+                {/* Sur mobile : aligné en bas pour que le bouton reste visible
+                   Sur desktop : centré verticalement */}
+                <div className="absolute inset-0 flex items-end sm:items-center justify-center">
+                  <div className="font-lora text-center text-white p-4 sm:p-8 w-full">
+                   <Badge className="luxury-gradient text-primary-foreground font-lora mb-2 sm:mb-4">
+                    {featuredArticle.category || "Advice"}
+                   </Badge>
+
+                    {/* Titre : taille réduite sur mobile */}
+                    <h3 className="font-playfair text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4 line-clamp-2">
+                    {featuredArticle.title}
+                    </h3>
+
+                {/* Excerpt : masqué sur mobile pour gagner de la place */}
+                <p className="font-lora text-white/90 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 hidden sm:block line-clamp-3">
+                {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
+                </p>
+
+                <Link to={articlePath(featuredArticle._id, featuredArticle.slug)}>
+                 <Button variant="luxury" className="w-fit">
+                    Read Article
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-          )}
+
+        {featuredArticle.featured && (
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
+              Featured
+            </Badge>
+          </div>
+        )}
+      </div>
+    </Card>
+  </div>
+)}
 
           {/* Other Articles (Small cards) */}
           <div className="space-y-6">

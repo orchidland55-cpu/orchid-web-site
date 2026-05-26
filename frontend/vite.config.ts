@@ -40,7 +40,7 @@ export default defineConfig(async ({ mode }) => {
       react(),
       mode === 'development' && componentTagger(),
       Sitemap({
-        hostname: 'https://orchidisland.immo/',
+        hostname: 'https://www.orchidisland.immo/',
         dynamicRoutes: [...staticRoutes, ...dynamicRoutes],
         generateRobotsTxt: false,
         exclude: [

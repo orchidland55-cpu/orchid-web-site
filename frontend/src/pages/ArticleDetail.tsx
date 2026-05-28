@@ -26,21 +26,28 @@ const ArticleDetail = () => {
   const [error, setError] = useState<string | null>(null);
 
   function fixImgSrc(html: string): string {
-  return html
-    .replace(/data-src="([^"]+)"/g, 'src="$1"')
-    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
-    // Supprime width= et height= en attributs HTML
-    .replace(/<img([^>]*?)\s+width="[^"]*"/g, '<img$1')
-    .replace(/<img([^>]*?)\s+height="[^"]*"/g, '<img$1')
-    // Supprime width/height dans style="" inline
-    .replace(/(<img[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
+    const cleanStyle = (_: string, pre: string, style: string) => {
       const cleaned = style
         .replace(/\bwidth\s*:[^;]+;?/g, '')
         .replace(/\bheight\s*:[^;]+;?/g, '')
         .trim();
       return cleaned ? `${pre}style="${cleaned}"` : pre;
-    });
-}
+    };
+
+    return html
+      // Lazy-load
+      .replace(/data-src="([^"]+)"/g, 'src="$1"')
+      .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
+      // Attributs HTML directs sur img
+      .replace(/<img([^>]*?)\s+width="[^"]*"/g, '<img$1')
+      .replace(/<img([^>]*?)\s+height="[^"]*"/g, '<img$1')
+      // Style inline sur img
+      .replace(/(<img[^>]*?)style="([^"]*)"/g, cleanStyle)
+      // ✅ Attribut HTML direct sur figure
+      .replace(/<figure([^>]*?)\s+width="[^"]*"/g, '<figure$1')
+      // ✅ Style inline sur figure  ← corrige ton cas "style="width: 1357px""
+      .replace(/(<figure[^>]*?)style="([^"]*)"/g, cleanStyle);
+  }
 
   useEffect(() => {
     const fetchArticleAndRelated = async () => {

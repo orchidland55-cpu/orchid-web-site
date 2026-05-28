@@ -130,12 +130,14 @@
   max-width: 100%;
 }
 
+.prose figure,
 .property-description figure {
   max-width: 100% !important;
   width: 100% !important;
   margin: 1.5rem 0;
 }
 
+.prose figure img,
 .property-description figure img {
   max-width: 100% !important;
   width: 100% !important;
@@ -152,6 +154,7 @@
 }
 
 /* Filet de sécurité sur tous les éléments enfants */
+.prose *,
 .property-description * {
   max-width: 100% !important;
   box-sizing: border-box;

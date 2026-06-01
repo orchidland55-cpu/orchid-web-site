@@ -7,24 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiService, PropertyFormData, Admin } from "@/services/api";
 import { uploadToCloudinary, uploadVideoToCloudinary } from "@/services/cloudinary";
-import {
-  Building,
-  Save,
-  Eye,
-  ArrowLeft,
-  Upload,
-  MapPin,
-  Bed,
-  Bath,
-  Square,
-  Star,
-  Camera,
-  TrendingUp,
-  Video,
-  Plus,
-  X,
-} from "lucide-react";
-import PageTransition from "@/components/PageTransition";
+import { Building, Save, Eye, ArrowLeft, Upload, MapPin, Bed, Bath, Square, Star, Camera, TrendingUp, Video, Plus, X } from "lucide-react";
+// import PageTransition from "@/components/PageTransition";
 import RichTextEditor from "@/components/RichTextEditor";
 import SEOAnalyzer from "@/components/Seoanalyzer";
 

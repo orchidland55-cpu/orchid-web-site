@@ -340,7 +340,8 @@ const AdminEditProperty = () => {
     if (!id) return;
     setIsLoading(true);
     try {
-      const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      // const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      const allImages = [...new Set([...additionalImagePreviews, ...formData.additionalImages])];
       const finalData = { ...formData, additionalImages: allImages };
       await apiService.updateProperty(id, finalData);
       alert("Property updated!");
@@ -357,7 +358,8 @@ const AdminEditProperty = () => {
     if (!id) return;
     setIsLoading(true);
     try {
-      const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      // const allImages = [...additionalImagePreviews, ...formData.additionalImages];
+      const allImages = [...new Set([...additionalImagePreviews, ...formData.additionalImages])];
       const draftData = { ...formData, status: "draft", additionalImages: allImages };
       await apiService.updateProperty(id, draftData);
       alert("Draft saved!");

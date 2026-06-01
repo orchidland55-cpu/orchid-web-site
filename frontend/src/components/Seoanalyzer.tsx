@@ -19,7 +19,8 @@ export interface SEOAnalyzerProps {
   metaDescription?: string;
   slug?: string;
   focusKeyword?: string;
-  content?: string;        // HTML brut du RichTextEditor
+  content?: string; 
+  description?: string       // HTML brut du RichTextEditor
   image?: string;
   imageAlt?: string;
   ogTitle?: string;
@@ -96,17 +97,19 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
     slug = "",
     focusKeyword = "",
     content = "",
+    description = "",   
     image = "",
     imageAlt = "",
     ogTitle = "",
     twitterTitle = "",
   } = props;
+  const rawContent = content || description;
 
   const kw = focusKeyword.trim().toLowerCase();
-  const plainContent = stripHtml(content);
+  const plainContent = stripHtml(rawContent);
   const words = wordCount(plainContent);
-  const headings = extractHeadings(content);
-  const links = extractLinks(content);
+  const headings = extractHeadings(rawContent);
+  const links = extractLinks(rawContent);
 
   // ── 1. SEO Title (20 pts) ──────────────────────────────────────────────────
   if (!seoTitle) {
@@ -193,7 +196,7 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
   const hasH1 = headings.h1.length > 0;
   const hasH2 = headings.h2.length > 0;
 
-  if (!content) {
+  if (!plainContent) {
     // pas de contenu = pas d'analyse
   } else if (!hasH1 && !hasH2) {
     factors.push({ type: "error", category: "Structure", text: "Aucun titre H1 ou H2 dans le contenu", points: 0, maxPoints: 8 });
@@ -211,7 +214,7 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
   }
 
   // ── 7. Liens (5 pts) ──────────────────────────────────────────────────────
-  if (content) {
+  if (rawContent) {
     if (links.internal === 0 && links.external === 0) {
       factors.push({ type: "warning", category: "Liens", text: "Aucun lien dans l'article (interne ou externe)", points: 0, maxPoints: 5 });
     } else if (links.internal === 0) {

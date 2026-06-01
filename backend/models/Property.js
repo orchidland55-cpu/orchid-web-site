@@ -38,7 +38,14 @@ const propertySchema = new mongoose.Schema({
   pool: { type: Boolean, default: false },
   security: { type: Boolean, default: false },
   furnished: { type: Boolean, default: false },
-  person: { type: String, required: true }
+  person: { type: String, required: true },
+  // ✅ Champs SEO manquants
+  seoTitle:        { type: String, default: "" },
+  metaDescription: { type: String, default: "" },
+  focusKeyword:    { type: String, default: "" },
+  imageAlt:        { type: String, default: "" },
+  ogTitle:         { type: String, default: "" },
+  twitterTitle:    { type: String, default: "" },
 }, { timestamps: true });
 
 module.exports = mongoose.models.Property || mongoose.model('Property', propertySchema);

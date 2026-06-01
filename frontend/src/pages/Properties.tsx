@@ -379,7 +379,7 @@ const PropertiesPage = () => {
 
                             <div className="flex items-center justify-between mt-auto">
                               <div>
-                                <div className="text-2xl font-bold text-primary">
+                                <div className="text-2xl font-bold text-warm-brown">
                                   {formatPrice(property.price, property.currency)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">

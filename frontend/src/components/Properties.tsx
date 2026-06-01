@@ -47,8 +47,18 @@ const Properties = () => {
     );
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price);
+  const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
+    const localeMap = {MAD: "fr-MA", USD: "en-US", EUR: "fr-FR",};
+    const symbolMap = {MAD: "MAD", USD: "$", EUR: "€",};
+
+    const formatted = new Intl.NumberFormat(localeMap[currency], {
+     style: "decimal",
+     minimumFractionDigits: 0,
+    }).format(price);
+
+    return currency === "MAD"
+      ? `${formatted} MAD`
+      : `${symbolMap[currency]}${formatted}`;
   };
 
   const stripHtml = (html: string) => {
@@ -232,11 +242,8 @@ const Properties = () => {
                   {/* Price & CTA */}
                   <div className="flex items-center justify-between font-lora mt-auto">
                     <div>
-                      <p className="text-2xl font-bold text-primary">
-                        {formatPrice(property.price)} MAD
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {Math.round(property.price / property.area).toLocaleString()} MAD/m²
+                      <p className="text-2xl font-bold text-foreground">
+                                  {formatPrice(property.price, property.currency)}
                       </p>
                     </div>
                     <Link to={propertyPath(property)}>

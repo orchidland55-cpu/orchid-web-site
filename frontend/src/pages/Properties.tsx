@@ -336,14 +336,14 @@ const PropertiesPage = () => {
                                 <MapPin className="w-4 h-4 mr-1" />
                                 <span className="text-sm">{property.location}, {property.city}</span>
                               </div>
-                              <div
+                              {/* <div
                                 className="text-muted-foreground text-sm leading-relaxed"
                                 dangerouslySetInnerHTML={{
                                   __html: property.description && property.description.length > 200
                                     ? property.description.substring(0, 200) + '...'
                                     : property.description || ''
                                 }}
-                              />
+                              /> */}
                             </div>
 
                             <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-gray-100">

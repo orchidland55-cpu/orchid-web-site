@@ -49,6 +49,7 @@ import { Analytics } from "@vercel/analytics/react";
 import SpaceAccess from "./pages/SpaceAccess";
 import SpaceView from "./pages/SpaceView";
 import SpaceManagerPage from "./pages/SpaceManagerPage";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // import Chatbot from "./components/Chatbot";
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -67,6 +68,7 @@ function App() {
             }>
             <ScrollToTop />
             <Analytics/>
+            <SpeedInsights />
             <AnalyticsTracker />
             <Routes >
 

@@ -107,11 +107,13 @@ export const uploadVideoToCloudinary = (
 // ── URL optimisée image ───────────────────────────────────────────────────────
 
 export const getCloudinaryUrl = (
-  publicId: string,
+  urlOrPublicId: string,
   width?: number,
   height?: number,
   quality: number | "auto" = "auto"
 ): string => {
+  if (!urlOrPublicId) return urlOrPublicId;
+
   const transforms = [
     "f_auto",
     `q_${quality}`,
@@ -122,7 +124,35 @@ export const getCloudinaryUrl = (
     .filter(Boolean)
     .join(",");
 
-  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${publicId}`;
+  // Cas 1 : URL complète Cloudinary → on injecte les transformations
+  if (urlOrPublicId.includes("res.cloudinary.com")) {
+    // Si des transformations existent déjà, on les remplace pour éviter les doublons
+    return urlOrPublicId.replace(
+      /\/upload\/((?:[a-z_,0-9/:]+\/)*)/, 
+      `/upload/${transforms}/`
+    );
+  }
+
+  // Cas 2 : publicId seul → on reconstruit l'URL complète
+  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${urlOrPublicId}`;
+};
+
+// ── Optimise toutes les images Cloudinary dans un contenu HTML ────────────────
+
+export const optimizeHtmlImages = (
+  html: string,
+  width?: number,
+  height?: number,
+  quality: number | "auto" = "auto"
+): string => {
+  if (!html) return html;
+
+  // Remplace chaque src="...cloudinary..." par sa version optimisée
+  return html.replace(
+    /(<img[^>]+src=")([^"]*res\.cloudinary\.com[^"]*)(")/gi,
+    (_, before, url, after) =>
+      `${before}${getCloudinaryUrl(url, width, height, quality)}${after}`
+  );
 };
 
 // ── Types space ────────────────────────────────────────────────────────────────────

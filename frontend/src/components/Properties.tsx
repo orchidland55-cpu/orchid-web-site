@@ -133,9 +133,13 @@ const Properties = () => {
                 {/* Property Image */}
                 <div className="relative h-64 overflow-hidden">
                   <img
-                    src={property.mainImage || "/placeholder-property.jpg"}
+                    src={property.mainImage ? getCloudinaryUrl(property.mainImage, 400, 256) : "/placeholder-property.jpg"}
                     alt={property.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    loading="lazy"
+                    decoding="async"
+                    width={400}
+                    height={256}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "/placeholder-property.jpg";
                     }}

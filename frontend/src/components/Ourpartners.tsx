@@ -2,21 +2,19 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 // ─── Partner data ─────────────────────────────────────────────────────────────
-// Replace `logo` with actual image imports or URLs when available.
-// `name` is used as alt text and shown on hover.
 
 const partners = [
-  { name: "Université Cadi Ayyad – Marrakech", logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384150/logo-dark_wp88uk.webp",     initials: "UCA",      url: "https://www.uca.ma" },
-  { name: "supdeco",                           logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384151/supdeco_vhlucf.webp",       initials: "supdeco",  url: "https://supdeco.ma/" },
-  { name: "UM6P",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384149/1337_hkxlev.webp",          initials: "UM6P",     url: "https://www.um6p.ma" },
-  { name: "Golden Ratio Builders",             logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384559/image_laptop_gyxaoo.webp",  initials: "GRB",      url: "https://www.goldenratiobuilders.com" },
-  { name: "USDC",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384149/USDC_uxjgyu.webp",          initials: "USDC",     url: "https://www.usdatacenters.ma" },
-  { name: "Licorne",                           logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384148/LINCORNE_wb6ur8.webp",      initials: "LIC",      url: "https://www.licorne.ma" },
-  { name: "Al Akhawayn University",            logo:"https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384147/logo-AUI_ajbbmb.webp",       initials: "AUI",      url: "https://www.aui.ma" },
-  { name: "ADGECO Group",                      logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384146/1631351340805_oxwaoc.webp", initials: "ADG",      url: "https://www.adgeco.com" },
-  { name: "UPEC",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384145/UPEC_dau1yd.webp",          initials: "UPEC",     url: "https://www.u-pec.fr" },
-  { name: "EMSI",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384144/Emsi_logo_w0hfye.webp",     initials: "EMSI",     url: "https://www.emsi.ma" },
-  { name: "Oeil Du Pecheur",                   logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777384144/logo3_1_a6m3iq.webp",       initials: "ODP",      url: "https://oeil-du-pecheur.fr/?srsltid=AfmBOorJzKZZpWI8mzuZWN5ce1BQStJ0aMtYSrSdLCDc-vgPkMi-I3fY" },
+  { name: "Université Cadi Ayyad – Marrakech", logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384150/logo-dark_wp88uk.webp",     initials: "UCA",      url: "https://www.uca.ma" },
+  { name: "supdeco",                           logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384151/supdeco_vhlucf.webp",       initials: "supdeco",  url: "https://supdeco.ma/" },
+  { name: "UM6P",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384149/1337_hkxlev.webp",          initials: "UM6P",     url: "https://www.um6p.ma" },
+  { name: "Golden Ratio Builders",             logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384559/image_laptop_gyxaoo.webp",  initials: "GRB",      url: "https://www.goldenratiobuilders.com" },
+  { name: "USDC",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384149/USDC_uxjgyu.webp",          initials: "USDC",     url: "https://www.usdatacenters.ma" },
+  { name: "Licorne",                           logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384148/LINCORNE_wb6ur8.webp",      initials: "LIC",      url: "https://www.licorne.ma" },
+  { name: "Al Akhawayn University",            logo:"https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384147/logo-AUI_ajbbmb.webp",       initials: "AUI",      url: "https://www.aui.ma" },
+  { name: "ADGECO Group",                      logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384146/1631351340805_oxwaoc.webp", initials: "ADG",      url: "https://www.adgeco.com" },
+  { name: "UPEC",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384145/UPEC_dau1yd.webp",          initials: "UPEC",     url: "https://www.u-pec.fr" },
+  { name: "EMSI",                              logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384144/Emsi_logo_w0hfye.webp",     initials: "EMSI",     url: "https://www.emsi.ma" },
+  { name: "Oeil Du Pecheur",                   logo: "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto,w_200,h_80,c_fit/v1777384144/logo3_1_a6m3iq.webp",       initials: "ODP",      url: "https://oeil-du-pecheur.fr/?srsltid=AfmBOorJzKZZpWI8mzuZWN5ce1BQStJ0aMtYSrSdLCDc-vgPkMi-I3fY" },
 ];
 
 // ─── Single card ──────────────────────────────────────────────────────────────
@@ -46,6 +44,10 @@ const PartnerCard = ({
         src={partner.logo}
         alt={partner.name}
         className="max-h-14 max-w-full object-contain opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300"
+        loading="lazy"
+        decoding="async"
+        width={200}
+        height={80}
       />
     ) : (
       /* Placeholder shown until real logos are provided */

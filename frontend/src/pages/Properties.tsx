@@ -18,7 +18,7 @@ import {
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PageTransition from "@/components/PageTransition";
+// import PageTransition from "@/components/PageTransition";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 
 // ---------------------------------------------------------------------------
@@ -302,9 +302,17 @@ const PropertiesPage = () => {
                         <div className="relative">
                           <div className="relative h-64 overflow-hidden">
                             <img
-                              src={property.mainImage || "/api/placeholder/400/300"}
+                              src={
+                                property.mainImage
+                                  ? getCloudinaryUrl(property.mainImage, 400, 256)
+                                  : "/api/placeholder/400/300"
+                              }
                               alt={property.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                              decoding="async"
+                              width={400}
+                              height={256}
                             />
                             <div className="absolute top-4 left-4 z-10">
                               <Badge className="luxury-gradient text-primary-foreground px-3 py-1 text-xs font-medium">

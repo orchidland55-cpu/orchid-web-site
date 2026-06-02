@@ -9,6 +9,7 @@ import { MapPin, Bed, Bath, Square, ArrowLeft, Building, Home, ChevronLeft, Chev
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
 import { Helmet } from 'react-helmet-async';
+import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -21,7 +22,7 @@ const PropertyDetail = () => {
 
   // Nettoie le HTML : lazy-load + suppression des dimensions hardcodées
   const fixImgSrc = (html: string): string => {
-  return html
+    return html
     // Lazy-load
     .replace(/data-src="([^"]+)"/g, 'src="$1"')
     .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
@@ -46,6 +47,11 @@ const PropertyDetail = () => {
     })
     // ✅ NOUVEAU — supprime aussi width= en attribut HTML sur figure
     .replace(/<figure([^>]*?)\s+width="[^"]*"/g, '<figure$1');
+  };
+
+  const processDescription = (html: string): string => {
+  const fixed = fixImgSrc(html);
+  return optimizeHtmlImages(fixed, 800);
 };
 
   useEffect(() => {
@@ -167,26 +173,33 @@ const PropertyDetail = () => {
     }
   }
 
-  if (imagesToShow.length === 0) {
-    imagesToShow.push("https://placehold.co/1200x800/f3f4f6/374151?text=No+image");
+  const optimizedImages = imagesToShow.map((img) =>
+    img.startsWith("http") ? getCloudinaryUrl(img, 1200, 800) : img
+  );
+  const thumbnailImages = imagesToShow.map((img) =>
+    img.startsWith("http") ? getCloudinaryUrl(img, 80, 80) : img
+  );
+
+  if (optimizedImages.length === 0) {
+    optimizedImages.push("https://placehold.co/1200x800/f3f4f6/374151?text=No+image");
   }
 
   // ── Slider logic ──────────────────────────────────────────────────────────
   const nextImage = () => {
-    if (!isTransitioning && imagesToShow.length) {
+    if (!isTransitioning && optimizedImages.length) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => prev === imagesToShow.length - 1 ? 0 : prev + 1);
+        setCurrentImageIndex((prev) => prev === optimizedImages.length - 1 ? 0 : prev + 1);
         setIsTransitioning(false);
       }, 100);
     }
   };
 
   const prevImage = () => {
-    if (!isTransitioning && imagesToShow.length) {
+    if (!isTransitioning && optimizedImages.length) {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentImageIndex((prev) => prev === 0 ? imagesToShow.length - 1 : prev - 1);
+        setCurrentImageIndex((prev) => prev === 0 ? optimizedImages.length - 1 : prev - 1);
         setIsTransitioning(false);
       }, 100);
     }
@@ -248,7 +261,7 @@ const PropertyDetail = () => {
             {/* Hauteur adaptée : plus petite sur mobile */}
             <div className="relative h-64 sm:h-80 md:h-96 lg:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-luxury mb-6 sm:mb-8 group">
               <div className="relative w-full h-full">
-                {imagesToShow.map((image, index) => (
+                {optimizedImages.map((image, index) => (
                   <div
                     key={index}
                     className={`absolute inset-0 transition-all duration-1000 ease-out transform ${
@@ -274,7 +287,7 @@ const PropertyDetail = () => {
               </div>
 
               {/* Flèches : plus petites sur mobile */}
-              {imagesToShow.length > 1 && (
+              {optimizedImages.length > 1 && (
                 <>
                   <button
                     onClick={prevImage}
@@ -296,9 +309,9 @@ const PropertyDetail = () => {
               )}
 
               {/* Dots */}
-              {imagesToShow.length > 1 && (
+              {optimizedImages.length > 1 && (
                 <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-                  {imagesToShow.map((_, index) => (
+                  {optimizedImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => goToImage(index)}
@@ -312,9 +325,9 @@ const PropertyDetail = () => {
               )}
 
               {/* Compteur */}
-              {imagesToShow.length > 1 && (
+              {optimizedImages.length > 1 && (
                 <div className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm z-20">
-                  {currentImageIndex + 1} / {imagesToShow.length}
+                  {currentImageIndex + 1} / {optimizedImages.length}
                 </div>
               )}
             </div>
@@ -344,13 +357,13 @@ const PropertyDetail = () => {
         )}
 
         {/* ── Thumbnails ── */}
-        {imagesToShow.length > 1 && (
+        {optimizedImages.length > 1 && (
           <section className="py-4 sm:py-6 bg-background border-b">
             <div className="container mx-auto px-4 sm:px-6">
               <div className="overflow-x-auto pb-2 scrollbar-hide">
                 {/* justify-start sur mobile pour éviter le débordement du min-w-max */}
                 <div className="flex gap-2 sm:gap-3 min-w-max sm:justify-center px-1">
-                  {imagesToShow.map((image, index) => (
+                  {thumbnailImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => goToImage(index)}
@@ -431,7 +444,7 @@ const PropertyDetail = () => {
                   <h2 className="text-xl sm:text-2xl font-bold mb-4">Description</h2>
                   <div
                     className="property-description text-base sm:text-lg text-muted-foreground leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: fixImgSrc(property.description) }}
+                    dangerouslySetInnerHTML={{ __html: processDescription(property.description) }}
                   />
                   </div>
 

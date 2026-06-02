@@ -7,10 +7,10 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { apiService, Article } from "@/services/api";
 import { Calendar, Clock, ArrowLeft, FileText, ChevronRight } from "lucide-react";
 import ShareButton from '@/components/ShareButton';
-import { getCloudinaryUrl } from "@/services/cloudinary";
 import { Helmet } from 'react-helmet-async';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -47,7 +47,13 @@ const ArticleDetail = () => {
       .replace(/<figure([^>]*?)\s+width="[^"]*"/g, '<figure$1')
       // ✅ Style inline sur figure  ← corrige ton cas "style="width: 1357px""
       .replace(/(<figure[^>]*?)style="([^"]*)"/g, cleanStyle);
-  }
+  };
+
+  const processContent = (html: string): string => {
+    const fixed = fixImgSrc(html);
+    return optimizeHtmlImages(fixed, 800);
+  };
+
 
   useEffect(() => {
     const fetchArticleAndRelated = async () => {
@@ -240,7 +246,7 @@ const ArticleDetail = () => {
                     className="prose prose-sm sm:prose-base lg:prose-lg max-w-none text-foreground/90 leading-relaxed
                                prose-headings:font-playfair prose-headings:text-foreground
                                prose-img:rounded-lg prose-img:w-full"
-                    dangerouslySetInnerHTML={{ __html: fixImgSrc(article.content) }}
+                    dangerouslySetInnerHTML={{ __html: processContent(article.content) }}
                   />
                 </div>
 
@@ -255,9 +261,14 @@ const ArticleDetail = () => {
                       <CardHeader className="p-0">
                         <div className="relative">
                           <img
-                            src={getCloudinaryUrl(article.image, 800, 600) || "/fallback.jpg"}
+                            src={getCloudinaryUrl(article.image, 300, 200) || "/fallback.jpg"}
                             alt={article.title}
-                            className="w-full h-48 object-cover rounded-t-lg"
+                            className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
+                            fetchPriority="high"
+                            loading="eager"
+                            decoding="async"
+                            width={300}
+                            height={200}
                           />
                           <div className="font-lora absolute top-4 left-4">
                             <Badge variant="secondary">{article.category}</Badge>
@@ -307,9 +318,13 @@ const ArticleDetail = () => {
                               >
                                 <div className="flex gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors">
                                   <img
-                                    src={getCloudinaryUrl(recent.image, 160, 160) || "/fallback.jpg"}
+                                    src={getCloudinaryUrl(recent.image, 80, 80) || "/fallback.jpg"}
                                     alt={recent.title}
                                     className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg shrink-0"
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={80}
+                                    height={80}
                                   />
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-playfair font-medium text-sm text-foreground group-hover:text-primary line-clamp-2 mb-1 leading-snug">
@@ -386,6 +401,10 @@ const ArticleDetail = () => {
                                     src={getCloudinaryUrl(relatedArticle.image, 400, 300) || "/fallback.jpg"}
                                     alt={relatedArticle.title}
                                     className="w-full h-44 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={400}
+                                    height={300}
                                   />
                                   <div className="font-lora absolute top-4 left-4">
                                     <Badge variant="secondary">

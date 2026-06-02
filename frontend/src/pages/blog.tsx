@@ -274,9 +274,13 @@ const Blog = () => {
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto">
                     <img
-                      src={getCloudinaryUrl(post.image, 800, 600)}
+                      src={getCloudinaryUrl(post.image, 500, 350)}
                       alt={post.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      width={500}
+                      height={350}
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -328,9 +332,13 @@ const Blog = () => {
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
                       <img
-                        src={getCloudinaryUrl(post.image, 800, 600)}
+                        src={getCloudinaryUrl(post.image, 500, 350)}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                        width={500}
+                        height={350}  
                       />
                     </div>
                     <CardContent className="font-lora p-6">

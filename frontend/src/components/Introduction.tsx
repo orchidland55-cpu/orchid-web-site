@@ -1,13 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import csrHero from "@/assets/property-1.jpg";
-import {
-  Award,
-  Users,
-  MapPin,
-  Building
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import csrHero from "@/assets/property-1.webp";
+import { Award, Users, Building } from "lucide-react";
+
 
 const Introduction = () => {
   const achievements = [
@@ -49,6 +42,10 @@ const Introduction = () => {
                 src={csrHero}
                 alt="Orchid Island - Immobilier de luxe au Maroc"
                 className="w-full h-[500px] object-cover"
+                loading="lazy"
+                decoding="async"
+                width={800}
+                height={500}
               />                            
             </div>
 

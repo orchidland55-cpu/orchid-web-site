@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import csrHero from "@/assets/property-1.jpg";
+import csrHero from "@/assets/property-1.webp";
 import { Link } from "react-router-dom";
 import { Users, Award, MapPin, Clock, Star, Shield, TrendingUp, Heart, CheckCircle, Building, Map, Phone, Mail } from "lucide-react";
 
@@ -133,6 +133,10 @@ const AboutUs = () => {
         src={csrHero} 
         alt="Orchid Island Real Estate" 
         className="w-full h-full object-cover rounded-lg"
+        loading="lazy"
+        decoding="async"
+        width={800}
+        height={500}
       />
     </div>
     <div className="absolute inset-0 bg-luxury-gold/10 rounded-lg"></div>
@@ -319,6 +323,10 @@ const AboutUs = () => {
                 src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/association_nark1e.jpg"
                 alt="Community association"
                 className="w-full h-80 object-cover rounded-lg shadow-luxury"
+                loading="lazy"
+                decoding="async"
+                width={600}
+                height={480}
               />
               <div className="absolute inset-0 luxury-gradient opacity-20 rounded-lg"></div>
             </div>

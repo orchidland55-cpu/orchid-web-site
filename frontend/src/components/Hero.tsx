@@ -22,7 +22,7 @@ const Hero = () => {
   className="w-full h-full object-cover"
   fetchPriority="high"
   decoding="async"
-  loading="eager" // <-- Important pour le LCP !
+  loading="eager"
 />
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
       </div>

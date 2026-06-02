@@ -103,9 +103,13 @@ const News = () => {
               {/* Hauteur fixe selon breakpoint — évite l'image géante sur desktop */}
             <div className="relative h-72 sm:h-96 lg:h-[520px]">
               <img
-                src={getCloudinaryUrl(featuredArticle.image) || "/placeholder-article.jpg"}
+                src={getCloudinaryUrl(featuredArticle.image, 900, 520) || "/placeholder-article.jpg"}
                 alt={featuredArticle.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+                decoding="async"
+                width={900}
+                height={520}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
                 }}
@@ -160,9 +164,13 @@ const News = () => {
               >
                 <div className="relative h-48 overflow-hidden">
                   <img
-                    src={getCloudinaryUrl(article.image) || "/placeholder-article.jpg"}
+                    src={getCloudinaryUrl(article.image, 500, 200) || "/placeholder-article.jpg"}
                     alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                    width={500}
+                    height={200}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
                     }}

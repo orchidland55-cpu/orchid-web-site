@@ -8,9 +8,13 @@ const Hero = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289704/hero-villa_diljro.jpg"
+          src="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
           alt="Luxury villa with stunning architecture and infinity pool"
+          width="1920"
+          height="1080"
           className="w-full h-full object-cover"
+          fetchPriority="high"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
       </div>

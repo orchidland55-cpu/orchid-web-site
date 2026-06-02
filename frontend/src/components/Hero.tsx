@@ -8,14 +8,22 @@ const Hero = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
-          alt="Luxury villa with stunning architecture and infinity pool"
-          width="1920"
-          height="1080"
-          className="w-full h-full object-cover"
-          fetchPriority="high"
-          decoding="async"
-        />
+  src="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
+  srcSet="
+    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_800,c_limit/v1777289704/hero-villa_diljro.jpg 800w,
+    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_1200,c_limit/v1777289704/hero-villa_diljro.jpg 1200w,
+    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg 1600w,
+    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_85,w_1920,c_limit/v1777289704/hero-villa_diljro.jpg 1920w
+  "
+  sizes="(max-width: 768px) 800px, (max-width: 1024px) 1200px, (max-width: 1440px) 1600px, 1920px"
+  alt="Luxury villa with stunning architecture and infinity pool"
+  width="1920"
+  height="1080"
+  className="w-full h-full object-cover"
+  fetchPriority="high"
+  decoding="async"
+  loading="eager" // <-- Important pour le LCP !
+/>
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
       </div>
 

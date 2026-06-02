@@ -5,36 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orchid Island - Luxury Real Estate</title>
     <meta name="description" content="Orchid Island - Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives. The Address You'll Always Remember." />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Préconnexion aux domaines tiers (CDN, polices, scripts sociaux) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://connect.facebook.net" />
+    <link rel="preconnect" href="https://platform.linkedin.com" />
+    <link rel="preconnect" href="https://platform.twitter.com" />
+
+    <!-- Précharge des polices critiques (Playfair Display et Inter) -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+      />
+    </noscript>
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap"
+      />
+    </noscript>
+
+    <!-- Précharge de l'image LCP (hero-villa) -->
     <link
       rel="preload"
       as="image"
       href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
+      imagesrcset="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_800,c_limit/v1777289704/hero-villa_diljro.jpg 800w, https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg 1600w"
+      imagesizes="(max-width: 800px) 800px, 1600px"
     />
 
+    <!-- Métadonnées Open Graph et Twitter -->
     <meta name="orchid Island" content="orchid Island" />
-
     <meta property="og:title" content="Orchid Island - Luxury Real Estate" />
     <meta property="og:description" content="Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg" />
-
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="https://x.com/EstateOrch47105" />
     <meta name="twitter:image" content="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289704/hero-villa_diljro.jpg" />
 
+    <!-- Scripts sociaux : tous en async + defer -->
     <!-- Facebook SDK -->
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 
     <!-- Twitter SDK -->
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <script async defer src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
     <!-- LinkedIn SDK -->
-    <script src="https://platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
-    
+    <script async defer src="https://platform.linkedin.com/in.js" type="text/javascript">lang: en_US</script>
   </head>
 
   <body>

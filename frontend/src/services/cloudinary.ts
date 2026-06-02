@@ -124,19 +124,19 @@ export const getCloudinaryUrl = (
     .filter(Boolean)
     .join(",");
 
-  // Cas 1 : URL complète Cloudinary → on injecte les transformations
+  // Cas 1 : URL complète Cloudinary
   if (urlOrPublicId.includes("res.cloudinary.com")) {
-    // Si des transformations existent déjà, on les remplace pour éviter les doublons
+    // Supprime les transformations existantes entre /upload/ et le versionning/path
+    // ex: /upload/q_auto/f_auto/v123.../  →  /upload/transforms/v123.../
     return urlOrPublicId.replace(
-      /\/upload\/((?:[a-z_,0-9/:]+\/)*)/, 
-      `/upload/${transforms}/`
+      /\/upload\/(?:[a-zA-Z0-9_,/:]+\/)*?(v\d+\/)/,
+      `/upload/${transforms}/$1`
     );
   }
 
   // Cas 2 : publicId seul → on reconstruit l'URL complète
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${urlOrPublicId}`;
 };
-
 // ── Optimise toutes les images Cloudinary dans un contenu HTML ────────────────
 
 export const optimizeHtmlImages = (

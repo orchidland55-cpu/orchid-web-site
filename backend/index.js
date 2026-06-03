@@ -1,3 +1,4 @@
+const compression = require('compression');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -33,10 +34,28 @@ const {
 } = require('./controllers/spaceController');
 const { verifySpaceJWT, checkUploadAllowed } = require('./middleware/authMiddleware');
 const { uploadSingle } = require('./middleware/uploadMiddleware');
+const NodeCache = require('node-cache');
+const cache = new NodeCache({ stdTTL: 300 }); // cache 5 minutes
+
+// Middleware de cache
+const cacheMiddleware = (req, res, next) => {
+  const key = req.originalUrl;
+  const cached = cache.get(key);
+  if (cached) {
+    return res.json(cached);
+  }
+  const originalJson = res.json.bind(res);
+  res.json = (data) => {
+    cache.set(key, data);
+    return originalJson(data);
+  };
+  next();
+};
 
 dotenv.config(); // charge les variables d'environnement
 
 const app = express();
+app.use(compression());
 
 const PORT = process.env.PORT || 3000;
 
@@ -97,7 +116,6 @@ async function getCountryFromIP(ip) {
 
 // Middleware d'analytics pour tracker les vues de pages
 async function analyticsMiddleware(req, res, next) {
-  // Ne pas tracker les routes admin et API internes
   if (req.path.startsWith('/admin') ||
       req.path.startsWith('/api') ||
       req.path === '/properties' ||
@@ -111,60 +129,50 @@ async function analyticsMiddleware(req, res, next) {
     return next();
   }
 
-  try {
-    const now = new Date();
-    const year = now.getFullYear().toString();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-    const jour = `${day.toString().padStart(2, '0')}`;
+  const now = new Date();
+  const year = now.getFullYear().toString();
+  const day = now.getDate();
+  const jour = day.toString().padStart(2, '0');
 
-    // Obtenir l'IP du client
-    const clientIP = req.ip ||
-                     req.connection.remoteAddress ||
-                     req.socket.remoteAddress ||
-                     (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-                     '127.0.0.1';
+  const clientIP = req.ip ||
+                   req.connection.remoteAddress ||
+                   req.socket.remoteAddress ||
+                   (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+                   '127.0.0.1';
 
-    // Nettoyer l'IP (enlever ::ffff: pour IPv4)
-    const cleanIP = clientIP.replace(/^::ffff:/, '');
+  const cleanIP = clientIP.replace(/^::ffff:/, '');
 
-    // Déterminer le pays
-    const country = await getCountryFromIP(cleanIP);
+  // getCountryFromIP est synchrone dans ton cas — pas besoin de await
+  const country = getCountryFromIP(cleanIP);
 
-    // Tracker la vue annuelle
-    await YearlyView.findOneAndUpdate(
-      { year },
-      { $inc: { vues: 1 } },
-      { upsert: true, new: true }
-    );
+  // Fire and forget
+  YearlyView.findOneAndUpdate(
+    { year },
+    { $inc: { vues: 1 } },
+    { upsert: true, new: true }
+  ).catch(console.error);
 
-    // Tracker la vue mensuelle (mois actuel)
-    await MonthlyView.findOneAndUpdate(
-      { jour },
-      { $inc: { moisActuel: 1 } },
-      { upsert: true, new: true }
-    );
+  MonthlyView.findOneAndUpdate(
+    { jour },
+    { $inc: { moisActuel: 1 } },
+    { upsert: true, new: true }
+  ).catch(console.error);
 
-    // Tracker la vue par pays
-    await CountryView.findOneAndUpdate(
-      { pays: country },
-      { $inc: { vues: 1 } },
-      { upsert: true, new: true }
-    );
-
-    // Recalculer les pourcentages pour tous les pays
-    const totalViews = await CountryView.aggregate([{ $group: { _id: null, total: { $sum: "$vues" } } }]);
+  CountryView.findOneAndUpdate(
+    { pays: country },
+    { $inc: { vues: 1 } },
+    { upsert: true, new: true }
+  ).then(async () => {
+    const totalViews = await CountryView.aggregate([
+      { $group: { _id: null, total: { $sum: "$vues" } } }
+    ]);
     const total = totalViews[0]?.total || 1;
-
     await CountryView.updateMany({}, [
       { $set: { pourcentage: { $round: [{ $multiply: [{ $divide: ["$vues", total] }, 100] }, 1] } } }
     ]);
+  }).catch(console.error);
 
-    console.log(`📊 Vue trackée: ${req.path} depuis ${country} (${cleanIP})`);
-
-  } catch (error) {
-    console.error('Erreur analytics middleware:', error);
-  }
+  console.log(`📊 Vue trackée: ${req.path} depuis ${country} (${cleanIP})`);
 
   next();
 }
@@ -211,19 +219,50 @@ app.get('/', (req, res) => {
 });
 
 // ===== CRUD routes for properties =====
-app.get('/properties', propertyController.getAllProperties);
-app.get('/properties/:id', propertyController.getPropertyById);
+app.get('/properties', cacheMiddleware, propertyController.getAllProperties);
+app.get('/properties/:id', cacheMiddleware, propertyController.getPropertyById);
 
-app.post('/properties', verifyJWT, requireAdminOrEditor, propertyController.addProperty);  // ✅ Éditeurs peuvent créer
-app.put('/properties/:id', verifyJWT, requireAdminOrEditor, propertyController.updateProperty);  // ✅ Éditeurs peuvent modifier
-app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);  // ❌ Seuls admins peuvent supprimer
+app.post('/properties', verifyJWT, requireAdminOrEditor, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, propertyController.addProperty);
+
+app.put('/properties/:id', verifyJWT, requireAdminOrEditor, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, propertyController.updateProperty);
+
+app.delete('/properties/:id', verifyJWT, requireAdmin, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, propertyController.deleteProperty);
+
+// app.post('/properties', verifyJWT, requireAdminOrEditor, propertyController.addProperty);  // ✅ Éditeurs peuvent créer
+// app.put('/properties/:id', verifyJWT, requireAdminOrEditor, propertyController.updateProperty);  // ✅ Éditeurs peuvent modifier
+// app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);  // ❌ Seuls admins peuvent supprimer
 
 // ===== CRUD routes for articles =====
-app.get('/articles', articleController.getAllArticles);
-app.get('/articles/:id', articleController.getArticleById);
-app.post('/articles', verifyJWT, requireAdminOrEditor, articleController.addArticle);  // ✅ Éditeurs peuvent créer
-app.put('/articles/:id', verifyJWT, requireAdminOrEditor, articleController.updateArticle);  // ✅ Éditeurs peuvent modifier
-app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);  // ❌ Seuls admins peuvent supprimer
+app.get('/articles', cacheMiddleware, articleController.getAllArticles);
+app.get('/articles/:id', cacheMiddleware, articleController.getArticleById);
+
+app.post('/articles', verifyJWT, requireAdminOrEditor, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, articleController.addArticle);
+
+app.put('/articles/:id', verifyJWT, requireAdminOrEditor, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, articleController.updateArticle);
+
+app.delete('/articles/:id', verifyJWT, requireAdmin, (req, res, next) => {
+  cache.flushAll();
+  next();
+}, articleController.deleteArticle);
+
+// app.post('/articles', verifyJWT, requireAdminOrEditor, articleController.addArticle);  // ✅ Éditeurs peuvent créer
+// app.put('/articles/:id', verifyJWT, requireAdminOrEditor, articleController.updateArticle);  // ✅ Éditeurs peuvent modifier
+// app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);  // ❌ Seuls admins peuvent supprimer
 app.post('/articles/:id/views', articleController.incrementArticleViews);
 
 // ===== Contact routes =====
@@ -412,3 +451,13 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// Ping toutes les 5 minutes pour éviter le cold start Railway
+if (process.env.NODE_ENV === 'production') {
+  const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+  setInterval(() => {
+    fetch(`${BACKEND_URL}/`)
+      .then(() => console.log('🏓 Keep-alive ping'))
+      .catch(console.error);
+  }, 5 * 60 * 1000);
+}

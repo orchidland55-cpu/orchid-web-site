@@ -68,7 +68,9 @@ export default defineConfig(async ({ mode }) => {
             // Sépare les grosses librairies en chunks distincts
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
             'query-vendor': ['@tanstack/react-query'],
-            'ui-vendor': ['@radix-ui/react-tooltip', '@radix-ui/react-dialog'],
+            'ui-vendor':      ['@radix-ui/react-tooltip', '@radix-ui/react-dialog', '@radix-ui/react-select'],
+            'motion-vendor':  ['framer-motion'],
+            'icons-vendor':   ['lucide-react'],
           },
         },
       },

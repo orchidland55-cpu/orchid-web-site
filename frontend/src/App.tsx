@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useGoogleTranslate } from "@/hooks/useGoogleTranslate";
 import ScrollToTop from "./components/ScrollToTop";
 import ToastContainer from "./components/ToastContainer";
 import AnalyticsTracker from "./components/AnalyticsTracker";
@@ -70,7 +69,6 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 function App() {
-  useGoogleTranslate();
   return (
     <div className="overflow-x-hidden">
       <QueryClientProvider client={queryClient}>

@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe, ChevronDown } from 'lucide-react';
-import { switchGoogleLanguage, getCurrentGoogleLanguage } from '@/hooks/useGoogleTranslate';
+import { initGoogleTranslate, switchGoogleLanguage, getCurrentGoogleLanguage } from '@/hooks/useGoogleTranslate';
 
 // ─── Supported languages ──────────────────────────────────────────────────────
 
@@ -28,12 +28,13 @@ const LanguageSwitcher = () => {
   const currentLanguage =
     languages.find((l) => l.code === currentCode) || languages[0];
 
-  const handleChange = (code: string) => {
-    setIsOpen(false);
-    if (code !== currentCode) {
-      switchGoogleLanguage(code); // sets cookie + reloads
-    }
-  };
+  const handleChange = async (code: string) => {
+  setIsOpen(false);
+  if (code !== currentCode) {
+    await initGoogleTranslate(); // charge uniquement si pas encore chargé
+    switchGoogleLanguage(code);
+  }
+};
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

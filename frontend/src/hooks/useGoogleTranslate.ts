@@ -12,17 +12,12 @@ declare global {
   }
 }
 
-/**
- * Hook to initialize Google Translate once in the app.
- * Call this in your root component (App.tsx or main layout).
- *
- * Usage:
- *   import { useGoogleTranslate } from '@/hooks/useGoogleTranslate';
- *   useGoogleTranslate(); // in App.tsx
- */
-export const useGoogleTranslate = () => {
-  useEffect(() => {
-    if (document.getElementById('google-translate-script')) return;
+export const initGoogleTranslate = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (document.getElementById('google-translate-script')) {
+      resolve();
+      return;
+    }
 
     const container = document.createElement('div');
     container.id = 'google_translate_element';
@@ -31,44 +26,18 @@ export const useGoogleTranslate = () => {
 
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement(
-        {
-          includedLanguages: 'en,fr,ar,es',
-          autoDisplay: false,
-        },
+        { includedLanguages: 'en,fr,ar,es', autoDisplay: false },
         'google_translate_element'
       );
+      resolve();
     };
 
-    // ✅ Délai de 3s pour ne pas bloquer le LCP
-    const timer = setTimeout(() => {
-      const script = document.createElement('script');
-      script.id = 'google-translate-script';
-      script.src =
-        'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-      script.async = true;
-
-      script.onload = () => {
-        const observer = new MutationObserver(() => {
-          const body = document.body;
-          if (body.style.top && body.style.top !== '0px') {
-            body.style.top = '0px';
-          }
-        });
-        observer.observe(document.body, {
-          attributes: true,
-          attributeFilter: ['style'],
-        });
-      };
-
-      document.body.appendChild(script);
-    }, 3000);
-
-    return () => {
-      clearTimeout(timer);
-      document.getElementById('google-translate-script')?.remove();
-      document.getElementById('google_translate_element')?.remove();
-    };
-  }, []);
+    const script = document.createElement('script');
+    script.id = 'google-translate-script';
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.async = true;
+    document.body.appendChild(script);
+  });
 };
 
 /**

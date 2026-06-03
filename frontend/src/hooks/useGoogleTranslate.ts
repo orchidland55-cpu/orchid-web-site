@@ -14,19 +14,39 @@ declare global {
 
 export const initGoogleTranslate = (): Promise<void> => {
   return new Promise((resolve) => {
-    if (document.getElementById('google-translate-script')) {
+    // Déjà chargé et prêt
+    if (window.google && window.google.translate) {
       resolve();
+      return;
+    }
+
+    const existingScript = document.getElementById('google-translate-script');
+
+    if (existingScript) {
+      // attendre que google soit prêt
+      const interval = setInterval(() => {
+        if (window.google && window.google.translate) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 100);
       return;
     }
 
     const container = document.createElement('div');
     container.id = 'google_translate_element';
-    container.style.display = 'none';
+    
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+
     document.body.appendChild(container);
 
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement(
-        { includedLanguages: 'en,fr,ar,es', autoDisplay: false },
+        {
+          includedLanguages: 'en,fr,ar,es',
+          autoDisplay: false,
+        },
         'google_translate_element'
       );
       resolve();
@@ -34,8 +54,10 @@ export const initGoogleTranslate = (): Promise<void> => {
 
     const script = document.createElement('script');
     script.id = 'google-translate-script';
-    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.src =
+      'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     script.async = true;
+
     document.body.appendChild(script);
   });
 };
@@ -44,29 +66,18 @@ export const initGoogleTranslate = (): Promise<void> => {
  * Programmatically switch the page language via the Google Translate cookie.
  * @param langCode  e.g. 'fr', 'ar', 'es', 'en'
  */
-export const switchGoogleLanguage = (langCode: string) => {
-  // Supprime tous les cookies googtrans existants
-  document.cookie = `googtrans=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-  document.cookie = `googtrans=;domain=${window.location.hostname};path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+export const switchGoogleLanguage = async (langCode: string) => {
+  await initGoogleTranslate();
 
-  if (langCode === 'en') {
-    // Pour revenir à l'anglais : supprimer le cookie suffit
-    // Google Translate affiche la langue originale quand il n'y a pas de cookie
-    document.documentElement.lang = 'en';
-    document.documentElement.dir = 'ltr';
-    window.location.reload();
-    return;
-  }
+  const interval = setInterval(() => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement;
 
-  // Pour toute autre langue : cookie avec /auto/ comme source
-  const cookieValue = `/auto/${langCode}`;
-  document.cookie = `googtrans=${cookieValue};path=/`;
-  document.cookie = `googtrans=${cookieValue};domain=${window.location.hostname};path=/`;
-
-  document.documentElement.dir = langCode === 'ar' ? 'rtl' : 'ltr';
-  document.documentElement.lang = langCode;
-
-  window.location.reload();
+    if (select) {
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+      clearInterval(interval);
+    }
+  }, 200);
 };
 
 export const getCurrentGoogleLanguage = (): string => {

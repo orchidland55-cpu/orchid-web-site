@@ -6,11 +6,52 @@
     <title>Orchid Island - Luxury Real Estate</title>
     <meta name="description" content="Orchid Island - Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives. The Address You'll Always Remember." />
 
-    <!-- Préconnexion aux domaines tiers (CDN, polices, scripts sociaux) -->
+    <!-- =====================================================================
+         CSS CRITIQUE INLINE — Évite le render-blocking du bundle global
+         Contient uniquement les styles above-the-fold (body, root, spinner)
+         ===================================================================== -->
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #0a0a0a;
+        color: #f5f0eb;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root { min-height: 100dvh; }
+
+      /* Skeleton loader visible AVANT que React monte */
+      #app-shell {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a0a0a;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      #app-shell.hidden { opacity: 0; pointer-events: none; }
+      .shell-spinner {
+        width: 40px; height: 40px;
+        border: 3px solid rgba(197,168,128,0.2);
+        border-top-color: #c5a880;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+
+    <!-- Préconnexion aux domaines tiers -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-    <!-- Précharge des polices critiques (Playfair Display et Inter) -->
+    <!-- =====================================================================
+         POLICES — non-bloquantes (preload as="style" + onload)
+         ===================================================================== -->
     <link
       rel="preload"
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
@@ -18,11 +59,9 @@
       onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
-      />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" />
     </noscript>
+
     <link
       rel="preload"
       href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap"
@@ -30,28 +69,27 @@
       onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap"
-      />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" />
     </noscript>
 
-    <!-- Précharge de l'image LCP (hero-villa) -->
+    <!-- =====================================================================
+         IMAGE LCP — preload haute priorité
+         ===================================================================== -->
     <link
-  rel="preload"
-  as="image"
-  href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
-  imagesrcset="
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_800,c_limit/v1777289704/hero-villa_diljro.jpg 800w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_1200,c_limit/v1777289704/hero-villa_diljro.jpg 1200w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg 1600w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_85,w_1920,c_limit/v1777289704/hero-villa_diljro.jpg 1920w
-  "
-  imagesizes="(max-width: 768px) 800px, (max-width: 1024px) 1200px, (max-width: 1440px) 1600px, 1920px"
-  fetchpriority="high"
-/>
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
+      imagesrcset="
+        https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_800,c_limit/v1777289704/hero-villa_diljro.jpg 800w,
+        https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_1200,c_limit/v1777289704/hero-villa_diljro.jpg 1200w,
+        https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg 1600w,
+        https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_85,w_1920,c_limit/v1777289704/hero-villa_diljro.jpg 1920w
+      "
+      imagesizes="(max-width: 768px) 800px, (max-width: 1024px) 1200px, (max-width: 1440px) 1600px, 1920px"
+      fetchpriority="high"
+    />
 
-    <!-- Métadonnées Open Graph et Twitter -->
+    <!-- Open Graph / Twitter -->
     <meta name="orchid Island" content="orchid Island" />
     <meta property="og:title" content="Orchid Island - Luxury Real Estate" />
     <meta property="og:description" content="Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives." />
@@ -64,7 +102,29 @@
   </head>
 
   <body>
+    <!-- Shell visible AVANT React — retiré dès que #root est peuplé -->
+    <div id="app-shell" aria-hidden="true">
+      <div class="shell-spinner"></div>
+    </div>
+
     <div id="root"></div>
+
+    <!-- Retire le shell dès que React a monté -->
+    <script>
+      (function () {
+        var shell = document.getElementById('app-shell');
+        var observer = new MutationObserver(function () {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            shell.classList.add('hidden');
+            setTimeout(function () { shell.remove(); }, 350);
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

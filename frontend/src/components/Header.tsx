@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, Instagram, Facebook, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -37,19 +37,18 @@ const Header = () => {
   const email = "";
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Newsletter subscription:", email);
-  };
+  }, []);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setServicesOpen(true);
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     closeTimer.current = setTimeout(() => setServicesOpen(false), 120);
-  };
+  }, []);
 
   return (
     <>
@@ -150,9 +149,18 @@ const Header = () => {
               </button>
             </div>
 
-            {/* ── Mobile Menu ── */}
-            {isMenuOpen && (
-              <div className="md:hidden mt-4 pb-4 border-t border-border pt-4">
+            {/* ── Mobile Menu — toujours dans le DOM, animé via max-height CSS        ──
+                 Évite le reflow forcé causé par le montage/démontage conditionnel       */}
+            <div
+              className="md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out"
+              style={{
+                maxHeight: isMenuOpen ? "600px" : "0px",
+                opacity:   isMenuOpen ? 1 : 0,
+              }}
+              aria-hidden={!isMenuOpen}
+              inert={!isMenuOpen ? "" as unknown as boolean : undefined}
+            >
+              <div className="mt-4 pb-4 border-t border-border pt-4">
                 <nav className="flex flex-col space-y-4 mb-4">
                   <Link to="/" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
                     Home
@@ -169,21 +177,23 @@ const Header = () => {
                       Services
                       <ChevronDown className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 ${mobileServicesOpen ? "rotate-180" : ""}`} />
                     </button>
-                    {mobileServicesOpen && (
-                      <ul className="mt-2 ml-4 space-y-2 border-l-2 border-primary/20 pl-3">
-                        {services.map((service) => (
-                          <li key={service.path}>
-                            <Link
-                              to={service.path}
-                              onClick={() => { setIsMenuOpen(false); setMobileServicesOpen(false); }}
-                              className="block text-sm font-lora text-muted-foreground hover:text-primary transition-smooth"
-                            >
-                              {service.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {/* Sous-menu services mobile — CSS max-height aussi */}
+                    <ul
+                      className="overflow-hidden transition-[max-height] duration-200 ease-in-out ml-4 space-y-2 border-l-2 border-primary/20 pl-3"
+                      style={{ maxHeight: mobileServicesOpen ? "400px" : "0px" }}
+                    >
+                      {services.map((service) => (
+                        <li key={service.path} className="pt-2 first:pt-2">
+                          <Link
+                            to={service.path}
+                            onClick={() => { setIsMenuOpen(false); setMobileServicesOpen(false); }}
+                            className="block text-sm font-lora text-muted-foreground hover:text-primary transition-smooth"
+                          >
+                            {service.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
                   <Link to="/properties" onClick={() => setIsMenuOpen(false)} className="font-lora text-foreground hover:text-primary transition-smooth">
@@ -214,7 +224,7 @@ const Header = () => {
                   <LanguageSwitcher />
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 

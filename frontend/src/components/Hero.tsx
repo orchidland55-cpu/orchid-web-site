@@ -21,7 +21,7 @@ const Hero = () => {
   height="1080"
   className="w-full h-full object-cover"
   fetchPriority="high"
-  decoding="sync"
+  decoding="async"
   loading="eager"
 />
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>

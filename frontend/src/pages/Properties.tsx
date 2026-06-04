@@ -14,6 +14,8 @@ import {
   Building,
   ChevronLeft,
   ChevronRight,
+  Search,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -211,20 +213,81 @@ const PropertiesPage = () => {
       <div className="min-h-screen">
         <Header />
         <main>
-          {/* Hero Section */}
-          <section className="py-20 bg-gradient-to-br from-primary/5 to-secondary/5">
-            <div className="container mx-auto px-6">
-              <div className="text-center max-w-4xl mx-auto">
-                <h1 className="text-4xl md:text-6xl font-playfair font-bold text-foreground mb-6">
-                  Our Exceptional Properties
+          {/* Hero Section */}    
+          <section
+            className="relative min-h-[500px] flex items-end pb-16"
+            style={{
+             backgroundImage: `url('https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289704/hero-villa_diljro.jpg')`,
+             backgroundSize: 'cover',
+             backgroundPosition: 'center',
+            }}
+          >
+            {/* Overlay sombre pour lisibilité */}
+            <div className="absolute inset-0 bg-black/45" />
+
+            <div className="relative z-10 container mx-auto px-6 w-full">
+              {/* Titre & sous-titre */}
+              <div className="max-w-xl mb-10 mx-auto text-center">
+                <h1 className="text-4xl md:text-6xl font-playfair font-bold text-white leading-tight mb-4">
+                  Our Exceptional <br /> Properties
                 </h1>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <p className="text-white/80 text-lg leading-relaxed">
                   Discover our exclusive selection of luxury properties in Morocco
                 </p>
               </div>
+
+              {/* Barre de recherche */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center bg-white rounded-3xl shadow-xl overflow-hidden max-w-3xl mx-auto">
+                {/* 1. Recherche texte */}
+                <div className="flex items-center gap-2 flex-1 px-5 py-3 border-b md:border-b-0 md:border-r border-gray-200">
+                  <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <Input
+                    type="text"
+                    placeholder="Search for a property..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border-0 shadow-none focus-visible:ring-0 p-0 text-sm placeholder:text-muted-foreground"
+                  />
+                </div>
+
+                {/* 2. Filtre type (inchangé) */}
+                <div className="flex items-center gap-2 flex-1 px-5 py-3 border-b md:border-b-0 md:border-r border-gray-200">
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="w-full border-0 bg-transparent text-sm text-foreground focus:outline-none"
+                  >
+                    <option value="all">All Types</option>
+                    {propertyTypes.map((type) => (
+                     <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 3. Filtre ville (inchangé) */}
+                <div className="flex items-center gap-2 flex-1 px-5 py-3 border-b md:border-b-0 md:border-r border-gray-200">
+                 <select
+                    value={filterCity}
+                    onChange={(e) => setFilterCity(e.target.value)}
+                    className="w-full border-0 bg-transparent text-sm text-foreground focus:outline-none"
+                  >
+                    <option value="all">All Cities</option>
+                    {propertyCities.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Bouton Search */}
+                <button className="flex items-center justify-center gap-2 text-foreground px-7 py-4 text-sm font-semibold  transition-colors whitespace-nowrap">
+                 <Search className="w-4 h-4 " />
+                 Search
+                </button>
+              </div>
             </div>
           </section>
-
           {isLoading ? (
             <section className="py-20">
               <div className="container mx-auto px-6">
@@ -239,60 +302,6 @@ const PropertiesPage = () => {
             </section>
           ) : (
             <>
-              {/* Filters Section */}
-              <section className="py-12 bg-background border-b">
-                <div className="container mx-auto px-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div>
-                      <Input
-                        type="text"
-                        placeholder="Search for a property..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
-                    <div>
-                      <select
-                        value={filterType}
-                        onChange={(e) => setFilterType(e.target.value)}
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="all">All Types</option>
-                        {propertyTypes.map((type) => (
-                          <option key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <select
-                        value={filterCity}
-                        onChange={(e) => setFilterCity(e.target.value)}
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="all">All Cities</option>
-                        {propertyCities.map((city) => (
-                         <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex items-center justify-center md:justify-start">
-                      <span className="text-muted-foreground">
-                        {filteredProperties.length}{" "}
-                        {filteredProperties.length === 1 ? "property" : "properties"} found
-                        {filteredProperties.length > 0 && (
-                          <span className="text-sm ml-2">
-                            (showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProperties.length)})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
               {/* Properties Grid */}
               <section className="py-20 bg-background">
                 <div className="container mx-auto px-6">
@@ -344,14 +353,6 @@ const PropertiesPage = () => {
                                 <MapPin className="w-4 h-4 mr-1" />
                                 <span className="text-sm">{property.location}, {property.city}</span>
                               </div>
-                              {/* <div
-                                className="text-muted-foreground text-sm leading-relaxed"
-                                dangerouslySetInnerHTML={{
-                                  __html: property.description && property.description.length > 200
-                                    ? property.description.substring(0, 200) + '...'
-                                    : property.description || ''
-                                }}
-                              /> */}
                             </div>
 
                             <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-gray-100">

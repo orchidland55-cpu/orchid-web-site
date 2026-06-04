@@ -430,7 +430,7 @@ const AdminArticles = () => {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      <Link to={`/blog/${article._id}`} target="_blank">
+                      <Link to={`/${article._id}`} target="_blank">
                         <Button variant="outline" size="sm">
                           <Eye className="w-4 h-4" />
                         </Button>

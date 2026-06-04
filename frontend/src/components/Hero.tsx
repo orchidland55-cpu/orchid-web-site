@@ -7,23 +7,19 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <img
-  src="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
-  srcSet="
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_800,c_limit/v1777289704/hero-villa_diljro.jpg 800w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_70,w_1200,c_limit/v1777289704/hero-villa_diljro.jpg 1200w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_80,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg 1600w,
-    https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_85,w_1920,c_limit/v1777289704/hero-villa_diljro.jpg 1920w
-  "
-  sizes="(max-width: 768px) 800px, (max-width: 1024px) 1200px, (max-width: 1440px) 1600px, 1920px"
-  alt="Luxury villa with stunning architecture and infinity pool"
-  width="1920"
-  height="1080"
-  className="w-full h-full object-cover"
-  fetchPriority="high"
-  decoding="async"
-  loading="eager"
-/>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
+          className="w-full h-full object-cover"
+        >
+        <source src="https://res.cloudinary.com/drgg2rocc/video/upload/q_auto:low,w_1280,c_limit,f_auto/v1780585578/15768406-uhd_4096_2160_24fps_1_1_qdsqoa.mp4" type="video/mp4" />
+      </video>
+  <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
+
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
       </div>
 
@@ -72,14 +68,6 @@ const Hero = () => {
               </Button>
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-ivory-white/60 animate-bounce">
-        <div className="flex flex-col items-center space-y-2">
-          <span className="font-playfair text-sm">Scroll down</span>
-          <div className="w-px h-8 bg-ivory-white/30"></div>
         </div>
       </div>
     </section>

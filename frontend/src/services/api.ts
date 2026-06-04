@@ -87,6 +87,16 @@ export interface ArticleFormData {
   featured: boolean;
   image: string;
   tags: string;
+  // ── SEO ──────────────────────────────────────
+  slug?: string;
+  seoTitle?: string;
+  focusKeyword?: string;
+  imageAlt?: string;
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
 }
 
 export interface ArticleData {
@@ -100,11 +110,28 @@ export interface ArticleData {
   featured: boolean;
   image: string;
   tags: string[];
+  // ── SEO ──────────────────────────────────────
+  slug?: string;
+  seoTitle?: string;
+  focusKeyword?: string;
+  imageAlt?: string;
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
 }
 
 export interface Article extends ArticleData {
   _id: string;
   slug?: string;
+  focusKeyword?: string;
+  imageAlt?: string;
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
   createdAt: string;
   updatedAt: string;
   readTime?: string;
@@ -532,6 +559,14 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
       videos: Array.isArray(formData.videos)              // ✅ Vidéos
         ? formData.videos.filter(url => url && url.startsWith('http')).slice(0, 10)
         : [],
+        // ── SEO ──────────────────────────────────────
+      slug: formData.slug || undefined,
+      seoTitle: formData.seoTitle || undefined,
+      metaDescription: formData.metaDescription || undefined,
+      focusKeyword: formData.focusKeyword || undefined,
+      imageAlt: formData.imageAlt || undefined,
+      ogTitle: formData.ogTitle || undefined,
+      twitterTitle: formData.twitterTitle || undefined,
     };
   }
 
@@ -588,6 +623,16 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
       tags: formData.tags
         ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).slice(0, 10)
         : [],
+      // ── SEO ──────────────────────────────────────
+      slug: formData.slug || undefined,
+      seoTitle: formData.seoTitle || undefined,
+      focusKeyword: formData.focusKeyword || undefined,
+      imageAlt: formData.imageAlt || undefined,
+      canonicalUrl: formData.canonicalUrl || undefined,
+      ogTitle: formData.ogTitle || undefined,
+      ogDescription: formData.ogDescription || undefined,
+      twitterTitle: formData.twitterTitle || undefined,
+      twitterDescription: formData.twitterDescription || undefined,
     };
   }
 

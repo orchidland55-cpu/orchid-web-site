@@ -852,7 +852,7 @@ const AdminEditProperty = () => {
                   metaDescription={formData.metaDescription}
                   slug={formData.slug}
                   focusKeyword={formData.focusKeyword}
-                  content={formData.description}
+                  description={formData.description}
                   image={formData.mainImage}
                   imageAlt={formData.imageAlt}
                   ogTitle={formData.ogTitle}

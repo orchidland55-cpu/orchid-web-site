@@ -51,11 +51,17 @@ function countOccurrences(text: string, keyword: string): number {
 }
 
 function extractHeadings(html: string): { h1: string[]; h2: string[]; h3: string[] } {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  
   const extract = (tag: string) =>
-    [...html.matchAll(new RegExp(`<${tag}[^>]*>(.*?)<\/${tag}>`, "gi"))].map(
-      (m) => stripHtml(m[1])
-    );
-  return { h1: extract("h1"), h2: extract("h2"), h3: extract("h3") };
+    [...doc.querySelectorAll(tag)].map((el) => el.textContent?.trim() || "");
+
+  return {
+    h1: extract("h1"),
+    h2: extract("h2"),
+    h3: extract("h3"),
+  };
 }
 
 function extractLinks(html: string): { internal: number; external: number; authoritative: number } {

@@ -139,16 +139,16 @@ const AdminEditArticle = () => {
             status: article.status || "draft",
             image: article.image || "",
             person: article.person || "",
-            seoTitle: article.title || "",
+            seoTitle: article.seoTitle || article.title || "",
             metaDescription: article.excerpt || "",
-            slug: (article as any)?.slug || "",
-            focusKeyword: "",
-            imageAlt: "",
-            canonicalUrl: "",
-            ogTitle: article.title || "",
-            ogDescription: (article as any).ogDescription || "",
-            twitterTitle: "",
-            twitterDescription: (article as any).twitterDescription || ""
+            slug: article.slug || "",
+            focusKeyword: article.focusKeyword || "",   
+            imageAlt: article.imageAlt || "",               
+            canonicalUrl: article.canonicalUrl || "",
+            ogTitle: article.ogTitle || article.title || "",
+            ogDescription: article.ogDescription || "",
+            twitterTitle: article.twitterTitle || "",       
+            twitterDescription: article.twitterDescription || "",
           });
           if (article.image) {
             setImagePreview(article.image);
@@ -259,6 +259,16 @@ const AdminEditArticle = () => {
         featured: false,
         image: formData.image || "",
         tags: formData.tags || "",
+        // ── SEO ──────────────────────────────────────
+        slug: formData.slug,
+        seoTitle: formData.seoTitle,
+        focusKeyword: formData.focusKeyword,
+        imageAlt: formData.imageAlt,
+        canonicalUrl: formData.canonicalUrl,
+        ogTitle: formData.ogTitle,
+        ogDescription: formData.ogDescription,
+        twitterTitle: formData.twitterTitle,
+        twitterDescription: formData.twitterDescription,
       };
       await apiService.updateArticle(articleId, articleData);
       showToast({ type: "success", title: "Article Updated", message: "The article has been successfully updated!", duration: 3000 });
@@ -285,6 +295,16 @@ const AdminEditArticle = () => {
         featured: false,
         image: formData.image || "",
         tags: formData.tags || "",
+        // ── SEO ──────────────────────────────────────
+        slug: formData.slug,
+        seoTitle: formData.seoTitle,
+        focusKeyword: formData.focusKeyword,
+        imageAlt: formData.imageAlt,
+        canonicalUrl: formData.canonicalUrl,
+        ogTitle: formData.ogTitle,
+        ogDescription: formData.ogDescription,
+        twitterTitle: formData.twitterTitle,
+        twitterDescription: formData.twitterDescription,
       };
       await apiService.updateArticle(articleId, articleData);
       showToast({ type: "info", title: "Draft Saved", message: "Your draft has been saved successfully", duration: 3000 });

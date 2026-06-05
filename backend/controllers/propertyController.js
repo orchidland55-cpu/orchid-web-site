@@ -188,9 +188,11 @@ exports.addProperty = async (req, res) => {
     console.log('📝 Creating property:', req.body.title);
 
     // Générer le slug
-    const rawSlug = req.body.slug
-      ? generateSlug(req.body.slug)   // slug manuel fourni par le frontend (champ SEO)
-      : generateSlug(req.body.title); // slug automatique depuis le titre
+    const rawSlug = (req.body.slug && req.body.slug.trim())
+    ? generateSlug(req.body.slug)
+    : req.body.title
+    ? generateSlug(req.body.title)
+    : `draft-${Date.now()}`;// slug automatique depuis le titre
 
     const slug = await ensureUniqueSlug(rawSlug);
     console.log('🔗 Slug généré:', slug);

@@ -137,9 +137,11 @@ exports.addArticle = async (req, res) => {
 
     // Générer le slug
     // Priorité : slug manuel (champ SEO) → sinon depuis le titre
-    const rawSlug = processedData.slug && processedData.slug.trim()
-      ? generateSlug(processedData.slug)
-      : generateSlug(processedData.title);
+    const rawSlug = (processedData.slug && processedData.slug.trim())
+    ? generateSlug(processedData.slug)
+    : processedData.title
+    ? generateSlug(processedData.title)
+    : `draft-${Date.now()}`;  // ← fallback si title vide
 
     processedData.slug = await ensureUniqueSlug(rawSlug);
     console.log('🔗 Slug article généré:', processedData.slug);

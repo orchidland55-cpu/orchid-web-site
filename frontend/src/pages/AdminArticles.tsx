@@ -4,20 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  FileText,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  Calendar,
-  User,
-  ArrowLeft,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { DayPicker, DateRange } from "react-day-picker";
+import { fr } from "date-fns/locale";
+import { format } from "date-fns";
+import "react-day-picker/dist/style.css";
+import { FileText, Plus, Search, Edit, Trash2, Eye, Calendar, User, ArrowLeft, Filter, ChevronLeft, ChevronRight, X } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { apiService, Article } from "@/services/api";
 
@@ -32,6 +23,9 @@ const AdminArticles = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -47,7 +41,7 @@ const AdminArticles = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterStatus, filterCategory]);
+  }, [searchTerm, filterStatus, filterCategory, sortOrder, dateRange]);
 
   const fetchArticles = async () => {
     try {
@@ -67,18 +61,31 @@ const AdminArticles = () => {
     new Set(articles.map(article => article.category).filter(Boolean))
   ).sort();
 
-  const filteredArticles = articles.filter((article) => {
+  const filteredArticles = articles
+  .filter((article) => {
     const matchesSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.author.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesStatus =
       filterStatus === "all" || article.status === filterStatus;
-
     const matchesCategory =
       filterCategory === "all" || article.category === filterCategory;
 
-    return matchesSearch && matchesStatus && matchesCategory;
+    // Filtre par intervalle de date
+    const articleDate = new Date(article.createdAt);
+    const matchesDateRange =
+      !dateRange?.from
+        ? true
+        : !dateRange?.to
+        ? articleDate >= dateRange.from
+        : articleDate >= dateRange.from && articleDate <= dateRange.to;
+
+    return matchesSearch && matchesStatus && matchesCategory && matchesDateRange;
+  })
+  .sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
   // Pagination calculations
@@ -377,6 +384,94 @@ const AdminArticles = () => {
                     ))}
                   </select>
                 </div>
+                {/* Tri par date */}
+                {/* Tri par date + filtre par intervalle */}
+<div className="flex items-center gap-2 relative">
+  <select
+    value={sortOrder}
+    onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+    className="px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+  >
+    <option value="newest">Plus récent</option>
+    <option value="oldest">Plus ancien</option>
+  </select>
+
+  {/* Bouton calendrier */}
+  <button
+    type="button"
+    onClick={() => setShowDatePicker((v) => !v)}
+    className={`flex items-center gap-2 px-3 py-2 border rounded-md text-sm transition-colors ${
+      dateRange?.from
+        ? "border-primary bg-primary/10 text-primary font-medium"
+        : "border-input bg-background text-foreground hover:bg-accent"
+    }`}
+  >
+    <Calendar className="w-4 h-4" />
+    {dateRange?.from ? (
+      dateRange.to ? (
+        <span>
+          {format(dateRange.from, "dd/MM/yy")} → {format(dateRange.to, "dd/MM/yy")}
+        </span>
+      ) : (
+        <span>Depuis le {format(dateRange.from, "dd/MM/yy")}</span>
+      )
+    ) : (
+      <span>Filtrer par date</span>
+    )}
+  </button>
+
+  {/* Croix pour effacer le filtre date */}
+  {dateRange?.from && (
+    <button
+      type="button"
+      onClick={() => setDateRange(undefined)}
+      className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+      title="Effacer le filtre date"
+    >
+      <X className="w-4 h-4" />
+    </button>
+  )}
+
+  {/* Calendrier dropdown */}
+  {showDatePicker && (
+    <>
+      {/* Overlay pour fermer en cliquant dehors */}
+      <div
+        className="fixed inset-0 z-40"
+        onClick={() => setShowDatePicker(false)}
+      />
+      <div className="absolute top-full right-0 mt-2 z-50 bg-card border border-border rounded-xl shadow-luxury p-3">
+        <DayPicker
+          mode="range"
+          selected={dateRange}
+          onSelect={(range) => {
+            setDateRange(range);
+            // Fermer automatiquement quand les deux dates sont choisies
+            if (range?.from && range?.to) setShowDatePicker(false);
+          }}
+          locale={fr}
+          showOutsideDays
+          className="text-sm"
+        />
+        {/* Footer avec bouton reset */}
+        <div className="border-t border-border pt-2 mt-1 flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">
+            {dateRange?.from && !dateRange?.to && "Sélectionnez la date de fin"}
+            {dateRange?.from && dateRange?.to && `${filteredArticles.length} résultat(s)`}
+            {!dateRange?.from && "Sélectionnez une date ou un intervalle"}
+          </span>
+          <button
+            type="button"
+            onClick={() => { setDateRange(undefined); setShowDatePicker(false); }}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </>
+  )}
+</div>
               </div>
 
               {/* Results count */}

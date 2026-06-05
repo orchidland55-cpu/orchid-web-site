@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const articleSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  excerpt: { type: String, required: true },
-  content: { type: String, required: true },
-  author: { type: String, required: true },
-  person: { type: String, required: true },
-  category: { type: String, required: true },
+  title:    { type: String, required: function() { return this.status === 'published'; } },
+  excerpt:  { type: String, required: function() { return this.status === 'published'; } },
+  content:  { type: String, required: function() { return this.status === 'published'; } },
+  author:   { type: String, required: function() { return this.status === 'published'; } },
+  person:   { type: String, required: function() { return this.status === 'published'; } },
+  category: { type: String, required: function() { return this.status === 'published'; } },
   tags: [String],
   status: { type: String, enum: ['draft', 'published'], default: 'draft' },
   featured: { type: Boolean, default: false },

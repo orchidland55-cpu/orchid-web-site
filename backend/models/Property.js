@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const propertySchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title:  { type: String, required: function() { return this.status !== 'draft'; } },
   // Slug SEO : généré automatiquement depuis le titre (partie avant –, |, /, etc.)
   // Exemple : "Ultimate Luxury Palace in Marrakech – Orchid" → "ultimate-luxury-palace-in-marrakech"
   slug: {
@@ -38,7 +38,7 @@ const propertySchema = new mongoose.Schema({
   pool: { type: Boolean, default: false },
   security: { type: Boolean, default: false },
   furnished: { type: Boolean, default: false },
-  person: { type: String, required: true },
+  person: { type: String, required: function() { return this.status !== 'draft'; } },
   // ✅ Champs SEO manquants
   seoTitle:        { type: String, default: "" },
   metaDescription: { type: String, default: "" },

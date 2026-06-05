@@ -3,23 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DayPicker, DateRange } from "react-day-picker";
+import { fr } from "date-fns/locale";
+import { format } from "date-fns";
+import "react-day-picker/dist/style.css";
 import { Badge } from "@/components/ui/badge";
-import {
-  Building,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  MapPin,
-  ArrowLeft,
-  Filter,
-  Bed,
-  Bath,
-  Square,
-  User,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Building, Plus, Search, Edit, Trash2, MapPin, ArrowLeft, Filter, Bed,
+  Bath, Square, User, ChevronLeft, ChevronRight, X, Calendar } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { apiService, Property } from "@/services/api";
 
@@ -33,6 +23,9 @@ const AdminProperties = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -48,7 +41,7 @@ const AdminProperties = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterType]);
+  }, [searchTerm, filterType, sortOrder, dateRange]);
 
   const fetchProperties = async () => {
     try {
@@ -80,11 +73,28 @@ const AdminProperties = () => {
     : `${symbolMap[currency]}${formatted}`;
 };
 
-  const filteredProperties = properties.filter(property => {
-    const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
-    return matchesSearch && matchesFilter;
+  const filteredProperties = properties
+  .filter(property => {
+    const matchesSearch =
+      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
+
+    const articleDate = new Date(property.createdAt);
+    const matchesDateRange =
+      !dateRange?.from
+        ? true
+        : !dateRange?.to
+        ? articleDate >= dateRange.from
+        : articleDate >= dateRange.from && articleDate <= dateRange.to;
+
+    return matchesSearch && matchesFilter && matchesDateRange;
+  })
+  .sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
   });
 
   // Pagination calculations
@@ -354,6 +364,82 @@ const AdminProperties = () => {
                       </option>
                     ))}
                   </select>
+                  {/* Tri + filtre par date */}
+<div className="flex items-center gap-2 relative">
+  <select
+    value={sortOrder}
+    onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+    className="px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+  >
+    <option value="newest">Plus récent</option>
+    <option value="oldest">Plus ancien</option>
+  </select>
+
+  <button
+    type="button"
+    onClick={() => setShowDatePicker((v) => !v)}
+    className={`flex items-center gap-2 px-3 py-2 border rounded-md text-sm transition-colors ${
+      dateRange?.from
+        ? "border-primary bg-primary/10 text-primary font-medium"
+        : "border-input bg-background text-foreground hover:bg-accent"
+    }`}
+  >
+    <Calendar className="w-4 h-4" />
+    {dateRange?.from ? (
+      dateRange.to ? (
+        <span>{format(dateRange.from, "dd/MM/yy")} → {format(dateRange.to, "dd/MM/yy")}</span>
+      ) : (
+        <span>Depuis le {format(dateRange.from, "dd/MM/yy")}</span>
+      )
+    ) : (
+      <span>Filtrer par date</span>
+    )}
+  </button>
+
+  {dateRange?.from && (
+    <button
+      type="button"
+      onClick={() => setDateRange(undefined)}
+      className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+      title="Effacer le filtre date"
+    >
+      <X className="w-4 h-4" />
+    </button>
+  )}
+
+  {showDatePicker && (
+    <>
+      <div className="fixed inset-0 z-40" onClick={() => setShowDatePicker(false)} />
+      <div className="absolute top-full right-0 mt-2 z-50 bg-card border border-border rounded-xl shadow-luxury p-3">
+        <DayPicker
+          mode="range"
+          selected={dateRange}
+          onSelect={(range) => {
+            setDateRange(range);
+            if (range?.from && range?.to) setShowDatePicker(false);
+          }}
+          locale={fr}
+          showOutsideDays
+          className="text-sm"
+        />
+        <div className="border-t border-border pt-2 mt-1 flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">
+            {dateRange?.from && !dateRange?.to && "Sélectionnez la date de fin"}
+            {dateRange?.from && dateRange?.to && `${filteredProperties.length} résultat(s)`}
+            {!dateRange?.from && "Sélectionnez une date ou un intervalle"}
+          </span>
+          <button
+            type="button"
+            onClick={() => { setDateRange(undefined); setShowDatePicker(false); }}
+            className="text-xs text-muted-foreground hover:text-foreground underline"
+          >
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </>
+  )}
+</div>
                 </div>
               </div>
 

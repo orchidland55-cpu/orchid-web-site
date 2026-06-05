@@ -277,7 +277,7 @@ const AdminAddArticle = () => {
   };
 
   const generatePreviewUrl = () => {
-    const baseUrl = "https://monsite.com";
+    const baseUrl = "https://orchidisland.immo";
     return `${baseUrl}/${formData.slug || 'article-title'}`;
   };
 

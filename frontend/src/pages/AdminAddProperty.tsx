@@ -11,6 +11,7 @@ import { Building, Save, Eye, ArrowLeft, Upload, MapPin, Bed, Bath, Square, Star
 // import PageTransition from "@/components/PageTransition";
 import RichTextEditor from "@/components/RichTextEditor";
 import SEOAnalyzer from "@/components/Seoanalyzer";
+import { showToast } from "@/components/ToastContainer";
 
 // ─── Clé localStorage pour les types custom ───────────────────────────────────
 const STORAGE_KEY = "orchid_property_types";
@@ -234,7 +235,7 @@ const AdminAddProperty = () => {
       setFormData((prev) => ({ ...prev, mainImage: result.url }));
     } catch (error) {
       console.error("Main image upload error:", error);
-      alert("Failed to upload main image. Please try again.");
+      showToast({ type: "error", title: "Upload Error", message: "Failed to upload main image. Please try again.", duration: 3000 });
     } finally {
       setIsUploadingMain(false);
       setUploadProgress(0);
@@ -257,7 +258,7 @@ const AdminAddProperty = () => {
       } catch (error) {
         console.error(`Upload error for ${file.name}:`, error);
         setAdditionalImagePreviews((prev) => prev.filter((p) => p !== localPreview));
-        alert(`Failed to upload "${file.name}". Please try again.`);
+        showToast({ type: "error", title: "Upload Error", message: `Failed to upload "${file.name}". Please try again.`, duration: 3000 });
       }
     }
     setIsUploadingAdditional(false);
@@ -288,7 +289,7 @@ const AdminAddProperty = () => {
       } catch (error) {
         console.error(`Video upload error for ${file.name}:`, error);
         setVideoPreviews((prev) => prev.filter((p) => p !== localPreview));
-        alert(`Failed to upload video "${file.name}". Please try again.`);
+        showToast({ type: "error", title: "Upload Error", message: `Failed to upload "${file.name}". Please try again.`, duration: 3000 });
       }
     }
     setIsUploadingVideo(false);
@@ -316,11 +317,11 @@ const AdminAddProperty = () => {
       const finalData = { ...formData, additionalImages: allAdditionalImages };
       const createdProperty = await apiService.createProperty(finalData);
       console.log("Property created:", createdProperty);
-      alert("Property created successfully!");
+      showToast({ type: "success", title: "Property Created", message: "Property created successfully.", duration: 3000 });
       navigate("/admin/properties");
     } catch (error: any) {
       console.error("Error creating property:", error);
-      alert(`Error: ${error.message}`);
+      showToast({ type: "error", title: "Create Error", message: `Error: ${error.message}`, duration: 3000 });
     } finally {
       setIsLoading(false);
     }
@@ -333,10 +334,10 @@ const AdminAddProperty = () => {
       const draftData = { ...formData, status: "draft", additionalImages: allAdditionalImages };
       const savedProperty = await apiService.createPropertyDraft(draftData);
       console.log("Draft saved:", savedProperty);
-      alert("Draft saved!");
+      showToast({ type: "success", title: "Draft Saved", message: "Your draft has been saved successfully.", duration: 3000 });
     } catch (error: any) {
       console.error("Error saving draft:", error);
-      alert(`Error: ${error.message}`);
+      showToast({ type: "error", title: "Save Error", message: `Error: ${error.message}`, duration: 3000 });
     } finally {
       setIsLoading(false);
     }

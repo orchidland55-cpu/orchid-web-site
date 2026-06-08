@@ -14,7 +14,13 @@ const GlobalSchema = () => {
     "sameAs": [
       "https://www.instagram.com/orchid_island_real_estate?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw%3D%3D",
       "https://www.linkedin.com/company/orchid-island-real-estate-marrakech/"
-    ]
+    ],
+    "foundingOrganization": "Orchid Island Real Estate",
+    "knowsAbout": ["Real Estate", "Luxury Properties in Marrakech"],
+    "areaServed": {
+        "@type": "Place",
+        "name": "Marrakech, Morocco"
+    }
   };
 
   const websiteSchema = {

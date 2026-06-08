@@ -576,17 +576,17 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
 
   async getPropertyById(id: string): Promise<Property> {
     const property = await this.request<Property>(`/properties/${id}`);
-    console.log('🔍 API Service - Retrieved property:');
-    console.log('🔍 Main image present:', !!property.mainImage);
-    console.log('🔍 Main image length:', property.mainImage?.length || 0);
-    console.log('🔍 Additional images count:', property.additionalImages?.length || 0);
+    // console.log('🔍 API Service - Retrieved property:');
+    // console.log('🔍 Main image present:', !!property.mainImage);
+    // console.log('🔍 Main image length:', property.mainImage?.length || 0);
+    // console.log('🔍 Additional images count:', property.additionalImages?.length || 0);
     return property;
   }
 
   async createProperty(formData: PropertyFormData): Promise<Property> {
     const propertyData = this.convertFormDataToApiData(formData);
     const jsonString = JSON.stringify(propertyData);
-    console.log('📤 Sending property data, size:', jsonString.length, 'characters');
+    // console.log('📤 Sending property data, size:', jsonString.length, 'characters');
     return this.request<Property>('/properties', { method: 'POST', body: jsonString });
   }
 

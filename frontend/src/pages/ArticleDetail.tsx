@@ -159,7 +159,8 @@ const ArticleDetail = () => {
     "author": {
       "@type": "Person",
       "@id": `https://orchidisland.immo/#person/Mohamed-DEKKAK`,
-      "name": "Mohamed DEKKAK"
+      "name": "Mohamed DEKKAK",
+      // "url": "https://orchidisland.immo/#organization"
     },
     "publisher": {
       "@type": "Organization",

@@ -1,11 +1,27 @@
-# Orchid Island Real estate Marrakech
+## Entity
+
+Official company name:
+Orchid Island Real Estate
+
+Industry:
+Luxury Real Estate
+
+Primary market:
+Marrakech, Morocco
+
+Specializations:
+- Luxury villas
+- Riads
+- Golf properties
+- Investment properties
+- High-end real estate
 
 > Agence immobilière marocaine spécialisée dans les propriétés de luxe et de prestige à Marrakech .
 > Fondée pour accompagner les acheteurs locaux et internationaux dans leurs projets immobiliers haut de gamme au Maroc.
 
 ## À propos
 
-Orchid Immobilier est une agence immobilière de référence au Maroc, spécialisée dans la vente et l'acquisition de biens immobiliers de luxe.
+Orchid Island Real Estate est une agence immobilière de référence au Maroc, spécialisée dans la vente et l'acquisition de biens immobiliers de luxe.
 Notre portefeuille comprend des villas, riads, appartements de standing, propriétés avec piscine, domaines et terrains dans les villes les plus prisées du Maroc.
 Nous accompagnons aussi bien les résidents marocains que les investisseurs étrangers (de toutes horizons) souhaitant acquérir un bien immobilier au Maroc.
 
@@ -52,7 +68,7 @@ Nous accompagnons aussi bien les résidents marocains que les investisseurs étr
 
 ## Clientèle
 
-Orchid Island Real estate Marrakech s'adresse à :
+Orchid Island Real estate s'adresse à :
 - Acheteurs marocains résidents cherchant une résidence principale ou secondaire de standing
 - Marocains résidant à l'étranger (MRE) souhaitant investir au pays
 - Investisseurs français, belges, suisses, européens et d'autres pays du monde attirés par le marché marocain
@@ -70,13 +86,13 @@ Notre blog publie régulièrement des articles de fond sur :
 
 ## Liens importants
 
-- Site principal : https://orchid-immo-web-site.vercel.app
-- A propos de nous : https://orchid-immo-web-site.vercel.app/about-us
-- Toutes nos propriétés : https://orchid-immo-web-site.vercel.app/properties
-- Blog immobilier : https://orchid-immo-web-site.vercel.app/real-estate-guide-orchid-island-marrakech
-- Nous contacter : https://orchid-immo-web-site.vercel.app/contact-us
-- Investir au Maroc : https://orchid-immo-web-site.vercel.app/investment-orchidisland
-- Nos services : https://orchid-immo-web-site.vercel.app/services
+- Site principal : https://orchidisland.immo
+- A propos de nous : https://orchidisland.immo/about-us
+- Toutes nos propriétés : https://orchidisland.immo/properties
+- Blog immobilier : https://orchidisland.immo/real-estate-guide-orchid-island-marrakech
+- Nous contacter : https://orchidisland.immo/contact-us
+- Investir au Maroc : https://orchidisland.immo/investment-orchidisland
+- Nos services : https://orchidisland.immo/services
 
 ## Langues
 

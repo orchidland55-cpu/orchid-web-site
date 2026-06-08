@@ -116,32 +116,52 @@ const PropertyDetail = () => {
   }
 
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
+  "@context": "https://schema.org",
+  "@type": ["Offer", "WebPage"],
+  "@id": `https://orchidisland.immo/property/${property.slug}#offer`,
+  "url": `https://orchidisland.immo/property/${property.slug}`,
+  "isPartOf": {
+      "@id": "https://orchidisland.immo/#website"
+    },
+  "price": property.price,
+  "priceCurrency": property.currency || "MAD",
+  "itemOffered": {
+    "@type": "Residence",
+    "@id": `https://orchidisland.immo/property/${property.slug}#property`,
     "name": property.title,
-    "description": property.description?.replace(/<[^>]*>/g, '').substring(0, 300),
-    "url": `https://orchidisland.immo/property/${property.slug || property._id}`,
+    "description": property.description?.replace(/<[^>]*>/g, '').substring(0, 500),
     "image": property.mainImage,
-    "price": property.price,
-    "priceCurrency": property.currency || "MAD",
+    "numberOfRooms": property.bedrooms,
     "floorSize": {
       "@type": "QuantitativeValue",
       "value": property.area,
       "unitCode": "MTK"
     },
-    "numberOfRooms": property.bedrooms,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": property.city,
       "addressRegion": property.location,
       "addressCountry": "MA"
-    },
-    "offeredBy": {
-      "@type": "RealEstateAgent",
-      "name": "Orchid Immobilier",
-      "url": "https://orchidisland.immo"
     }
-  };
+  },
+  "seller": {
+    "@type": "RealEstateAgent",
+    "@id": "https://orchidisland.immo/#organization",
+    "name": "Orchid Island Real Estate",
+    "url": "https://orchidisland.immo",
+    "areaServed": {
+      "@type": "Place",
+      "name": "Marrakech, Morocco"
+    }
+  },
+  mainEntityOfPage: {
+  "@id": `https://orchidisland.immo/property/${property.slug}#webpage`
+  },
+  "potentialAction": {
+  "@type": "ViewAction",
+  "target": `https://orchidisland.immo/property/${property.slug}`
+}
+};
 
   // ── Construire la liste d'images ──────────────────────────────────────────
   const imagesToShow: string[] = [];

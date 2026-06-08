@@ -144,28 +144,42 @@ const ArticleDetail = () => {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": ["Article", "WebPage"],
+    "@id": `https://orchidisland.immo/${article.slug}#article`,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://orchidisland.immo/${article.slug}`
+    },
+    "url": `https://orchidisland.immo/${article.slug}`,
     "headline": article.title,
     "description": article.excerpt,
-    "image": article.image,
-    "url": `https://orchidisland.immo/real-estate-guide-orchid-island-marrakech/${article.slug || article._id}`,
+    "image": 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + article.image,
     "datePublished": article.createdAt,
     "dateModified": article.updatedAt,
     "author": {
       "@type": "Person",
-      "name": article.author
+      "@id": `https://orchidisland.immo/#person/Mohamed-DEKKAK`,
+      "name": "Mohamed DEKKAK"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Orchid Immobilier",
-      "url": "https://orchidisland.immo"
+      "@id": "https://orchidisland.immo/#organization",
+      "name": "Orchid Island Real Estate",
+      "url": "https://orchidisland.immo",
+      "logo": {
+        "@type": "ImageObject",
+       "url": "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png",
+     }
+    },
+    "isPartOf": {
+      "@id": "https://orchidisland.immo/#website"
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{article.title} | Orchid Immobilier</title>
+        <title>{article.title} | Orchid Island Real Estate</title>
         <meta name="description" content={article.excerpt?.substring(0, 160)} />
         <script type="application/ld+json">
           {JSON.stringify(jsonLd)}

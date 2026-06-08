@@ -1,3 +1,5 @@
+import { HelmetProvider } from "react-helmet-async";
+import GlobalSchema from "./components/GlobalSchema";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -70,10 +72,12 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
+    <HelmetProvider>
     <div className="overflow-x-hidden">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <GlobalSchema />
             <ScrollToTop />
             <Analytics />
             <SpeedInsights />
@@ -140,6 +144,7 @@ function App() {
         </TooltipProvider>
       </QueryClientProvider>
     </div>
+    </HelmetProvider>
   );
 }
 

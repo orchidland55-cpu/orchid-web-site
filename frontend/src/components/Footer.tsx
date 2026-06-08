@@ -66,6 +66,13 @@ const Footer = () => {
                   <p className="text-ivory-white/80">40010 Marrakech, Morocco</p>
                 </div>
               </div>
+              <div className="font-lora flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                <div>
+                  <p className="text-ivory-white/80">13219 10th Street Bowie Maryland</p>
+                  <p className="text-ivory-white/80">20715 USA</p>
+                </div>
+              </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-primary" />
                 <p className="text-ivory-white/80">+212 6 18 68 88 88</p>

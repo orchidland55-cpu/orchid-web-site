@@ -348,16 +348,16 @@ const AdminAddProperty = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-white border-b border-border shadow-sm">
+      {/* <header className="bg-white border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link to="/admin/properties">
+              {/* <Link to="/admin/properties">
                 <Button variant="outline" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Properties
                 </Button>
-              </Link>
+              </Link> 
               <div>
                 <h1 className="text-2xl font-bold text-foreground">New Property</h1>
                 <p className="text-sm text-muted-foreground">Add a new property to the portfolio</p>
@@ -375,7 +375,7 @@ const AdminAddProperty = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       <main className="container mx-auto px-6 py-8">
         <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
@@ -769,7 +769,18 @@ const AdminAddProperty = () => {
                 </div>
               </CardContent>
             </Card>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
+                <Save className="w-4 h-4 mr-2" />
+                Save Draft
+              </Button>
+              <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
+                <Building className="w-4 h-4 mr-2" />
+                {isLoading ? "Creating..." : "Create Property"}
+              </Button>
+            </div>
           </div>
+          
 
           {/* Sidebar */}
           <div className="space-y-6">

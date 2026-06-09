@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /contact — Enregistre le contact ET envoie un email via Resend
+// ─────────────────────────────────────────────────────────────────────────────
 const addContact = async (req, res) => {
   try {
     const { name, email, phone, subject, message, propertyType } = req.body;
@@ -12,82 +18,156 @@ const addContact = async (req, res) => {
       date: new Date()
     });
 
-    // 2️⃣ Configurer Nodemailer - Mailtrap (Gmail temporairement bloqué)
-    const transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: process.env.MAILTRAP_USER || "91be55e01c3ccf",
-        pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
-      },
-    });
+    // 2️⃣ Envoyer l'email de notification via Resend
+    const receivedAt = new Date();
+    const dateStr = receivedAt.toLocaleDateString('fr-FR');
+    const timeStr = receivedAt.toLocaleTimeString('fr-FR');
 
-    // Test de la connexion SMTP
     try {
-      await transporter.verify();
-    } catch (error) {
-      // Connexion SMTP échouée, continuer sans email
-    }
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'Orchid Island <onboarding@resend.dev>',
+        to: process.env.ADMIN_EMAIL || 'orchido651@gmail.com',
+        subject: `🏠 Nouvelle demande de contact : ${subject || 'Sans objet'}`,
+        html: `
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <title>Nouvelle demande de contact</title>
+          </head>
+          <body style="margin:0;padding:0;background:#f4f4f4;font-family:Georgia,serif;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+              <tr>
+                <td align="center">
+                  <table width="600" cellpadding="0" cellspacing="0"
+                    style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-    // 3️⃣ Contenu de l'email avec HTML
-    const mailOptions = {
-      from: '"Orchid Real Estate" <noreply@orchid-realestate.com>',
-      to: process.env.ADMIN_EMAIL || "orchido651@gmail.com",
-      subject: `🏠 Nouvelle demande de contact: ${subject || "Sans objet"}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5; border-bottom: 2px solid #4F46E5; padding-bottom: 10px;">
-            📧 Nouvelle demande de contact
-          </h2>
-          
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">Informations du contact :</h3>
-            <p><strong>👤 Nom :</strong> ${name}</p>
-            <p><strong>📧 Email :</strong> <a href="mailto:${email}">${email}</a></p>
-            <p><strong>📱 Téléphone :</strong> ${phone || "Non précisé"}</p>
-            <p><strong>🏠 Type de propriété :</strong> ${propertyType || "Non précisé"}</p>
-          </div>
-          
-          <div style="background-color: #fff; padding: 20px; border-left: 4px solid #4F46E5; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">💬 Message :</h3>
-            <p style="line-height: 1.6;">${message}</p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-            </p>
-          </div>
-        </div>
-      `,
-      text: `
-Nouvelle demande de contact
+                    <!-- Header -->
+                    <tr>
+                      <td style="background:#0d2340;padding:32px 40px;text-align:center;">
+                        <p style="margin:0;color:#b8972e;font-size:22px;letter-spacing:2px;text-transform:uppercase;">
+                          Orchid Island
+                        </p>
+                        <p style="margin:8px 0 0;color:#ffffff;font-size:14px;opacity:0.7;">
+                          Nouvelle demande de contact
+                        </p>
+                      </td>
+                    </tr>
 
-Nom: ${name}
-Email: ${email}
-Téléphone: ${phone || "Non précisé"}
-Type de propriété: ${propertyType || "Non précisé"}
+                    <!-- Body -->
+                    <tr>
+                      <td style="padding:40px;">
 
-Message:
+                        <!-- Infos contact -->
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                          style="background:#f8f9fa;border-radius:8px;padding:24px;margin-bottom:24px;">
+                          <tr>
+                            <td>
+                              <p style="margin:0 0 16px;color:#0d2340;font-size:16px;font-weight:bold;">
+                                👤 Informations du contact
+                              </p>
+                              <p style="margin:0 0 8px;color:#555;font-size:14px;">
+                                <strong>Nom :</strong> ${name}
+                              </p>
+                              <p style="margin:0 0 8px;color:#555;font-size:14px;">
+                                <strong>Email :</strong>
+                                <a href="mailto:${email}" style="color:#b8972e;">${email}</a>
+                              </p>
+                              <p style="margin:0 0 8px;color:#555;font-size:14px;">
+                                <strong>Téléphone :</strong> ${phone || 'Non précisé'}
+                              </p>
+                              <p style="margin:0;color:#555;font-size:14px;">
+                                <strong>Type de propriété :</strong> ${propertyType || 'Non précisé'}
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- Sujet -->
+                        <p style="margin:0 0 8px;color:#0d2340;font-size:15px;font-weight:bold;">
+                          📌 Sujet
+                        </p>
+                        <p style="margin:0 0 24px;color:#555;font-size:14px;line-height:1.6;">
+                          ${subject || 'Sans objet'}
+                        </p>
+
+                        <!-- Message -->
+                        <p style="margin:0 0 8px;color:#0d2340;font-size:15px;font-weight:bold;">
+                          💬 Message
+                        </p>
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                          style="border-left:4px solid #b8972e;padding-left:16px;margin-bottom:32px;">
+                          <tr>
+                            <td style="padding-left:16px;">
+                              <p style="margin:0;color:#555;font-size:14px;line-height:1.8;white-space:pre-wrap;">
+                                ${message}
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- CTA -->
+                        <table cellpadding="0" cellspacing="0" style="margin:0 auto 8px;">
+                          <tr>
+                            <td style="background:#0d2340;border-radius:6px;padding:12px 28px;">
+                              <a href="mailto:${email}"
+                                style="color:#b8972e;text-decoration:none;font-size:14px;font-weight:bold;letter-spacing:1px;">
+                                Répondre au client
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+
+                      </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                      <td style="background:#f9f9f9;padding:20px 40px;border-top:1px solid #eee;text-align:center;">
+                        <p style="margin:0;color:#aaa;font-size:12px;">
+                          📅 Reçu le ${dateStr} à ${timeStr}
+                        </p>
+                      </td>
+                    </tr>
+
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `,
+        text: `
+Nouvelle demande de contact — Orchid Island
+
+Nom : ${name}
+Email : ${email}
+Téléphone : ${phone || 'Non précisé'}
+Type de propriété : ${propertyType || 'Non précisé'}
+
+Sujet : ${subject || 'Sans objet'}
+
+Message :
 ${message}
 
-Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-      `,
-    };
+Reçu le ${dateStr} à ${timeStr}
+        `.trim(),
+      });
 
-    // 4️⃣ Tenter d'envoyer l'email
-    try {
-      const info = await transporter.sendMail(mailOptions);
+      console.log('✅ Email de contact envoyé via Resend');
 
       res.status(201).json({
         message: "Contact enregistré et email envoyé avec succès !",
         contactId: contact.insertedId,
-        emailId: info.messageId
       });
+
     } catch (emailError) {
-      // Succès partiel : données sauvegardées, email en attente
+      // La donnée est sauvegardée, mais l'email a échoué — on log et on répond quand même 201
+      console.error('⚠️ Resend — échec de l\'envoi de l\'email de contact :', emailError.message);
+
       res.status(201).json({
-        message: "Contact enregistré avec succès. Email sera envoyé ultérieurement.",
+        message: "Contact enregistré avec succès. (Email temporairement indisponible)",
         contactId: contact.insertedId,
         emailStatus: "pending",
         note: "Votre message a été reçu et sauvegardé. Nous vous répondrons bientôt."
@@ -95,33 +175,21 @@ Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeS
     }
 
   } catch (error) {
-    console.error('❌ Erreur dans addContact:', error);
-    
-    // Réponse détaillée selon le type d'erreur
-    if (error.code === 'EAUTH') {
-      res.status(500).json({ 
-        error: "Erreur d'authentification email. Vérifiez vos credentials Mailtrap.",
-        details: error.message
-      });
-    } else if (error.code === 'ECONNECTION') {
-      res.status(500).json({ 
-        error: "Impossible de se connecter au serveur email.",
-        details: error.message
-      });
-    } else {
-      res.status(500).json({ 
-        error: "Erreur serveur, réessayez plus tard.",
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    console.error('❌ Erreur dans addContact :', error);
+    res.status(500).json({
+      error: "Erreur serveur, réessayez plus tard.",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
-// GET all contacts (pour l'admin)
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /contacts — Récupère tous les contacts (admin)
+// ─────────────────────────────────────────────────────────────────────────────
 const getAllContacts = async (req, res) => {
   try {
     const contacts = await mongoose.connection.db.collection('contacts').find({})
-      .sort({ date: -1 }) // Trier par date décroissante
+      .sort({ date: -1 })
       .toArray();
 
     res.status(200).json({
@@ -130,7 +198,7 @@ const getAllContacts = async (req, res) => {
       count: contacts.length
     });
   } catch (error) {
-    console.error('❌ Erreur dans getAllContacts:', error);
+    console.error('❌ Erreur dans getAllContacts :', error);
     res.status(500).json({
       success: false,
       error: "Erreur lors de la récupération des contacts",
@@ -139,48 +207,38 @@ const getAllContacts = async (req, res) => {
   }
 };
 
-// UPDATE contact status
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /contacts/:id/status — Met à jour le statut d'un contact
+// ─────────────────────────────────────────────────────────────────────────────
 const updateContactStatus = async (req, res) => {
   try {
     const contactId = req.params.id;
     const { status } = req.body;
 
-    // Validation du statut
     const validStatuses = ['new', 'répondu', 'planifier'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        error: 'Statut invalide. Utilisez: new, répondu, ou planifier'
+        error: 'Statut invalide. Utilisez : new, répondu, ou planifier'
       });
     }
-
-    console.log(`📝 Mise à jour du statut du contact ${contactId} vers "${status}"...`);
 
     const result = await mongoose.connection.db.collection('contacts').updateOne(
       { _id: new mongoose.Types.ObjectId(contactId) },
-      {
-        $set: {
-          status: status,
-          updatedAt: new Date()
-        }
-      }
+      { $set: { status, updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Contact non trouvé'
-      });
+      return res.status(404).json({ success: false, error: 'Contact non trouvé' });
     }
 
-    console.log('✅ Statut du contact mis à jour avec succès');
     res.status(200).json({
       success: true,
       message: `Statut mis à jour vers "${status}"`,
       modifiedCount: result.modifiedCount
     });
   } catch (error) {
-    console.error('❌ Erreur dans updateContactStatus:', error);
+    console.error('❌ Erreur dans updateContactStatus :', error);
     res.status(500).json({
       success: false,
       error: "Erreur lors de la mise à jour du statut",
@@ -189,30 +247,24 @@ const updateContactStatus = async (req, res) => {
   }
 };
 
-// DELETE contact
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE /contacts/:id — Supprime un contact
+// ─────────────────────────────────────────────────────────────────────────────
 const deleteContact = async (req, res) => {
   try {
     const contactId = req.params.id;
-    console.log(`🗑️ Suppression du contact ${contactId}...`);
 
     const result = await mongoose.connection.db.collection('contacts').deleteOne({
       _id: new mongoose.Types.ObjectId(contactId)
     });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Contact non trouvé'
-      });
+      return res.status(404).json({ success: false, error: 'Contact non trouvé' });
     }
 
-    console.log('✅ Contact supprimé avec succès');
-    res.status(200).json({
-      success: true,
-      message: 'Contact supprimé avec succès'
-    });
+    res.status(200).json({ success: true, message: 'Contact supprimé avec succès' });
   } catch (error) {
-    console.error('❌ Erreur dans deleteContact:', error);
+    console.error('❌ Erreur dans deleteContact :', error);
     res.status(500).json({
       success: false,
       error: "Erreur lors de la suppression du contact",
@@ -221,175 +273,106 @@ const deleteContact = async (req, res) => {
   }
 };
 
-// Fonction pour tester l'envoi d'email
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /test-email — Test Resend
+// ─────────────────────────────────────────────────────────────────────────────
 const testEmail = async (req, res) => {
   try {
-    console.log('🧪 Test d\'envoi d\'email...');
-
-    const transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: process.env.MAILTRAP_USER || "91be55e01c3ccf",
-        pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
-      },
-    });
-
-    // Test de connexion
-    await transporter.verify();
-    console.log('✅ Connexion SMTP OK');
-
-    // Email de test
-    const testMailOptions = {
-      from: '"Orchid Real Estate Test" <test@orchid-realestate.com>',
-      to: process.env.ADMIN_EMAIL || "orchido651@gmail.com",
-      subject: "🧪 Test d'envoi d'email - Orchid Real Estate",
+    const data = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'Orchid Island <onboarding@resend.dev>',
+      to: process.env.ADMIN_EMAIL || 'orchido651@gmail.com',
+      subject: "🧪 Test d'envoi d'email — Orchid Island",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5;">🧪 Test d'email réussi !</h2>
-          <p>Ceci est un email de test pour vérifier que la configuration fonctionne.</p>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <h2 style="color:#0d2340;">🧪 Test Resend réussi !</h2>
+          <p>La configuration Resend fonctionne correctement.</p>
           <p><strong>Date :</strong> ${new Date().toLocaleString('fr-FR')}</p>
-          <p><strong>Serveur :</strong> Mailtrap</p>
-          <p style="color: #28a745;">✅ La configuration email fonctionne correctement !</p>
         </div>
       `,
-      text: `Test d'email réussi ! Date: ${new Date().toLocaleString('fr-FR')}`
-    };
-
-    const info = await transporter.sendMail(testMailOptions);
-    console.log('✅ Email de test envoyé:', info.messageId);
+      text: `Test Resend réussi ! Date: ${new Date().toLocaleString('fr-FR')}`
+    });
 
     res.status(200).json({
-      message: "Email de test envoyé avec succès !",
-      messageId: info.messageId,
+      message: "Email de test envoyé avec succès via Resend !",
+      emailId: data.id,
       timestamp: new Date().toISOString()
     });
-
   } catch (error) {
-    console.error('❌ Erreur test email:', error);
-    res.status(500).json({
-      error: "Échec du test d'email",
-      details: error.message
-    });
+    console.error('❌ Erreur test email Resend :', error);
+    res.status(500).json({ error: "Échec du test d'email", details: error.message });
   }
 };
 
-// Planifier une visite (envoi direct par email, pas de sauvegarde en base)
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /schedule-visit — Planification de visite (Nodemailer Gmail)
+// ─────────────────────────────────────────────────────────────────────────────
 const scheduleVisit = async (req, res) => {
   try {
     const { name, email, phone, meetingType, date, timeSlot, message } = req.body;
 
-    console.log('📅 Nouvelle demande de planification de visite:', { name, email, meetingType, date, timeSlot });
-
-    // Configurer Nodemailer - Mailtrap (Gmail temporairement bloqué)
-    /*const transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
       auth: {
-        user: process.env.MAILTRAP_USER || "91be55e01c3ccf",
-        pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD
       },
-    });*/
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+      tls: { rejectUnauthorized: false }
+    });
 
-
-    // Contenu de l'email pour la planification de visite
     const mailOptions = {
       from: '"Orchid Real Estate" <noreply@orchid-realestate.com>',
       to: process.env.ADMIN_EMAIL || "orchido651@gmail.com",
-      subject: `📅 Nouvelle demande de visite: ${meetingType || "Consultation"}`,
+      subject: `📅 Nouvelle demande de visite : ${meetingType || "Consultation"}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5; border-bottom: 2px solid #4F46E5; padding-bottom: 10px;">
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+          <h2 style="color:#4F46E5;border-bottom:2px solid #4F46E5;padding-bottom:10px;">
             📅 Nouvelle demande de planification de visite
           </h2>
-
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">👤 Informations du client</h3>
-            <p><strong>Nom:</strong> ${name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-            <p><strong>Téléphone:</strong> ${phone || "Non précisé"}</p>
+          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
+            <h3 style="color:#333;margin-top:0;">👤 Informations du client</h3>
+            <p><strong>Nom :</strong> ${name}</p>
+            <p><strong>Email :</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Téléphone :</strong> ${phone || "Non précisé"}</p>
           </div>
-
-          <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">📅 Détails du rendez-vous</h3>
-            <p><strong>Type de rendez-vous:</strong> ${meetingType || "Non précisé"}</p>
-            <p><strong>Date souhaitée:</strong> ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}</p>
-            <p><strong>Heure souhaitée:</strong> ${timeSlot || "Non précisée"}</p>
+          <div style="background:#e3f2fd;padding:20px;border-radius:8px;margin:20px 0;">
+            <h3 style="color:#333;margin-top:0;">📅 Détails du rendez-vous</h3>
+            <p><strong>Type :</strong> ${meetingType || "Non précisé"}</p>
+            <p><strong>Date souhaitée :</strong> ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}</p>
+            <p><strong>Heure souhaitée :</strong> ${timeSlot || "Non précisée"}</p>
           </div>
-
           ${message ? `
-          <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">💬 Message</h3>
-            <p style="white-space: pre-wrap;">${message}</p>
-          </div>
-          ` : ''}
-
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-            </p>
-            <p style="color: #4F46E5; font-weight: bold;">
-              ⚡ Action requise: Confirmer le rendez-vous avec le client
-            </p>
-          </div>
+          <div style="background:#fff3e0;padding:20px;border-radius:8px;margin:20px 0;">
+            <h3 style="color:#333;margin-top:0;">💬 Message</h3>
+            <p style="white-space:pre-wrap;">${message}</p>
+          </div>` : ''}
+          <p style="color:#666;font-size:12px;text-align:center;">
+            📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+          </p>
         </div>
       `,
       text: `
-Nouvelle demande de planification de visite
-
-Informations du client:
-Nom: ${name}
-Email: ${email}
-Téléphone: ${phone || "Non précisé"}
-
-Détails du rendez-vous:
-Type: ${meetingType || "Non précisé"}
-Date: ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}
-Heure: ${timeSlot || "Non précisée"}
-
-${message ? `Message:\n${message}\n` : ''}
-
-Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-
-Action requise: Confirmer le rendez-vous avec le client
-      `,
+Demande de visite\n\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone || "Non précisé"}\nType : ${meetingType || "Non précisé"}\nDate : ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}\nHeure : ${timeSlot || "Non précisée"}${message ? `\n\nMessage :\n${message}` : ''}
+      `.trim(),
     };
 
-    // Envoyer l'email
-    console.log('📤 Envoi de l\'email de planification...');
     try {
       const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Email de planification envoyé:', info.messageId);
-
       res.status(200).json({
         success: true,
-        message: "Demande de visite envoyée avec succès ! Nous vous confirmerons par email.",
+        message: "Demande de visite envoyée avec succès !",
         emailId: info.messageId
       });
     } catch (emailError) {
-      console.log('⚠️ Email de planification non envoyé (temporaire):', emailError.message);
-
-      // Succès partiel : demande reçue, email en attente
+      console.error('⚠️ Email de planification non envoyé :', emailError.message);
       res.status(200).json({
         success: true,
-        message: "Demande de visite reçue ! Nous vous confirmerons par email dès que possible.",
-        emailStatus: "pending",
-        note: "Votre demande de visite a été enregistrée. Nous vous contacterons bientôt."
+        message: "Demande de visite reçue ! Nous vous confirmerons bientôt.",
+        emailStatus: "pending"
       });
     }
 
   } catch (error) {
-    console.error('❌ Erreur dans scheduleVisit:', error);
+    console.error('❌ Erreur dans scheduleVisit :', error);
     res.status(500).json({
       success: false,
       error: "Erreur lors du traitement de la demande de visite",
@@ -398,7 +381,6 @@ Action requise: Confirmer le rendez-vous avec le client
   }
 };
 
-// Export des fonctions
 module.exports = {
   addContact,
   getAllContacts,

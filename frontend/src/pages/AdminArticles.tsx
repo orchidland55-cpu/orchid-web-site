@@ -310,7 +310,7 @@ const AdminArticles = () => {
     // <PageTransition>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b border-border shadow-sm">
+        {/* <header className="bg-white border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -335,7 +335,7 @@ const AdminArticles = () => {
               </Link>
             </div>
           </div>
-        </header>
+        </header> */}
 
         <main className="container mx-auto px-6 py-8">
           {/* Filters and Search */}

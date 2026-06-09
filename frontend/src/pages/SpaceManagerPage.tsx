@@ -29,7 +29,7 @@ const SpaceManagerPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header — identique au dashboard */}
-      <header className="bg-white border-b border-border shadow-sm">
+      {/* <header className="bg-white border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -59,7 +59,7 @@ const SpaceManagerPage = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
  
       <main className="container mx-auto px-6 py-8">
         <SpaceManager />

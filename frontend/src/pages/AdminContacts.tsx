@@ -15,11 +15,17 @@ import {
   Clock,
   Trash2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
 import { apiService } from "@/services/api";
+
+const CONTACTS_PER_PAGE = 5;
 
 const AdminContacts = () => {
   const navigate = useNavigate();
@@ -27,6 +33,8 @@ const AdminContacts = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [contacts, setContacts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("adminLoggedIn");
@@ -36,6 +44,11 @@ const AdminContacts = () => {
     }
     loadContacts();
   }, [navigate]);
+
+  // Reset to page 1 when search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   const loadContacts = async () => {
     setIsLoading(true);
@@ -95,14 +108,10 @@ const AdminContacts = () => {
 
   const handleStatusChange = async (contactId: string, newStatus: string) => {
     try {
-      // Update local state immediately for better UX
       setContacts(prev =>
         prev.map(contact => (contact.id === contactId ? { ...contact, status: newStatus } : contact))
       );
-
-      // Save to database
       await apiService.updateContactStatus(contactId, newStatus);
-
       showToast({
         type: "success",
         title: "Status Updated",
@@ -110,8 +119,7 @@ const AdminContacts = () => {
         duration: 3000
       });
     } catch (error) {
-      // On error, restore previous status
-      await loadContacts(); // Reload to get correct state
+      await loadContacts();
       showToast({
         type: "error",
         title: "Error",
@@ -119,6 +127,18 @@ const AdminContacts = () => {
         duration: 3000
       });
     }
+  };
+
+  const toggleMessageExpand = (contactId: string) => {
+    setExpandedMessages(prev => {
+      const next = new Set(prev);
+      if (next.has(contactId)) {
+        next.delete(contactId);
+      } else {
+        next.add(contactId);
+      }
+      return next;
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -152,6 +172,35 @@ const AdminContacts = () => {
     return matchesSearch && matchesFilter;
   });
 
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredContacts.length / CONTACTS_PER_PAGE));
+  const paginatedContacts = filteredContacts.slice(
+    (currentPage - 1) * CONTACTS_PER_PAGE,
+    currentPage * CONTACTS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    pages.push(1);
+    if (currentPage > 3) pages.push("...");
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      pages.push(i);
+    }
+    if (currentPage < totalPages - 2) pages.push("...");
+    pages.push(totalPages);
+    return pages;
+  };
+
   const stats = {
     total: contacts.length,
     newCount: contacts.filter(c => c.status === "new").length,
@@ -162,22 +211,8 @@ const AdminContacts = () => {
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="bg-white border-b border-border shadow-sm">
-          <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-            <Link to="/admin/dashboard">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Contact Requests</h1>
-              <p className="text-sm text-muted-foreground">Manage client inquiries</p>
-            </div>
-          </div>
-        </header>
-
         <main className="container mx-auto px-6 py-8">
+
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
@@ -213,7 +248,7 @@ const AdminContacts = () => {
                   <p className="text-sm font-medium text-muted-foreground">Total</p>
                   <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                 </div>
-                <Mail className="w-6 h-6 text-white" />
+                <Mail className="w-6 h-6 text-muted-foreground" />
               </CardContent>
             </Card>
           </div>
@@ -246,6 +281,13 @@ const AdminContacts = () => {
             </CardContent>
           </Card>
 
+          {/* Results count */}
+          {!isLoading && filteredContacts.length > 0 && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing {(currentPage - 1) * CONTACTS_PER_PAGE + 1}–{Math.min(currentPage * CONTACTS_PER_PAGE, filteredContacts.length)} of {filteredContacts.length} request{filteredContacts.length > 1 ? "s" : ""}
+            </p>
+          )}
+
           {/* Contact list or loader */}
           {isLoading ? (
             <Card>
@@ -267,49 +309,125 @@ const AdminContacts = () => {
               </CardContent>
             </Card>
           ) : (
-            filteredContacts.map(contact => (
-              <Card key={contact.id} className="hover:shadow-luxury transition-all duration-300 mb-4">
-                <CardContent className="p-6 flex justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      {getPriorityIcon(contact.priority)}
-                      <h3 className="text-lg font-bold text-foreground">{contact.name}</h3>
-                      {getStatusBadge(contact.status)}
-                      <Badge variant="outline" className="text-xs">{contact.propertyType}</Badge>
-                    </div>
-                    <h4 className="text-md font-semibold text-foreground mb-2">{contact.subject}</h4>
-                    <p className="text-muted-foreground mb-4 line-clamp-2">{contact.message}</p>
-                    <div className="grid md:grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-2"><Mail className="w-4 h-4" /><span>{contact.email}</span></div>
-                      <div className="flex items-center space-x-2"><Phone className="w-4 h-4" /><span>{contact.phone}</span></div>
-                      <div className="flex items-center space-x-2"><Calendar className="w-4 h-4" /><span>{new Date(contact.date).toLocaleDateString('en-US')}</span></div>
-                      <div className="flex items-center space-x-2"><Clock className="w-4 h-4" /><span>{contact.time}</span></div>
-                    </div>
-                  </div>
+            <>
+              {paginatedContacts.map(contact => {
+                const isExpanded = expandedMessages.has(contact.id);
+                const isLongMessage = contact.message && contact.message.length > 150;
 
-                  <div className="flex flex-col space-y-2 ml-4">
-                    <select
-                      value={contact.status}
-                      onChange={(e) => handleStatusChange(contact.id, e.target.value)}
-                      className="px-3 py-1 text-xs border border-input rounded-md bg-background"
-                    >
-                      <option value="new">New</option>
-                      <option value="répondu">Replied</option>
-                      <option value="planifier">Scheduled</option>
-                    </select>
+                return (
+                  <Card key={contact.id} className="hover:shadow-luxury transition-all duration-300 mb-4">
+                    <CardContent className="p-6 flex justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          {getPriorityIcon(contact.priority)}
+                          <h3 className="text-lg font-bold text-foreground">{contact.name}</h3>
+                          {getStatusBadge(contact.status)}
+                          <Badge variant="outline" className="text-xs">{contact.propertyType}</Badge>
+                        </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(contact.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                        <h4 className="text-md font-semibold text-foreground mb-2">{contact.subject}</h4>
+
+                        {/* Message with expand/collapse */}
+                        <div className="mb-4">
+                          <p className={`text-muted-foreground ${!isExpanded && isLongMessage ? "line-clamp-2" : ""}`}>
+                            {contact.message}
+                          </p>
+                          {isLongMessage && (
+                            <button
+                              onClick={() => toggleMessageExpand(contact.id)}
+                              className="mt-1 flex items-center gap-1 text-xs font-medium text-primary hover:underline focus:outline-none"
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp className="w-3 h-3" />
+                                  Show less
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3 h-3" />
+                                  Read more
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-2"><Mail className="w-4 h-4" /><span>{contact.email}</span></div>
+                          <div className="flex items-center space-x-2"><Phone className="w-4 h-4" /><span>{contact.phone}</span></div>
+                          <div className="flex items-center space-x-2"><Calendar className="w-4 h-4" /><span>{new Date(contact.date).toLocaleDateString('en-US')}</span></div>
+                          <div className="flex items-center space-x-2"><Clock className="w-4 h-4" /><span>{contact.time}</span></div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col space-y-2 ml-4">
+                        <select
+                          value={contact.status}
+                          onChange={(e) => handleStatusChange(contact.id, e.target.value)}
+                          className="px-3 py-1 text-xs border border-input rounded-md bg-background"
+                        >
+                          <option value="new">New</option>
+                          <option value="répondu">Replied</option>
+                          <option value="planifier">Scheduled</option>
+                        </select>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(contact.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-1 mt-6">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+
+                  {getPageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground select-none">
+                        …
+                      </span>
+                    ) : (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(page as number)}
+                        className="w-9 h-9 p-0"
+                      >
+                        {page}
+                      </Button>
+                    )
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-2"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import ToastContainer from "./components/ToastContainer";
 import AnalyticsTracker from "./components/AnalyticsTracker";
@@ -71,6 +71,17 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 function App() {
+  const PublicWidgets = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin") || location.pathname.startsWith("/space-manager");
+  if (isAdmin) return null;
+  return (
+    <>
+      <ChatbaseWidget />
+      <WhatsAppButton />
+    </>
+  );
+};
   return (
     <HelmetProvider>
     <div className="overflow-x-hidden">
@@ -135,8 +146,7 @@ function App() {
               </Routes>
             </Suspense>
 
-            <ChatbaseWidget />
-            <WhatsAppButton />
+            <PublicWidgets />
             <Toaster />
             <Sonner />
             <ToastContainer />

@@ -285,7 +285,7 @@ const AdminAddArticle = () => {
     <PageTransition>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-card border-b border-border shadow-sm">
+        {/* <header className="bg-card border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -312,7 +312,7 @@ const AdminAddArticle = () => {
               </div>
             </div>
           </div>
-        </header>
+        </header> */}
 
         <main className="container mx-auto px-6 py-8">
           <div className="grid lg:grid-cols-3 gap-8">
@@ -503,6 +503,16 @@ const AdminAddArticle = () => {
                   )}
                 </CardContent>
               </Card>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Draft
+                </Button>
+                <Button onClick={handleSubmit} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Globe className="w-4 h-4 mr-2" />
+                  {isLoading ? "Publishing..." : "Publish"}
+                </Button>
+              </div>
             </div>
 
             {/* Sidebar */}

@@ -170,12 +170,12 @@ const AdminAnalytics = () => {
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link to="/admin/dashboard">
+                {/* <Link to="/admin/dashboard">
                   <Button variant="outline" size="sm" className="text-gray-700 hover:bg-gray-100">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Retour au dashboard
                   </Button>
-                </Link>
+                </Link> */}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800">Statistiques des Vues</h1>
                   <p className="text-sm text-yellow-700">Analyse détaillée du trafic du site</p>

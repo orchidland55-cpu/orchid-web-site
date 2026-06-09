@@ -258,7 +258,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' https://res.cloudinary.com https://*.chatbase.co data: blob:; media-src 'self' https://res.cloudinary.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.chatbase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://www.google-analytics.com https://orchid-web-site-production.up.railway.app https://www.chatbase.co; frame-src 'self' https://www.chatbase.co; frame-ancestors 'none';"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' https://res.cloudinary.com https://*.chatbase.co data: blob:; media-src 'self' https://res.cloudinary.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.chatbase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://www.google-analytics.com https://orchid-web-site-production.up.railway.app https://www.chatbase.co; frame-src 'self' https://www.chatbase.co; frame-ancestors 'none';"
         },
         
         {

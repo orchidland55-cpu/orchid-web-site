@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 .env
 bundle-analysis.html
+.env.local
+.env.production

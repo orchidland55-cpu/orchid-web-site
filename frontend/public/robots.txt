@@ -26,4 +26,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://orchidisland.immo/sitemap.xml
+Sitemap: https://www.orchidisland.immo/sitemap.xml

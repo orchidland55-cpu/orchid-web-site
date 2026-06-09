@@ -314,10 +314,10 @@ const AboutUs = () => {
                         13219 10th Street Bowie Maryland, 20715 USA
                       </span>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    {/* <div className="flex items-center space-x-3">
                       <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span className="font-lora text-sm">+212 6 18 68 88 88</span>
-                    </div>
+                      <span className="font-lora text-sm">+1 (202) 555-0134</span>
+                    </div> */}
                   </div>
                 </CardContent>
               </Card>

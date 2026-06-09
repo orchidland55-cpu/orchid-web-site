@@ -75,6 +75,8 @@ function App() {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin") || location.pathname.startsWith("/space-manager");
   if (isAdmin) return null;
+  const isEditor = location.pathname.startsWith("/editor");
+  if (isEditor) return null;
   return (
     <>
       <ChatbaseWidget />

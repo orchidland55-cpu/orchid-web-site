@@ -7,7 +7,15 @@ const { sendSetPasswordEmail } = require('../services/emailService');
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────────────────────────────────────
-
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isStrongPassword = (password) => {
+  if (password.length < 10) return false;
+  if (!/[A-Z]/.test(password)) return false; // majuscule
+  if (!/[a-z]/.test(password)) return false; // minuscule
+  if (!/[0-9]/.test(password)) return false; // chiffre
+  if (!/[^A-Za-z0-9]/.test(password)) return false; // caractère spécial
+  return true;
+};
 // POST /api/auth/login
 const login = async (req, res) => {
   try {
@@ -56,7 +64,13 @@ const login = async (req, res) => {
 
 // GET /api/auth/verify
 const verifyToken = (req, res) => {
-  res.json({ valid: true, user: req.user });
+  res.json({ 
+    valid: true, 
+    user: { 
+      role: req.user.role,
+      email: req.user.email 
+    } 
+  });
 };
 
 // GET /api/auth/admins — liste des admins (nom + id uniquement)
@@ -96,9 +110,14 @@ const getUsers = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { name, email, role } = req.body;
+    const ALLOWED_ROLES = ['admin', 'editor'];
+    const safeRole = ALLOWED_ROLES.includes(role) ? role : 'editor';
 
     if (!name || !email) {
       return res.status(400).json({ message: 'Nom et email requis' });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'Format email invalide' });
     }
 
     // Vérifier si l'email est déjà utilisé
@@ -117,7 +136,7 @@ const createUser = async (req, res) => {
     const user = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      role: role || 'editor',
+      role: safeRole,
       password: tempPassword,
       passwordSet: false,
       resetPasswordToken: rawToken,
@@ -173,6 +192,9 @@ const updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ message: 'Format email invalide' });
+    }
 
     // Vérifier unicité email si modifié
     if (email && email.toLowerCase() !== user.email) {
@@ -184,13 +206,17 @@ const updateUser = async (req, res) => {
 
     if (name)  user.name  = name.trim();
     if (email) user.email = email.toLowerCase().trim();
-    if (role)  user.role  = role;
+    const ALLOWED_ROLES = ['admin', 'editor'];
+    if (role && ALLOWED_ROLES.includes(role)) user.role = role;
 
     // Mise à jour optionnelle du mot de passe
-    if (password && password.length >= 8) {
-      user.password = password; // sera hashé par le pre-save hook
-    } else if (password && password.length > 0) {
-      return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
+    if (password && password.length > 0) {
+      if (!isStrongPassword(password)) {
+        return res.status(400).json({ 
+          message: 'Le mot de passe doit contenir au moins 10 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial' 
+        });
+      }
+      user.password = password;
     }
 
     await user.save();
@@ -246,8 +272,10 @@ const setPassword = async (req, res) => {
       return res.status(400).json({ message: 'Token et mot de passe requis' });
     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ 
+       message: 'Le mot de passe doit contenir au moins 10 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial' 
+      });
     }
 
     // Chercher l'utilisateur avec ce token non expiré

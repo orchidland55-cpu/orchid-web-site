@@ -1,9 +1,11 @@
+const dotenv = require('dotenv');
+dotenv.config();
+const helmet = require('helmet');
 const compression = require('compression');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const fileUpload = require('express-fileupload'); // pour récupérer les fichiers
 const Activity = require('./models/Activity');
 const YearlyView = require('./models/YearlyView');
@@ -52,10 +54,12 @@ const cacheMiddleware = (req, res, next) => {
   next();
 };
 
-dotenv.config(); // charge les variables d'environnement
-
 const app = express();
 app.use(compression());
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 
 const PORT = process.env.PORT || 3000;
 
@@ -65,8 +69,8 @@ app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
-app.use(bodyParser.json({ limit: '150mb' }));
-app.use(bodyParser.urlencoded({ limit: '150mb', extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 // app.use(fileUpload()); // middleware pour gérer les fichiers
 app.use((req, res, next) => {
   // Ne pas appliquer express-fileupload sur les routes d'upload d'espaces
@@ -189,19 +193,39 @@ const spaceAccessLimiter = rateLimit({
   // En production, ajouter : keyGenerator: (req) => req.ip
 });
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // max 50 requêtes par IP
+// Limiter global
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: "Trop de requêtes, veuillez réessayer plus tard."
 });
+app.use(globalLimiter);
 
-app.use("/invest", limiter);
+// Anti brute-force login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Trop de tentatives de connexion. Réessayez dans 15 minutes."
+});
+
+// Formulaires publics
+const formLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Limite de soumissions atteinte. Réessayez dans 1 heure."
+});
 
 // Appliquer le middleware d'analytics
 app.use(analyticsMiddleware);
 
 // Routes d'authentification (PUBLIQUES)
-app.post('/api/auth/login', login);
+app.post('/api/auth/login',loginLimiter, login);
 app.get('/api/auth/verify', verifyJWT, verifyToken);
 
 // ===== Connect to MongoDB =====
@@ -237,10 +261,6 @@ app.delete('/properties/:id', verifyJWT, requireAdmin, (req, res, next) => {
   next();
 }, propertyController.deleteProperty);
 
-// app.post('/properties', verifyJWT, requireAdminOrEditor, propertyController.addProperty);  // ✅ Éditeurs peuvent créer
-// app.put('/properties/:id', verifyJWT, requireAdminOrEditor, propertyController.updateProperty);  // ✅ Éditeurs peuvent modifier
-// app.delete('/properties/:id', verifyJWT, requireAdmin, propertyController.deleteProperty);  // ❌ Seuls admins peuvent supprimer
-
 // ===== CRUD routes for articles =====
 app.get('/articles', cacheMiddleware, articleController.getAllArticles);
 app.get('/articles/:id', cacheMiddleware, articleController.getArticleById);
@@ -260,28 +280,24 @@ app.delete('/articles/:id', verifyJWT, requireAdmin, (req, res, next) => {
   next();
 }, articleController.deleteArticle);
 
-// app.post('/articles', verifyJWT, requireAdminOrEditor, articleController.addArticle);  // ✅ Éditeurs peuvent créer
-// app.put('/articles/:id', verifyJWT, requireAdminOrEditor, articleController.updateArticle);  // ✅ Éditeurs peuvent modifier
-// app.delete('/articles/:id', verifyJWT, requireAdmin, articleController.deleteArticle);  // ❌ Seuls admins peuvent supprimer
 app.post('/articles/:id/views', articleController.incrementArticleViews);
 
 // ===== Contact routes =====
-app.post('/contact', contactController.addContact);
-app.get('/contacts', contactController.getAllContacts);
+app.post('/contact', formLimiter, contactController.addContact);
+app.get('/contacts', verifyJWT, requireAdmin, contactController.getAllContacts);
 app.put('/contacts/:id/status', verifyJWT, requireAdmin, contactController.updateContactStatus);
 app.delete('/contacts/:id', verifyJWT, requireAdmin, contactController.deleteContact);
 app.post('/schedule-visit', contactController.scheduleVisit);
-app.get('/test-email', contactController.testEmail);
 
 // ===== Dashboard routes =====
-app.get('/dashboard/stats', dashboardController.getDashboardStats);
-app.get('/dashboard/details/:type', dashboardController.getDetailedStats);
+app.get('/dashboard/stats', verifyJWT, requireAdminOrEditor, dashboardController.getDashboardStats);
+app.get('/dashboard/details/:type', verifyJWT, requireAdminOrEditor, dashboardController.getDetailedStats);
 
 // ===== Postulation route =====
-app.post('/postulation', sendPostulation);
+app.post('/postulation', formLimiter, sendPostulation);
 
 // ===== Invest route =====
-app.post('/invest', sendInvestmentEmail);
+app.post('/invest', formLimiter, sendInvestmentEmail);
 
 // ===== Chatbot route =====
 app.post('/chatbot', sendMessageToChatbot);
@@ -336,17 +352,20 @@ const {
 } = require('./controllers/analyticsController');
 
 // Définir les routes
-app.get('/api/analytics/yearly', getYearlyViews);
-app.get('/api/analytics/monthly', getMonthlyComparison);
-app.get('/api/analytics/countries', getCountryViews);
-
-// Route POST pour ajouter une vue (optionnel — pour tester la dynamique)
-app.post('/api/analytics/add-view', addViewToCountry);
+app.get('/api/analytics/yearly', verifyJWT, requireAdminOrEditor, getYearlyViews);
+app.get('/api/analytics/monthly', verifyJWT, requireAdminOrEditor, getMonthlyComparison);
+app.get('/api/analytics/countries', verifyJWT, requireAdminOrEditor, getCountryViews);
+app.post('/api/analytics/add-view', verifyJWT, requireAdmin, addViewToCountry);
 
 // Route pour tracker les vues de pages depuis le frontend
 app.post('/api/analytics/track-page', async (req, res) => {
   try {
     const { page } = req.body;
+    // Validation
+    if (!page || typeof page !== 'string' || page.length > 200) {
+      return res.status(400).json({ error: 'Page invalide' });
+    }
+    const safePage = page.replace(/[^a-zA-Z0-9\-_\/]/g, '');
     const clientIP = req.ip ||
                      req.connection.remoteAddress ||
                      req.socket.remoteAddress ||

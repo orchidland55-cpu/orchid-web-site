@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema(
       required: function () {
         return this.passwordSet === true; // ← requis seulement une fois le mot de passe défini
       },
-      minlength: 8,
+      minlength: 10,
     },
     role: {
       type: String,

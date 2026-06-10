@@ -1,13 +1,10 @@
 // middleware/authMiddleware.js
-//
-// Version étendue — conserve verifyJWT et requireAdmin existants,
-// ajoute verifySpaceJWT et checkUploadAllowed pour les espaces.
-//
 const jwt = require('jsonwebtoken');
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EXISTANT — ne pas modifier
-// ─────────────────────────────────────────────────────────────────────────────
+// Vérification critique au démarrage
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('❌ FATAL: JWT_SECRET manquant ou trop court (min 32 caractères)');
+  process.exit(1);
+}
 
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -23,7 +20,7 @@ const verifyJWT = (req, res, next) => {
     req.user = decoded; // { userId, role }
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Token expiré ou invalide' });
+    return res.status(401).json({ message: 'Non autorisé' });
   }
 };
 
@@ -82,11 +79,11 @@ const verifySpaceJWT = (req, res, next) => {
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
-        message: 'Session expirée. Veuillez vous reconnecter à l\'espace.',
+        message: 'Session expirée. Veuillez vous reconnecter.',
         expired: true,
       });
     }
-    return res.status(401).json({ message: 'Token invalide' });
+    return res.status(401).json({ message: 'Non autorisé' });
   }
 };
 
@@ -138,7 +135,7 @@ const verifyAdminOrSpaceJWT = (req, res, next) => {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Session expirée', expired: true });
     }
-    return res.status(401).json({ message: 'Token invalide' });
+    return res.status(401).json({ message: 'Non autorisé' });
   }
 };
 

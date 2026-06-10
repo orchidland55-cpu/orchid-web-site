@@ -140,9 +140,17 @@ function CityCombobox({ value, onChange }: CityComboboxProps) {
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-const AdminEditProperty = () => {
+interface AdminEditPropertyProps {
+  id?: string | null;
+  onDone?: () => void;
+}
+
+const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: paramId } = useParams();
+  // Priorité à la prop (usage dans le dashboard), fallback sur useParams (route directe)
+  const id = propId ?? paramId;
+  const goBack = () => { if (onDone) { onDone(); } else { navigate("/admin/properties"); } };
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -186,7 +194,7 @@ const AdminEditProperty = () => {
   const loadPropertyData = async () => {
     if (!id) {
       alert("Property ID missing");
-      navigate("/admin/properties");
+      goBack();
       return;
     }
     setIsLoadingData(true);
@@ -236,7 +244,7 @@ const AdminEditProperty = () => {
     } catch (error: any) {
       console.error("Error loading property:", error);
       alert("Error loading data");
-      navigate("/admin/properties");
+      goBack();
     } finally {
       setIsLoadingData(false);
     }
@@ -345,7 +353,7 @@ const AdminEditProperty = () => {
       const finalData = { ...formData, additionalImages: allImages };
       await apiService.updateProperty(id, finalData);
       alert("Property updated!");
-      navigate("/admin/properties");
+      goBack();
     } catch (error: any) {
       console.error("Error updating property:", error);
       alert(`Error: ${error.message}`);
@@ -363,7 +371,7 @@ const AdminEditProperty = () => {
       const draftData = { ...formData, status: "draft", additionalImages: allImages };
       await apiService.updateProperty(id, draftData);
       alert("Draft saved!");
-      navigate("/admin/properties");
+      goBack();
     } catch (error: any) {
       console.error("Error saving draft:", error);
       alert(`Error: ${error.message}`);
@@ -379,7 +387,7 @@ const AdminEditProperty = () => {
       try {
         await apiService.deleteProperty(id);
         alert("Property deleted!");
-        navigate("/admin/properties");
+        goBack();
       } catch (error: any) {
         alert(`Error: ${error.message}`);
       } finally {
@@ -408,11 +416,11 @@ const AdminEditProperty = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-white border-b border-border shadow-sm">
+      {/* <header className="bg-white border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <a href="/admin/properties">
+              <a href="#" onClick={(e) => { e.preventDefault(); goBack(); }}>
                 <Button variant="outline" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Properties
@@ -436,7 +444,7 @@ const AdminEditProperty = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       <main className="container mx-auto px-6 py-8">
         <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
@@ -749,6 +757,7 @@ const AdminEditProperty = () => {
                 </div>
 
               </CardContent>
+              
             </Card>
 
             {/* SEO */}
@@ -802,6 +811,17 @@ const AdminEditProperty = () => {
                 </div>
               </CardContent>
             </Card>
+            <div className="flex items-center space-x-2">
+              <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+                <Trash2 className="w-4 h-4 mr-2" />DELETE
+              </Button>
+              <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
+                <Save className="w-4 h-4 mr-2" />{isLoading ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
+                <Building className="w-4 h-4 mr-2" />{isLoading ? "Updating..." : "Update"}
+              </Button>
+            </div>
           </div>
 
           {/* Sidebar */}

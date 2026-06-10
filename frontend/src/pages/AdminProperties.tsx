@@ -13,7 +13,11 @@ import { Building, Plus, Search, Edit, Trash2, MapPin, ArrowLeft, Filter, Bed,
 import PageTransition from "@/components/PageTransition";
 import { apiService, Property } from "@/services/api";
 
-const AdminProperties = () => {
+interface AdminPropertiesProps {
+  onNavigate?: (id: string) => void;
+}
+
+const AdminProperties = ({ onNavigate }: AdminPropertiesProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -506,12 +510,15 @@ const AdminProperties = () => {
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <Link to={`/admin/properties/edit/${property._id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 w-full"
+                      onClick={() => onNavigate ? onNavigate(property._id) : navigate(`/admin/properties/edit/${property._id}`)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

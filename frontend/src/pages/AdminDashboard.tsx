@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,8 @@ const AdminAddArticle     = lazy(() => import("@/pages/AdminAddArticle"));
 const AdminAnalytics     = lazy(() => import("@/pages/AdminAnalytics"));
 const AdminContacts       = lazy(() => import("@/pages/AdminContacts"));
 const SpaceManagerPage   = lazy(() => import("@/pages/SpaceManagerPage"));
+const AdminEditProperty = lazy(() => import("@/pages/AdminEditProperty"));
+const AdminEditArticle = lazy(() => import("@/pages/AdminEditArticle"));
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ViewKey =
@@ -56,6 +58,8 @@ type ViewKey =
   | "analytics"
   | "properties"
   | "properties-add"
+  | "properties-edit"
+  | "articles-edit"
   | "articles"
   | "articles-add"
   | "contacts"
@@ -108,13 +112,11 @@ const NavItem = ({
 // ─── Main component ───────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isAdmin, isEditor, role, email } = useUserRole();
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [dashboardStats, setDashboardStats] = useState(null);
   const [recentActivities, setRecentActivities]  = useState<Activity[]>([]);
-  const [isLoading, setIsLoading]                = useState(true);
   const [isActivitiesLoading, setIsActivitiesLoading] = useState(true);
   const [userModalOpen, setUserModalOpen]        = useState(false);
   const [yearlyViewsData, setYearlyViewsData]    = useState<any[]>([]);
@@ -127,6 +129,7 @@ const AdminDashboard = () => {
   const [mobileOpen, setMobileOpen]     = useState(false);
   const [collapsed, setCollapsed]       = useState(false);
   const [activeView, setActiveView]     = useState<ViewKey>("dashboard");
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // Titre dynamique selon la vue active
   const viewTitles: Record<ViewKey, string> = {
@@ -138,6 +141,8 @@ const AdminDashboard = () => {
     "articles-add":  "New Article",
     contacts:        "Contact Requests",
     "space-manager": "Data Room",
+    "properties-edit": "Edit Property",
+    "articles-edit": "Edit Article",
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -155,10 +160,11 @@ const AdminDashboard = () => {
   const formatNumber = (num: number) =>
     num >= 1000 ? (num / 1000).toFixed(1) + "K" : num.toString();
 
-  const goTo = (view: ViewKey) => {
+
+  const goTo = (view: ViewKey, id?: string) => {
     setActiveView(view);
+    setActiveId(id || null);
     setMobileOpen(false);
-    // Scroll la zone de contenu en haut à chaque changement de vue
     document.getElementById("admin-content")?.scrollTo({ top: 0 });
   };
 
@@ -170,7 +176,6 @@ const AdminDashboard = () => {
   }, []);
 
   const loadDashboardStats = async () => {
-    setIsLoading(true);
     try {
       const result = await apiService.getDashboardStats();
       setDashboardStats(result.data);
@@ -178,7 +183,6 @@ const AdminDashboard = () => {
       console.error("❌ Connection error:", error);
       showToast({ type: "error", title: "Connection Error", message: "Unable to load statistics from server" });
     } finally {
-      setIsLoading(false);
     }
   };
 
@@ -330,8 +334,8 @@ const AdminDashboard = () => {
             </p>
           )}
           <div className="space-y-0.5">
-            <NavItem icon={Building}      label="Properties"       viewKey="properties" active={activeView === "properties" || activeView === "properties-add"} collapsed={collapsed} onClick={() => goTo("properties")} />
-            <NavItem icon={FileText}      label="Articles"         viewKey="articles"   active={activeView === "articles"   || activeView === "articles-add"}   collapsed={collapsed} onClick={() => goTo("articles")}   />
+            <NavItem icon={Building}      label="Properties"       viewKey="properties" active={activeView === "properties" || activeView === "properties-add" || activeView === "properties-edit"} collapsed={collapsed} onClick={() => goTo("properties")} />
+            <NavItem icon={FileText}      label="Articles"         viewKey="articles"   active={activeView === "articles"   || activeView === "articles-add"   || activeView === "articles-edit"}   collapsed={collapsed} onClick={() => goTo("articles")}   />
             {/* Contacts — cliquable seulement si admin (logique inchangée) */}
             {isAdmin ? (
               <NavItem icon={MessageCircle} label="Contact Requests" viewKey="contacts" active={activeView === "contacts"} collapsed={collapsed} onClick={() => goTo("contacts")} />
@@ -692,21 +696,25 @@ const AdminDashboard = () => {
           </Suspense>
         );
       case "properties":
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <AdminProperties />
-          </Suspense>
-        );
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <AdminProperties
+        onNavigate={(id: string) => goTo("properties-edit", id)}
+      />
+    </Suspense>
+  );
       case "properties-add":
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <AdminAddProperty />
-          </Suspense>
-        );
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <AdminAddProperty />
+    </Suspense>
+  );
       case "articles":
         return (
           <Suspense fallback={<PageLoader />}>
-            <AdminArticles />
+            <AdminArticles
+              onNavigate={(id: string) => goTo("articles-edit", id)}
+            />
           </Suspense>
         );
       case "articles-add":
@@ -731,6 +739,24 @@ const AdminDashboard = () => {
             <SpaceManagerPage />
           </Suspense>
         ) : null;
+      case "properties-edit":
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <AdminEditProperty
+        id={activeId}
+        onDone={() => goTo("properties")}
+      />
+    </Suspense>
+  );
+  case "articles-edit":
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <AdminEditArticle
+        id={activeId}
+        onDone={() => goTo("articles")}
+      />
+    </Suspense>
+  );
       default:
         return <DashboardHome />;
     }
@@ -767,9 +793,16 @@ const AdminDashboard = () => {
           </Button>
         );
       case "properties-add":
+      case "properties-edit":
+        return (
+          <Button variant="outline" size="sm" onClick={() => goTo("properties")}>
+            ← Back
+          </Button>
+        );
+      case "articles-edit":
       case "articles-add":
         return (
-          <Button variant="outline" size="sm" onClick={() => goTo(activeView === "properties-add" ? "properties" : "articles")}>
+          <Button variant="outline" size="sm" onClick={() => goTo("articles")}>
             ← Back
           </Button>
         );

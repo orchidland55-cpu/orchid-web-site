@@ -12,7 +12,11 @@ import { FileText, Plus, Search, Edit, Trash2, Eye, Calendar, User, ArrowLeft, F
 import PageTransition from "@/components/PageTransition";
 import { apiService, Article } from "@/services/api";
 
-const AdminArticles = () => {
+interface AdminArticlesProps {
+  onNavigate?: (id: string) => void;
+}
+
+const AdminArticles = ({ onNavigate }: AdminArticlesProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -520,11 +524,13 @@ const AdminArticles = () => {
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <Link to={`/admin/articles/edit/${article._id}`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onNavigate ? onNavigate(article._id) : navigate(`/admin/articles/edit/${article._id}`)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
                       <Link to={`/${article._id}`} target="_blank">
                         <Button variant="outline" size="sm">
                           <Eye className="w-4 h-4" />

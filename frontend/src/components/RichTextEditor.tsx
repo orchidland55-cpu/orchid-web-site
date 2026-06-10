@@ -109,17 +109,19 @@ const RichTextEditor = ({
     blockquote: false,
   });
 
-  // ── Init & sync value externe ─────────────────────────────────────────────
-
+  // Hydratation initiale — une seule fois au mount
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
-    if (lastValueRef.current === "" && value) {
-      el.innerHTML = value;
-      lastValueRef.current = value;
-    }
+    const incoming = value ?? "";
+    if (incoming) {
+      el.innerHTML = incoming;
+      lastValueRef.current = incoming;
+     setWordStats(countWords(incoming));
+   }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sync si la valeur change depuis l'extérieur (hors focus)
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;

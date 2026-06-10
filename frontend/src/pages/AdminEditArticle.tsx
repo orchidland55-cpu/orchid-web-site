@@ -40,8 +40,8 @@ import {
   AlertCircle,
   ExternalLink,
   Trash2,
-  Plus,        // ✅ Ajout icône Plus
-  X            // ✅ Ajout icône X pour fermer
+  Plus,   
+  X        
 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
@@ -50,11 +50,20 @@ import { uploadToCloudinary } from "@/services/cloudinary";
 import RichTextEditor from "@/components/RichTextEditor";
 import SEOAnalyzer from "@/components/Seoanalyzer";
 
-const AdminEditArticle = () => {
+interface AdminEditArticleProps {
+  id?: string | null;
+  onDone?: () => void;
+}
+
+const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) => {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: paramId } = useParams();
+  // Priorité à la prop (usage dans le dashboard), fallback sur useParams (route directe)
+  const id = propId ?? paramId;
   const articleId = id || "";
+  const goBack = () => { if (onDone) { onDone(); } else { navigate("/admin/articles"); } };
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     excerpt: "",
@@ -84,6 +93,7 @@ const AdminEditArticle = () => {
 
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ✅ États pour l'ajout de catégorie inline
   const [categories, setCategories] = useState([
@@ -122,7 +132,7 @@ const AdminEditArticle = () => {
     const loadArticle = async () => {
       if (!articleId) return;
       try {
-        setIsLoading(true);
+        setIsLoadingData(true);
         const article = await apiService.getArticleById(articleId);
         if (article) {
           // ✅ Si la catégorie de l'article n'est pas dans la liste, on l'ajoute
@@ -162,9 +172,9 @@ const AdminEditArticle = () => {
           message: "Unable to load article. Please try again.",
           duration: 3000,
         });
-        navigate("/admin/articles");
+        goBack();
       } finally {
-        setIsLoading(false);
+        setIsLoadingData(false);
       }
     };
     loadArticle();
@@ -272,7 +282,7 @@ const AdminEditArticle = () => {
       };
       await apiService.updateArticle(articleId, articleData);
       showToast({ type: "success", title: "Article Updated", message: "The article has been successfully updated!", duration: 3000 });
-      navigate("/admin/articles");
+      goBack();
     } catch (error) {
       console.error("Error updating article:", error);
       showToast({ type: "error", title: "Error", message: error instanceof Error ? error.message : "Unable to update article. Please try again.", duration: 3000 });
@@ -322,7 +332,7 @@ const AdminEditArticle = () => {
     try {
       await apiService.deleteArticle(articleId);
       showToast({ type: "success", title: "Article Deleted", message: "The article has been successfully deleted.", duration: 3000 });
-      navigate("/admin/articles");
+      goBack();
     } catch (error) {
       console.error("Error deleting article:", error);
       showToast({ type: "error", title: "Error", message: error instanceof Error ? error.message : "Unable to delete article. Please try again.", duration: 3000 });
@@ -336,30 +346,30 @@ const AdminEditArticle = () => {
     return `${baseUrl}/${formData.slug || 'article-title'}`;
   };
 
-  if (isLoading && !formData.title) {
-    return (
-      <PageTransition>
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div>Loading article...</div>
-        </div>
-      </PageTransition>
-    );
-  }
+  if (isLoadingData) {
+  return (
+    <PageTransition>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div>Loading article...</div>
+      </div>
+    </PageTransition>
+  );
+}
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-card border-b border-border shadow-sm">
+        {/* <header className="bg-card border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link to="/admin/articles">
+                <button onClick={goBack} className="inline-flex">
                   <Button variant="outline" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Articles
                   </Button>
-                </Link>
+                </button>
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">Edit Article</h1>
                   <p className="text-sm text-muted-foreground">Edit the existing article</p>
@@ -381,7 +391,7 @@ const AdminEditArticle = () => {
               </div>
             </div>
           </div>
-        </header>
+        </header> */}
 
         <main className="container mx-auto px-6 py-8">
           <div className="grid lg:grid-cols-3 gap-8">
@@ -565,6 +575,20 @@ const AdminEditArticle = () => {
                   )}
                 </CardContent>
               </Card>
+              <div className="flex items-center space-x-2">
+                <Button variant="destructive" onClick={handleDeleteArticle} disabled={isLoading}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+                <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Draft
+                </Button>
+                <Button onClick={handleSubmit} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Globe className="w-4 h-4 mr-2" />
+                  {isLoading ? "Updating..." : "Update"}
+                </Button>
+              </div>
             </div>
 
             {/* Sidebar */}

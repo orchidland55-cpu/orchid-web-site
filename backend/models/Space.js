@@ -118,6 +118,6 @@ SpaceSchema.methods.comparePassword = async function (candidate) {
 };
 
 // ── Index pour accélerer la recherche par spaceId ─────────────────────────────
-SpaceSchema.index({ spaceId: 1 });
+// SpaceSchema.index({ spaceId: 1 });
 
 module.exports = mongoose.model('Space', SpaceSchema);

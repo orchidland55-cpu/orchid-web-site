@@ -146,8 +146,8 @@ async function analyticsMiddleware(req, res, next) {
 
   const cleanIP = clientIP.replace(/^::ffff:/, '');
 
-  // getCountryFromIP est synchrone dans ton cas — pas besoin de await
-  const country = getCountryFromIP(cleanIP);
+  
+  const country = await getCountryFromIP(cleanIP);
 
   // Fire and forget
   YearlyView.findOneAndUpdate(
@@ -468,7 +468,7 @@ app.get('/', (req, res) => {
 
 // ===== Start server =====
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port :${PORT}`);
 });
 
 // Ping toutes les 5 minutes pour éviter le cold start Railway

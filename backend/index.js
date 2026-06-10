@@ -55,6 +55,7 @@ const cacheMiddleware = (req, res, next) => {
 };
 
 const app = express();
+app.set('trust proxy', 1); // pour obtenir l'IP réelle du client derrière un proxy (ex: Railway)
 app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: false,

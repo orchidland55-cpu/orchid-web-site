@@ -14,6 +14,8 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { lazy, Suspense } from "react";
+import { useEffect } from "react";
+import ReactGA from 'react-ga4' 
 
 // ── Imports statiques (chargés immédiatement) ─────────────────────────────────
 import Index from "@/pages/Index";
@@ -77,6 +79,14 @@ function App() {
   if (isAdmin) return null;
   const isEditor = location.pathname.startsWith("/editor");
   if (isEditor) return null;
+
+  useEffect(() => {
+    // Envoie la page actuelle à Google Analytics à chaque changement de route
+    ReactGA.send({ 
+      hitType: 'pageview', 
+      page: location.pathname + location.search 
+    })
+  }, [location])
   return (
     <>
       <ChatbaseWidget />

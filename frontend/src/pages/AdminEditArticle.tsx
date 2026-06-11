@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardImage,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -342,7 +343,7 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
   };
 
   const generatePreviewUrl = () => {
-    const baseUrl = "https://monsite.com";
+    const baseUrl = "https://orchidisland.immo";
     return `${baseUrl}/${formData.slug || 'article-title'}`;
   };
 
@@ -363,13 +364,13 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
         {/* <header className="bg-card border-b border-border shadow-sm">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4"> */}
                 <button onClick={goBack} className="inline-flex">
                   <Button variant="outline" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Articles
                   </Button>
-                </button>
+                </button> {/* 
                 <div>
                   <h1 className="text-2xl font-bold text-foreground">Edit Article</h1>
                   <p className="text-sm text-muted-foreground">Edit the existing article</p>
@@ -566,7 +567,7 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
                     <div className="mt-4">
                       <p className="text-sm font-medium text-foreground mb-2">Preview:</p>
                       <img
-                        src={imagePreview || formData.image}
+                        src={ 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + (imagePreview || formData.image) }
                         alt={formData.imageAlt || "Preview"}
                         className="w-full h-48 object-cover rounded-lg border"
                         onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/800x400?text=Image+not+found"; }}
@@ -737,6 +738,7 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
                     <Eye className="w-5 h-5" />
                     <span>Article Preview</span>
                   </CardTitle>
+                  <CardImage src={ 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + formData.image || "https://via.placeholder.com/800x400?text=No+Image"} alt={formData.imageAlt || "Article Image"} className="w-16 h-16 object-cover rounded" />
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">

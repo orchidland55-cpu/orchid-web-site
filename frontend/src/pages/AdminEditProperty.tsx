@@ -418,7 +418,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
     <div className="min-h-screen bg-background">
       {/* <header className="bg-white border-b border-border shadow-sm">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">*/}
             <div className="flex items-center space-x-4">
               <a href="#" onClick={(e) => { e.preventDefault(); goBack(); }}>
                 <Button variant="outline" size="sm">
@@ -426,11 +426,12 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                   Back to Properties
                 </Button>
               </a>
-              <div>
+            
+              <div> 
                 <h1 className="text-2xl font-bold text-foreground">Edit Property</h1>
                 <p className="text-sm text-muted-foreground">ID: {id}</p>
               </div>
-            </div>
+            </div>{/*
             <div className="flex items-center space-x-2">
               <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
                 <Trash2 className="w-4 h-4 mr-2" />DELETE

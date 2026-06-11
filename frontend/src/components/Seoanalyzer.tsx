@@ -21,6 +21,7 @@ export interface SEOAnalyzerProps {
   content?: string;        // HTML brut du RichTextEditor (articles)
   description?: string;    // HTML brut (properties)
   image?: string;
+  mainImage?: string;    // NOUVEAU : image principale pour les articles (sera utilisée comme image featured)
   imageAlt?: string;
   ogTitle?: string;
   twitterTitle?: string;
@@ -80,11 +81,12 @@ function extractLinks(html: string): { internal: number; external: number; autho
 
   for (const m of matches) {
     const href = m[1];
-    if (href.startsWith("http://") || href.startsWith("https://")) {
+    if (href.startsWith("http://") || href.startsWith("https://") && !href.includes("orchidisland.immo")) {
       external++;
       const isAuth = AUTHORITATIVE_DOMAINS.some((d) => href.includes(d));
       if (isAuth) authoritative++;
-    } else {
+    }
+    else if (href.includes("orchidisland.immo")) {
       internal++;
     }
   }
@@ -144,12 +146,14 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
     description = "",
     image = "",
     imageAlt = "",
+    mainImage = "",
     ogTitle = "",
     twitterTitle = "",
   } = props;
 
   // Utilise content pour les articles, description pour les properties
   const rawContent = content || description;
+  const mainImageSrc = mainImage || image;
 
   const kw = focusKeyword.trim().toLowerCase();
   const plainContent = stripHtml(rawContent);
@@ -314,7 +318,7 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
   }
 
   // ── 9. Image featured & Alt (7 pts) ───────────────────────────────────────
-  if (!image) {
+  if (!mainImageSrc) {
     factors.push({ type: "warning", category: "Image", text: "Aucune image featured définie", points: 0, maxPoints: 7 });
   } else if (!imageAlt) {
     factors.push({ type: "warning", category: "Image", text: "Image présente mais sans texte alt (accessibilité & SEO)", points: 3, maxPoints: 7 });
@@ -402,6 +406,7 @@ const SEOAnalyzer = (props: SEOAnalyzerProps) => {
     props.content,
     props.description,
     props.image,
+    props.mainImage,
     props.imageAlt,
     props.ogTitle,
     props.twitterTitle,

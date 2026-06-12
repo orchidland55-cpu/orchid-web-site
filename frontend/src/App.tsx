@@ -96,7 +96,7 @@ function App() {
 };
   return (
     <HelmetProvider>
-    <div className="overflow-x-hidden">
+    <div className="overflow-x-clip">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

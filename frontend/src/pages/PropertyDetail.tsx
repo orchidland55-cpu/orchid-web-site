@@ -1,102 +1,303 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Bed, Bath, Square, ArrowLeft, Building, Home, ChevronLeft, ChevronRight, Leaf, Waves, Shield, Sofa } from "lucide-react";
+import {
+  MapPin, Bed, Bath, Square, ArrowLeft, Building, Home,
+  ChevronLeft, ChevronRight, Leaf, Waves, Shield, Sofa, Play,
+} from "lucide-react";
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
 import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
+import ImmersiveTourButton from "@/components/ImmersiveTourButton";
+import ImmersiveTourModal from "@/components/ImmersiveTourModal";
+
+/* ─────────────────────────────────────────────────────────
+   Cinematic Stack Gallery
+   • Grand visuel plein-largeur
+   • Strip de thumbnails transparent superposé en bas
+   • Pill Virtual Tour glassmorphism en bas à droite
+   • Transition cross-fade + léger scale
+   • Compteur discret en haut à droite
+───────────────────────────────────────────────────────── */
+
+interface CinematicGalleryProps {
+  images: string[];
+  thumbnails: string[];
+  title: string;
+  hasVirtualTour: boolean;
+  onOpenTour: () => void;
+}
+
+const CinematicGallery = ({
+  images,
+  thumbnails,
+  title,
+  hasVirtualTour,
+  onOpenTour,
+}: CinematicGalleryProps) => {
+  const [current, setCurrent] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  const go = (index: number) => {
+    if (transitioning || index === current) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      setCurrent(index);
+      setTransitioning(false);
+    }, 350);
+  };
+
+  const prev = () => go(current === 0 ? images.length - 1 : current - 1);
+  const next = () => go(current === images.length - 1 ? 0 : current + 1);
+
+  /* Auto-scroll le strip pour que la thumb active reste visible */
+  useEffect(() => {
+    if (!stripRef.current) return;
+    const strip = stripRef.current;
+    const thumb = strip.children[current] as HTMLElement;
+    if (!thumb) return;
+    const thumbLeft = thumb.offsetLeft;
+    const thumbRight = thumbLeft + thumb.offsetWidth;
+    const stripLeft = strip.scrollLeft;
+    const stripRight = stripLeft + strip.clientWidth;
+    if (thumbLeft < stripLeft + 16) {
+      strip.scrollTo({ left: thumbLeft - 16, behavior: "smooth" });
+    } else if (thumbRight > stripRight - 16) {
+      strip.scrollTo({ left: thumbRight - strip.clientWidth + 16, behavior: "smooth" });
+    }
+  }, [current]);
+
+  /* Keyboard */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [current, transitioning]);
+
+  return (
+    <>
+      {/* ── Main cinematic frame ── */}
+      <div className="relative w-full h-64 sm:h-80 md:h-[480px] lg:h-[580px] overflow-hidden rounded-xl sm:rounded-2xl select-none bg-zinc-600">
+
+        {/* Images en stack cross-fade */}
+        {images.map((src, i) => (
+          <div
+            key={i}
+            className="absolute inset-0"
+            style={{
+              opacity: i === current ? 1 : 0,
+              transition: "opacity 450ms ease-in-out",
+              zIndex: i === current ? 1 : 0,
+            }}
+          >
+            <img
+              src={src}
+              alt={`${title} — photo ${i + 1}`}
+              className="w-full h-full object-contain cursor-zoom-in"
+              onClick={() => setLightbox(src)}
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
+              }}
+            />
+          </div>
+        ))}
+
+        {/* Gradient overlay bas — porte le strip et les infos */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+          style={{
+            height: "55%",
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)",
+          }}
+        />
+
+        {/* Compteur haut-droite */}
+        {images.length > 1 && (
+          <div className="absolute top-4 right-4 z-20 bg-black/40 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm">
+            {current + 1} / {images.length}
+          </div>
+        )}
+
+        {/* Flèches navigation */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prev}
+              disabled={transitioning}
+              aria-label="Image précédente"
+              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/25 hover:bg-black/45 border border-white/20 flex items-center justify-center text-white transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            <button
+              onClick={next}
+              disabled={transitioning}
+              aria-label="Image suivante"
+              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/25 hover:bg-black/45 border border-white/20 flex items-center justify-center text-white transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </>
+        )}
+
+        {/* ── Bande inférieure : thumbnails + Virtual Tour ── */}
+        <div className="absolute inset-x-0 bottom-0 z-20 px-3 sm:px-5 pb-3 sm:pb-5 flex items-end justify-between gap-3">
+
+          {/* Strip thumbnails */}
+          {images.length > 1 && (
+            <div
+              ref={stripRef}
+              className="flex gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide flex-1 min-w-0"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {thumbnails.map((thumb, i) => (
+                <button
+                  key={i}
+                  onClick={() => go(i)}
+                  aria-label={`Voir photo ${i + 1}`}
+                  className="relative flex-shrink-0 rounded-md overflow-hidden transition-all duration-300"
+                  style={{
+                    width: i === current ? "52px" : "40px",
+                    height: "40px",
+                    outline: i === current ? "2px solid rgba(255,255,255,0.9)" : "1.5px solid rgba(255,255,255,0.2)",
+                    outlineOffset: "1px",
+                    opacity: i === current ? 1 : 0.6,
+                  }}
+                >
+                  <img
+                    src={thumb}
+                    alt={`Miniature ${i + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://placehold.co/80x80/f3f4f6/374151?text=img";
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Bouton Virtual Tour */}
+          {hasVirtualTour && (
+            <button
+              onClick={onOpenTour}
+              className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-white text-xs sm:text-sm font-medium transition-colors"
+              style={{
+                background: "rgba(255,255,255,0.14)",
+                border: "0.5px solid rgba(255,255,255,0.35)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+              }}
+            >
+              <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none" />
+              <span className="hidden sm:inline">Virtual Tour</span>
+              <span className="sm:hidden">Tour</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Lightbox ── */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/92 flex items-center justify-center z-50 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <img
+            src={lightbox}
+            alt="Vue agrandie"
+            className="max-w-full max-h-[90vh] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white w-10 h-10 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors text-lg"
+            onClick={() => setLightbox(null)}
+            aria-label="Fermer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+    </>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────
+   Page principale
+───────────────────────────────────────────────────────── */
 
 const PropertyDetail = () => {
   const { id } = useParams();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [tourOpen, setTourOpen] = useState(false);
 
-  // Nettoie le HTML : lazy-load + suppression des dimensions hardcodées
   const fixImgSrc = (html: string): string => {
     return html
-    // Lazy-load
-    .replace(/data-src="([^"]+)"/g, 'src="$1"')
-    .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
-    // Supprime width/height en attributs HTML sur img
-    .replace(/<img([^>]*?)\s+width="[^"]*"/g, '<img$1')
-    .replace(/<img([^>]*?)\s+height="[^"]*"/g, '<img$1')
-    // Supprime width/height dans style="" inline sur img
-    .replace(/(<img[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
-      const cleaned = style
-        .replace(/\bwidth\s*:[^;]+;?/g, '')
-        .replace(/\bheight\s*:[^;]+;?/g, '')
-        .trim();
-      return cleaned ? `${pre}style="${cleaned}"` : pre;
-    })
-    // ✅ NOUVEAU — supprime width inline sur <figure> (ex: style="width: 1920px")
-    .replace(/(<figure[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
-      const cleaned = style
-        .replace(/\bwidth\s*:[^;]+;?/g, '')
-        .replace(/\bheight\s*:[^;]+;?/g, '')
-        .trim();
-      return cleaned ? `${pre}style="${cleaned}"` : pre;
-    })
-    // ✅ NOUVEAU — supprime aussi width= en attribut HTML sur figure
-    .replace(/<figure([^>]*?)\s+width="[^"]*"/g, '<figure$1');
+      .replace(/data-src="([^"]+)"/g, 'src="$1"')
+      .replace(/data-srcset="([^"]+)"/g, 'srcset="$1"')
+      .replace(/<img([^>]*?)\s+width="[^"]*"/g, "<img$1")
+      .replace(/<img([^>]*?)\s+height="[^"]*"/g, "<img$1")
+      .replace(/(<img[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
+        const cleaned = style
+          .replace(/\bwidth\s*:[^;]+;?/g, "")
+          .replace(/\bheight\s*:[^;]+;?/g, "")
+          .trim();
+        return cleaned ? `${pre}style="${cleaned}"` : pre;
+      })
+      .replace(/(<figure[^>]*?)style="([^"]*)"/g, (_, pre, style) => {
+        const cleaned = style
+          .replace(/\bwidth\s*:[^;]+;?/g, "")
+          .replace(/\bheight\s*:[^;]+;?/g, "")
+          .trim();
+        return cleaned ? `${pre}style="${cleaned}"` : pre;
+      })
+      .replace(/<figure([^>]*?)\s+width="[^"]*"/g, "<figure$1");
   };
 
   const processDescription = (html: string): string => {
-  const fixed = fixImgSrc(html);
-  return optimizeHtmlImages(fixed, 800);
-};
+    const fixed = fixImgSrc(html);
+    return optimizeHtmlImages(fixed, 800);
+  };
 
   useEffect(() => {
-    if (!id) {
-      setError("Missing property ID");
-      setLoading(false);
-      return;
-    }
-
-    const fetchProperty = async () => {
+    if (!id) { setError("ID de propriété manquant"); setLoading(false); return; }
+    const fetch = async () => {
       try {
         setLoading(true);
         const data = await apiService.getPropertyById(id);
-        if (!data) {
-          setError("Property not found");
-        } else {
-          setProperty(data);
-        }
+        if (!data) setError("Propriété introuvable");
+        else setProperty(data);
       } catch (err) {
-        console.error("Error loading:", err);
-        setError("Unable to load property");
+        console.error("Erreur chargement:", err);
+        setError("Impossible de charger la propriété");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProperty();
+    fetch();
   }, [id]);
-
-  // Keyboard slider
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "ArrowLeft") { e.preventDefault(); prevImage(); }
-      if (e.key === "ArrowRight") { e.preventDefault(); nextImage(); }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [property]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <p className="text-xl text-muted-foreground">Loading...</p>
+        <p className="text-xl text-muted-foreground">Chargement...</p>
       </div>
     );
   }
@@ -106,65 +307,55 @@ const PropertyDetail = () => {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="font-playfair text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            {error || "Property not found"}
+            {error || "Propriété introuvable"}
           </h1>
           <Link to="/properties">
-            <Button variant="luxury">Back to Properties</Button>
+            <Button variant="luxury">Retour aux propriétés</Button>
           </Link>
         </div>
       </div>
     );
   }
 
+  /* ── JSON-LD ── */
   const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": ["Offer", "WebPage"],
-  "@id": `https://orchidisland.immo/property/${property.slug}#offer`,
-  "url": `https://orchidisland.immo/property/${property.slug}`,
-  "isPartOf": {
-      "@id": "https://orchidisland.immo/#website"
+    "@context": "https://schema.org",
+    "@type": ["Offer", "WebPage"],
+    "@id": `https://orchidisland.immo/property/${property.slug}#offer`,
+    url: `https://orchidisland.immo/property/${property.slug}`,
+    isPartOf: { "@id": "https://orchidisland.immo/#website" },
+    price: property.price,
+    priceCurrency: property.currency || "MAD",
+    itemOffered: {
+      "@type": "Residence",
+      "@id": `https://orchidisland.immo/property/${property.slug}#property`,
+      name: property.title,
+      description: property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
+      image: property.mainImage,
+      numberOfRooms: property.bedrooms,
+      floorSize: { "@type": "QuantitativeValue", value: property.area, unitCode: "MTK" },
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: property.city,
+        addressRegion: property.location,
+        addressCountry: "MA",
+      },
     },
-  "price": property.price,
-  "priceCurrency": property.currency || "MAD",
-  "itemOffered": {
-    "@type": "Residence",
-    "@id": `https://orchidisland.immo/property/${property.slug}#property`,
-    "name": property.title,
-    "description": property.description?.replace(/<[^>]*>/g, '').substring(0, 500),
-    "image": property.mainImage,
-    "numberOfRooms": property.bedrooms,
-    "floorSize": {
-      "@type": "QuantitativeValue",
-      "value": property.area,
-      "unitCode": "MTK"
+    seller: {
+      "@type": "RealEstateAgent",
+      "@id": "https://orchidisland.immo/#organization",
+      name: "Orchid Island Real Estate",
+      url: "https://orchidisland.immo",
+      areaServed: { "@type": "Place", name: "Marrakech, Morocco" },
     },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": property.city,
-      "addressRegion": property.location,
-      "addressCountry": "MA"
-    }
-  },
-  "seller": {
-    "@type": "RealEstateAgent",
-    "@id": "https://orchidisland.immo/#organization",
-    "name": "Orchid Island Real Estate",
-    "url": "https://orchidisland.immo",
-    "areaServed": {
-      "@type": "Place",
-      "name": "Marrakech, Morocco"
-    }
-  },
-  mainEntityOfPage: {
-  "@id": `https://orchidisland.immo/property/${property.slug}#webpage`
-  },
-  "potentialAction": {
-  "@type": "ViewAction",
-  "target": `https://orchidisland.immo/property/${property.slug}`
-}
-};
+    mainEntityOfPage: { "@id": `https://orchidisland.immo/property/${property.slug}#webpage` },
+    potentialAction: {
+      "@type": "ViewAction",
+      target: `https://orchidisland.immo/property/${property.slug}`,
+    },
+  };
 
-  // ── Construire la liste d'images ──────────────────────────────────────────
+  /* ── Construire la liste d'images ── */
   const imagesToShow: string[] = [];
   if (property.mainImage?.trim()) imagesToShow.push(property.mainImage);
 
@@ -175,7 +366,12 @@ const PropertyDetail = () => {
         .filter((img): img is string => typeof img === "string")
         .map((img) => img.trim())
         .filter((img) => img.length > 0)
-        .filter((img) => img.startsWith("http://") || img.startsWith("https://") || img.startsWith("data:image"))
+        .filter(
+          (img) =>
+            img.startsWith("http://") ||
+            img.startsWith("https://") ||
+            img.startsWith("data:image")
+        )
     );
   } else if (typeof rawAdditional === "string") {
     const str = (rawAdditional as string).trim();
@@ -188,7 +384,12 @@ const PropertyDetail = () => {
             .split(",")
             .map((img) => img.trim())
             .filter((img) => img.length > 0)
-            .filter((img) => img.startsWith("http://") || img.startsWith("https://") || img.startsWith("data:image"))
+            .filter(
+              (img) =>
+                img.startsWith("http://") ||
+                img.startsWith("https://") ||
+                img.startsWith("data:image")
+            )
         );
       }
     }
@@ -198,74 +399,58 @@ const PropertyDetail = () => {
     img.startsWith("http") ? getCloudinaryUrl(img, 1200, 800) : img
   );
   const thumbnailImages = imagesToShow.map((img) =>
-    img.startsWith("http") ? getCloudinaryUrl(img, 80, 80) : img
+    img.startsWith("http") ? getCloudinaryUrl(img, 120, 80) : img
   );
-  const videos: string[] = Array.isArray(property.videos)
-  ? property.videos.filter((v): v is string => typeof v === "string" && v.trim().length > 0)
-  : [];
 
   if (optimizedImages.length === 0) {
-    optimizedImages.push("https://placehold.co/1200x800/f3f4f6/374151?text=No+image");
+    optimizedImages.push(
+      "https://placehold.co/1200x800/f3f4f6/374151?text=Aucune+image"
+    );
   }
 
-  // ── Slider logic ──────────────────────────────────────────────────────────
-  const nextImage = () => {
-    if (!isTransitioning && optimizedImages.length) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => prev === optimizedImages.length - 1 ? 0 : prev + 1);
-        setIsTransitioning(false);
-      }, 100);
-    }
-  };
+  const videos: string[] = Array.isArray(property.videos)
+    ? property.videos.filter(
+        (v): v is string => typeof v === "string" && v.trim().length > 0
+      )
+    : [];
 
-  const prevImage = () => {
-    if (!isTransitioning && optimizedImages.length) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex((prev) => prev === 0 ? optimizedImages.length - 1 : prev - 1);
-        setIsTransitioning(false);
-      }, 100);
-    }
-  };
-
-  const goToImage = (index: number) => {
-    if (!isTransitioning && index !== currentImageIndex) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentImageIndex(index);
-        setIsTransitioning(false);
-      }, 100);
-    }
-  };
-
-  const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
+  /* ── Formatage prix ── */
+  const formatPrice = (
+    price: number,
+    currency: "MAD" | "USD" | "EUR" = "MAD"
+  ) => {
     const localeMap = { MAD: "fr-MA", USD: "en-US", EUR: "fr-FR" };
     const symbolMap = { MAD: "MAD", USD: "$", EUR: "€" };
     const formatted = new Intl.NumberFormat(localeMap[currency], {
       style: "decimal",
       minimumFractionDigits: 0,
     }).format(price);
-    return currency === "MAD" ? `${formatted} MAD` : `${symbolMap[currency]}${formatted}`;
+    return currency === "MAD"
+      ? `${formatted} MAD`
+      : `${symbolMap[currency]}${formatted}`;
   };
 
-  const statusLabel = {
-    available: 'Available',
-    sold: 'Sold',
-    pending: 'Pending',
-    draft: 'Draft'
-  }[property.status] || property.status;
+  const statusLabel =
+    { available: "Available", sold: "Sold", pending: "Pending", draft: "Draft" }[
+      property.status
+    ] || property.status;
 
   return (
     <div className="min-h-screen">
       <Helmet>
         <title>{property.title} | Orchid Immobilier</title>
-        <meta name="description" content={property.description?.replace(/<[^>]*>/g, '').substring(0, 160)} />
+        <meta
+          name="description"
+          content={property.description
+            ?.replace(/<[^>]*>/g, "")
+            .substring(0, 160)}
+        />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
-      <Header />
-      <main>
 
+      <Header />
+
+      <main>
         {/* ── Back navigation ── */}
         <section className="py-4 sm:py-6 bg-background border-b">
           <div className="font-playfair container mx-auto px-4 sm:px-6">
@@ -274,211 +459,27 @@ const PropertyDetail = () => {
               className="inline-flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
-              <span>Back to Properties</span>
+              <span>Retour aux propriétés</span>
             </Link>
           </div>
         </section>
 
-        {/* ── Main slider ── */}
-        <section className="py-0">
+        {/* ── Cinematic Gallery ── */}
+        <section className="py-4 sm:py-6 bg-background">
           <div className="container mx-auto px-4 sm:px-6">
-            {/* Hauteur adaptée : plus petite sur mobile */}
-            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-luxury mb-6 sm:mb-8 group">
-              <div className="relative w-full h-full">
-                {optimizedImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`absolute inset-0 transition-all duration-1000 ease-out transform ${
-                      index === currentImageIndex
-                        ? "opacity-100 scale-100 translate-x-0 z-10"
-                        : index < currentImageIndex
-                        ? "opacity-0 scale-110 -translate-x-full z-0"
-                        : "opacity-0 scale-110 translate-x-full z-0"
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${property.title} - Image ${index + 1}`}
-                      className="w-full h-full object-cover cursor-pointer"
-                      onClick={() => setSelectedImage(image)}
-                      onError={(e) => {
-                        e.currentTarget.src = "https://placehold.co/1200x800/f3f4f6/374151?text=Load+error";
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 pointer-events-none" />
-                  </div>
-                ))}
-              </div>
-
-              {/* Flèches : plus petites sur mobile */}
-              {optimizedImages.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    disabled={isTransitioning}
-                    className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-4 rounded-full transition-colors z-20"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    disabled={isTransitioning}
-                    className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-4 rounded-full transition-colors z-20"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                </>
-              )}
-
-              {/* Dots */}
-              {optimizedImages.length > 1 && (
-                <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-                  {optimizedImages.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => goToImage(index)}
-                      aria-label={`Go to image ${index + 1}`}
-                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
-                        index === currentImageIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Compteur */}
-              {optimizedImages.length > 1 && (
-                <div className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm z-20">
-                  {currentImageIndex + 1} / {optimizedImages.length}
-                </div>
-              )}
-            </div>
+            <CinematicGallery
+              images={optimizedImages}
+              thumbnails={thumbnailImages}
+              title={property.title}
+              hasVirtualTour={videos.length > 0}
+              onOpenTour={() => setTourOpen(true)}
+            />
           </div>
         </section>
-
-        {/* ── Lightbox ── */}
-        {selectedImage !== null && (
-          <div
-            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
-            onClick={() => setSelectedImage(null)}
-          >
-            <img
-              src={selectedImage}
-              alt="Full size"
-              className="max-w-full max-h-[90vh] rounded-lg shadow-xl object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white text-2xl sm:text-3xl leading-none w-10 h-10 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors"
-              onClick={() => setSelectedImage(null)}
-              aria-label="Close"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        {/* ── Thumbnails ── */}
-        {optimizedImages.length > 1 && (
-          <section className="py-4 sm:py-6 bg-background border-b">
-            <div className="container mx-auto px-4 sm:px-6">
-              <div className="overflow-x-auto pb-2 scrollbar-hide">
-                {/* justify-start sur mobile pour éviter le débordement du min-w-max */}
-                <div className="flex gap-2 sm:gap-3 min-w-max sm:justify-center px-1">
-                  {thumbnailImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => goToImage(index)}
-                      className={`relative group w-14 h-14 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-lg flex-shrink-0 ${
-                        index === currentImageIndex
-                          ? "border-primary shadow-lg ring-2 ring-primary/20 scale-105"
-                          : "border-gray-200 hover:border-primary/50 hover:scale-105"
-                      }`}
-                      title={`Image ${index + 1}`}
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://placehold.co/80x80/f3f4f6/374151?text=Img";
-                        }}
-                      />
-                      {index === currentImageIndex && (
-                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xs font-bold">{index + 1}</span>
-                          </div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-        {/* ── Virtual Tour ── */}
-{videos.length > 0 && (
-  <section className="py-8 sm:py-10 bg-muted/30 border-y">
-    <div className="container mx-auto px-4 sm:px-6">
-
-      {/* Header section */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-          </svg>
-        </div>
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Virtual Tour</h2>
-          {videos.length > 1 && (
-            <p className="text-xs text-muted-foreground mt-0.5">{videos.length} videos available</p>
-          )}
-        </div>
-      </div>
-
-      {/* Vidéo active */}
-      <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
-        <video
-          key={videos[currentVideoIndex]}
-          className="w-full h-full object-cover"
-          controls
-          preload="metadata"
-          playsInline
-        >
-          <source src={videos[currentVideoIndex]} type="video/mp4" />
-        </video>
-      </div>
-
-      {/* Carrousel dots + miniatures si plusieurs */}
-      {videos.length > 1 && (
-        <div className="max-w-4xl mx-auto mt-4 flex items-center justify-center gap-3">
-          {videos.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentVideoIndex(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentVideoIndex
-                  ? "w-6 h-2.5 bg-primary"
-                  : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-              }`}
-              aria-label={`Video ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-
-    </div>
-  </section>
-)}
 
         {/* ── Details ── */}
         <section className="py-8 sm:py-12 bg-background">
           <div className="container mx-auto px-4 sm:px-6">
-            {/* Sidebar passe SOUS le contenu sur mobile/tablet */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
 
               {/* ── Colonne principale ── */}
@@ -501,15 +502,34 @@ const PropertyDetail = () => {
                   </div>
                 </div>
 
-                {/* Stats : 2 colonnes sur mobile, 4 sur md+ */}
+                {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                   {[
-                    { icon: <Bed className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />, value: property.bedrooms, label: "Bedrooms" },
-                    { icon: <Bath className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />, value: property.bathrooms, label: "Bathrooms" },
-                    { icon: <Square className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />, value: property.area, label: "m²" },
-                    { icon: <Building className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />, value: property.yearBuilt, label: "Year" },
+                    {
+                      icon: <Bed className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
+                      value: property.bedrooms,
+                      label: "Chambres",
+                    },
+                    {
+                      icon: <Bath className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
+                      value: property.bathrooms,
+                      label: "Salles de bain",
+                    },
+                    {
+                      icon: <Square className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
+                      value: property.area,
+                      label: "m²",
+                    },
+                    {
+                      icon: <Building className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
+                      value: property.yearBuilt,
+                      label: "Année",
+                    },
                   ].map(({ icon, value, label }) => (
-                    <div key={label} className="text-center p-3 sm:p-4 bg-card rounded-lg border">
+                    <div
+                      key={label}
+                      className="text-center p-3 sm:p-4 bg-card rounded-lg border"
+                    >
                       {icon}
                       <div className="text-xl sm:text-2xl font-bold">{value}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
@@ -517,19 +537,23 @@ const PropertyDetail = () => {
                   ))}
                 </div>
 
-                {/* Description — images responsives via prose + fixImgSrc */}
+                {/* Description */}
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold mb-4">Description</h2>
                   <div
                     className="property-description text-base sm:text-lg text-muted-foreground leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: processDescription(property.description) }}
+                    dangerouslySetInnerHTML={{
+                      __html: processDescription(property.description),
+                    }}
                   />
-                  </div>
+                </div>
 
                 {/* Amenities */}
                 {property.amenities?.length > 0 && (
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Amenities</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+                      Équipements
+                    </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                       {property.amenities.map((amenity, index) => (
                         <div
@@ -549,14 +573,14 @@ const PropertyDetail = () => {
               <div className="space-y-6">
                 <Card>
                   <CardContent className="p-4 sm:p-6">
-                    <h3 className="text-lg sm:text-xl font-bold mb-4">Information</h3>
+                    <h3 className="text-lg sm:text-xl font-bold mb-4">Informations</h3>
                     <div className="space-y-3 text-sm sm:text-base">
                       {[
                         { label: "Type", value: property.type },
-                        { label: "Area", value: `${property.area} m²` },
-                        { label: "Bedrooms", value: property.bedrooms },
-                        { label: "Bathrooms", value: property.bathrooms },
-                        { label: "Year", value: property.yearBuilt },
+                        { label: "Surface", value: `${property.area} m²` },
+                        { label: "Chambres", value: property.bedrooms },
+                        { label: "Salles de bain", value: property.bathrooms },
+                        { label: "Année", value: property.yearBuilt },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between gap-4">
                           <span className="text-muted-foreground shrink-0">{label}</span>
@@ -564,33 +588,37 @@ const PropertyDetail = () => {
                         </div>
                       ))}
 
-                      {/* Options */}
-                      {(property.garden || property.pool || property.security || property.furnished) && (
+                      {(property.garden ||
+                        property.pool ||
+                        property.security ||
+                        property.furnished) && (
                         <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
-                          <h4 className="font-semibold text-sm text-muted-foreground mb-3">Options</h4>
+                          <h4 className="font-semibold text-sm text-muted-foreground mb-3">
+                            Options
+                          </h4>
                           <div className="space-y-2">
                             {property.garden && (
                               <div className="flex items-center space-x-2">
                                 <Leaf className="w-4 h-4 text-green-500 shrink-0" />
-                                <span className="text-sm">Garden</span>
+                                <span className="text-sm">Jardin</span>
                               </div>
                             )}
                             {property.pool && (
                               <div className="flex items-center space-x-2">
                                 <Waves className="w-4 h-4 text-blue-500 shrink-0" />
-                                <span className="text-sm">Pool</span>
+                                <span className="text-sm">Piscine</span>
                               </div>
                             )}
                             {property.security && (
                               <div className="flex items-center space-x-2">
                                 <Shield className="w-4 h-4 text-gray-600 shrink-0" />
-                                <span className="text-sm">24/7 Security</span>
+                                <span className="text-sm">Sécurité 24/7</span>
                               </div>
                             )}
                             {property.furnished && (
                               <div className="flex items-center space-x-2">
                                 <Sofa className="w-4 h-4 text-purple-500 shrink-0" />
-                                <span className="text-sm">Furnished</span>
+                                <span className="text-sm">Meublé</span>
                               </div>
                             )}
                           </div>
@@ -600,12 +628,19 @@ const PropertyDetail = () => {
                   </CardContent>
                 </Card>
               </div>
-
             </div>
           </div>
         </section>
 
+        <ImmersiveTourModal
+          videos={videos}
+          images={optimizedImages}
+          propertyTitle={property.title}
+          isOpen={tourOpen}
+          onClose={() => setTourOpen(false)}
+        />
       </main>
+
       <Footer />
     </div>
   );

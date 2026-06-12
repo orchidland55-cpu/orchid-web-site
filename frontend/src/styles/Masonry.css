@@ -1,0 +1,58 @@
+/* Masonry rhythm pattern (layout C): a "featured" 2x2 slot (a) plus five
+   normal slots, repeated in blocks of 6 and mirrored on alternate blocks
+   so the large slot alternates left/right down the page. */
+
+.masonry-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, minmax(180px, 1fr));
+  grid-template-areas:
+    "a a b"
+    "c d d"
+    "e e f";
+}
+
+.masonry-grid--mirrored {
+  grid-template-areas:
+    "b a a"
+    "d d c"
+    "f e e";
+}
+
+.masonry-cell-a { grid-area: a; }
+.masonry-cell-b { grid-area: b; }
+.masonry-cell-c { grid-area: c; }
+.masonry-cell-d { grid-area: d; }
+.masonry-cell-e { grid-area: e; }
+.masonry-cell-f { grid-area: f; }
+
+/* Tablet: two columns, two "wide" slots (a and d) spanning both columns */
+@media (max-width: 1024px) {
+  .masonry-grid,
+  .masonry-grid--mirrored {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(4, minmax(220px, 1fr));
+    grid-template-areas:
+      "a a"
+      "b c"
+      "d d"
+      "e f";
+  }
+}
+
+/* Mobile: single column, every slot stacked */
+@media (max-width: 640px) {
+  .masonry-grid,
+  .masonry-grid--mirrored {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, minmax(280px, 1fr));
+    grid-template-areas:
+      "a"
+      "b"
+      "c"
+      "d"
+      "e"
+      "f";
+  }
+}

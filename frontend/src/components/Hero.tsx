@@ -13,10 +13,10 @@ const Hero = () => {
           loop
           playsInline
           preload="metadata"
-          poster="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1600,c_limit/v1777289704/hero-villa_diljro.jpg"
+          poster="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1781262920/pexels-iwashere-18320910_1_fv44s3.jpg"
           className="w-full h-full object-cover"
         >
-        <source src="https://res.cloudinary.com/drgg2rocc/video/upload/q_auto:low,w_1280,c_limit,f_auto/v1780585578/15768406-uhd_4096_2160_24fps_1_1_qdsqoa.mp4" type="video/mp4" />
+        <source src="https://res.cloudinary.com/drgg2rocc/video/upload/q_auto/f_auto/v1781262489/14763266_3840_2160_60fps_1_vghvkk.mp4" type="video/mp4" />
       </video>
   <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/40 to-transparent"></div>
 

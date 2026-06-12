@@ -184,6 +184,16 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
   }
 
   // ── 3. Slug (10 pts) ──────────────────────────────────────────────────────
+  function slugify(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // retire les accents
+    .replace(/[^a-z0-9]+/g, "-")     // remplace espaces et caractères spéciaux par -
+    .replace(/^-+|-+$/g, "");        // retire les - en début/fin
+  };
+  const kwSlug = slugify(kw);
+
   if (!slug) {
     factors.push({ type: "warning", category: "URL", text: "Slug non défini (sera auto-généré)", points: 0, maxPoints: 10 });
   } else {
@@ -191,7 +201,7 @@ function analyzeSEO(props: SEOAnalyzerProps): { score: number; factors: Factor[]
     const slugWords = slug.split("-").filter(Boolean).length;
     if (slugWords > 6) {
       factors.push({ type: "warning", category: "URL", text: `Slug trop long : ${slugWords} segments (max. recommandé : 6)`, points: 4, maxPoints: 10 });
-    } else if (kw && !slug.toLowerCase().includes(kw.split(" ")[0])) {
+    } else if (kw && !slug.toLowerCase().includes(kwSlug)) {
       factors.push({ type: "warning", category: "URL", text: "Slug défini mais le mot-clé principal n'y apparaît pas", points: 6, maxPoints: 10 });
     } else {
       factors.push({ type: "success", category: "URL", text: `Slug optimal : ${slugWords} segment(s), mot-clé présent`, points: 10, maxPoints: 10 });

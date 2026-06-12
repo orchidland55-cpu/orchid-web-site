@@ -334,11 +334,11 @@ const ImmersiveTourModal = ({
         }}
       >
         {propertyTitle && (
-          <p className="text-white/40 text-[10px] tracking-[0.35em] uppercase mb-4 select-none">
+          <p className="text-white/70 text-[10px] tracking-[0.35em] uppercase mb-4 select-none">
             {propertyTitle}
           </p>
         )}
-        <p className="text-white/80 text-2xl sm:text-3xl font-extralight tracking-[0.08em] mb-12 select-none">
+        <p className="text-white text-2xl sm:text-3xl font-extralight tracking-[0.08em] mb-12 select-none drop-shadow-lg">
           Virtual Tour
         </p>
 
@@ -383,11 +383,12 @@ const ImmersiveTourModal = ({
 
         {videoReady && (
           <div className="absolute bottom-10 flex flex-col items-center gap-1.5 pointer-events-none select-none">
-            <p className="text-white/20 text-[9px] tracking-[0.28em] uppercase mb-3">
-              Scrollez pour commencer
+            <p className="text-white text-[10px] tracking-[0.28em] uppercase mb-3 drop-shadow-md"
+             style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}>
+             Scrollez pour commencer
             </p>
             {[0,1,2].map((n) => (
-              <svg key={n} className="w-3.5 h-3.5 text-white/30" fill="none"
+              <svg key={n} className="w-3.5 h-3.5 text-white/70" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.1}
                 style={{ animation: `immersiveChevron 2s ease-in-out ${n*0.3}s infinite` }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -404,11 +405,13 @@ const ImmersiveTourModal = ({
         <>
           {propertyTitle && (
             <div className="absolute top-6 left-6 sm:top-8 sm:left-10 pointer-events-none select-none" style={{ zIndex: 10 }}>
-              <p className="text-white/25 text-[9px] tracking-[0.25em] uppercase mb-1.5 font-light">Virtual Tour</p>
-              <p className="text-white/55 text-xs font-light max-w-[180px] truncate">{propertyTitle}</p>
+             <p className="text-white/50 text-[9px] tracking-[0.25em] uppercase mb-1.5 font-light">Virtual Tour</p>
+             <p className="text-white/80 text-xs font-light max-w-[180px] truncate"
+                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}>{propertyTitle}</p>
             </div>
           )}
-          <p className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/20 text-[9px] tracking-[0.22em] uppercase pointer-events-none select-none" style={{ zIndex: 10 }}>
+          <p className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60 text-[9px] tracking-[0.22em] uppercase pointer-events-none select-none"
+            style={{ zIndex: 10, textShadow: "0 1px 8px rgba(0,0,0,0.8)" }}>
             Scrollez pour avancer
           </p>
         </>
@@ -420,11 +423,12 @@ const ImmersiveTourModal = ({
       {phase === "outro" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center"
           style={{ animation: "immersiveFadeIn 1s ease forwards", zIndex: 10 }}>
-          <p className="text-white/30 text-[9px] tracking-[0.35em] uppercase mb-4 select-none pointer-events-none">
+          <p className="text-white/60 text-[9px] tracking-[0.35em] uppercase mb-4 select-none pointer-events-none">
             Fin de la visite
           </p>
           {propertyTitle && (
-            <p className="text-white/55 text-lg font-extralight tracking-wide mb-12 select-none pointer-events-none">
+           <p className="text-white text-lg font-extralight tracking-wide mb-12 select-none pointer-events-none drop-shadow-lg"
+              style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}>
               {propertyTitle}
             </p>
           )}

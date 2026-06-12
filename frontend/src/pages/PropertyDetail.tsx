@@ -86,6 +86,15 @@ const CinematicGallery = ({
     return () => window.removeEventListener("keydown", handler);
   }, [current, transitioning]);
 
+  // Auto-scroll toutes les 8s — s'arrête si une seule image
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const timer = setInterval(() => {
+      next();
+   }, 8000);
+   return () => clearInterval(timer);
+  }, [current, transitioning]);
+
   return (
     <>
       {/* ── Main cinematic frame ── */}

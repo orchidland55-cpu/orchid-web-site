@@ -173,6 +173,7 @@ const PropertiesPage = () => {
             Filters live with the results below, where they belong. */}
  <section
         className="relative min-h-[420px] flex items-center"
+        rel="preload"
         style={{
           backgroundImage: `url('https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1781262920/pexels-iwashere-18320910_1_fv44s3.jpg')`,
           backgroundSize: "cover",

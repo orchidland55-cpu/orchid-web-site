@@ -1,6 +1,6 @@
 import { Property } from "@/services/api";
 import PropertyCard from "./PropertyCard";
-import "@/styles/masonry.css";
+import "@/styles/Masonry.css";
 
 const CELL_KEYS = ["a", "b", "c", "d", "e", "f"] as const;
 // "a" and "d" are the 2x2 featured slots in the masonry pattern.

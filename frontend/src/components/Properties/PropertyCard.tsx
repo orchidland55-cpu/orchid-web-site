@@ -10,7 +10,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
-  const isSold = property.status === "sold";
+  const isSold = property.status === "vendu";
   const isLarge = variant === "large";
 
   const imageCount =

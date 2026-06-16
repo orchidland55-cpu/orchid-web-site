@@ -45,7 +45,7 @@ const PropertiesPage = () => {
       const data = await apiService.getAllPropertiesCached();
       setProperties(
         data.filter(
-          (p) => p.status === "available" || p.status === "sold"
+          (p) => p.status === "available" || p.status === "vendu"
         )
       );
     } catch (err) {

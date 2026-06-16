@@ -15,7 +15,8 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { lazy, Suspense } from "react";
 import { useEffect } from "react";
-import ReactGA from 'react-ga4' 
+import ReactGA from 'react-ga4' ;
+import { startKeepAlive } from "@/utils/keepAlive";
 
 // ── Imports statiques (chargés immédiatement) ─────────────────────────────────
 import Index from "@/pages/Index";
@@ -73,6 +74,7 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 function App() {
+  startKeepAlive();
   const PublicWidgets = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin") || location.pathname.startsWith("/space-manager");
@@ -95,6 +97,7 @@ function App() {
   );
 };
   return (
+    
     <HelmetProvider>
     <div className="overflow-x-clip">
       <QueryClientProvider client={queryClient}>

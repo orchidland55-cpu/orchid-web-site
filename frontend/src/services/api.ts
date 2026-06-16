@@ -569,17 +569,29 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
       twitterTitle: formData.twitterTitle || undefined,
     };
   }
+  // ── Cache propriétés ───────────────────────────────────────────
+  private _propertiesCache: { data: Property[]; ts: number } | null = null;
+  private readonly CACHE_TTL = 60_000; // 1 minute
 
-  async getAllProperties(): Promise<Property[]> {
-    return this.request<Property[]>('/properties');
+  async getAllPropertiesCached(): Promise<Property[]> {
+    const now = Date.now();
+    if (this._propertiesCache && now - this._propertiesCache.ts < this.CACHE_TTL) {
+      return this._propertiesCache.data;
+    }
+    const data = await this.request<Property[]>('/properties');
+    this._propertiesCache = { data, ts: now };
+    return data;
   }
+
+  invalidatePropertiesCache() {
+   this._propertiesCache = null;
+  }
+   async getAllProperties(): Promise<Property[]> {
+     return this.request<Property[]>('/properties');
+   }
 
   async getPropertyById(id: string): Promise<Property> {
     const property = await this.request<Property>(`/properties/${id}`);
-    // console.log('🔍 API Service - Retrieved property:');
-    // console.log('🔍 Main image present:', !!property.mainImage);
-    // console.log('🔍 Main image length:', property.mainImage?.length || 0);
-    // console.log('🔍 Additional images count:', property.additionalImages?.length || 0);
     return property;
   }
 

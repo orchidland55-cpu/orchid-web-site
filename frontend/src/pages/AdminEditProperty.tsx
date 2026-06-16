@@ -352,6 +352,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
       const allImages = [...new Set([...additionalImagePreviews, ...formData.additionalImages])];
       const finalData = { ...formData, additionalImages: allImages };
       await apiService.updateProperty(id, finalData);
+      apiService.invalidatePropertiesCache();
       alert("Property updated!");
       goBack();
     } catch (error: any) {
@@ -386,6 +387,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
       setIsLoading(true);
       try {
         await apiService.deleteProperty(id);
+        apiService.invalidatePropertiesCache();
         alert("Property deleted!");
         goBack();
       } catch (error: any) {

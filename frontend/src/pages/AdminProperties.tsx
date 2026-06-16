@@ -50,7 +50,7 @@ const AdminProperties = ({ onNavigate }: AdminPropertiesProps) => {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getAllProperties();
+      const data = await apiService.getAllPropertiesCached();
       setProperties(data);
     } catch (err) {
       console.error("Error fetching properties:", err);
@@ -125,6 +125,7 @@ const AdminProperties = ({ onNavigate }: AdminPropertiesProps) => {
       try {
         setDeletingId(id);
         await apiService.deleteProperty(id);
+        apiService.invalidatePropertiesCache();
         // Refresh the properties list
         await fetchProperties();
         alert("Property deleted successfully!");

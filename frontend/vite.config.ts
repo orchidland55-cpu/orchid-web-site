@@ -64,23 +64,22 @@ export default defineConfig(async ({ mode }) => {
       dedupe: ["react", "react-dom"],
     },
      build: {
-  cssCodeSplit: true,
-  rollupOptions: {
-    output: {
-      manualChunks(id: string) {
-        if (id.includes('node_modules')) {
-          if (id.includes('react-dom') || id.includes('react-router-dom')) return 'react-vendor';
-          if (id.includes('@tanstack')) return 'query-vendor';
-          if (id.includes('@radix-ui')) return 'ui-vendor';
-          if (id.includes('framer-motion')) return 'motion-vendor';
-          if (id.includes('lucide-react')) return 'icons-vendor';
-          if (id.includes('react')) return 'react-vendor';
-          if (id.includes('date-fns')) return 'date-vendor';
-          if (id.includes('react')) return 'react-vendor';
-        }
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return;
+            if (id.includes('react-dom') || id.includes('react-router-dom') || id.includes('react')) {
+              return 'react-vendor';
+            };
+            if (id.includes('@tanstack')) return 'query-vendor';
+            if (id.includes('@radix-ui')) return 'ui-vendor';
+            if (id.includes('lucide-react')) return 'icons-vendor';
+            if (id.includes('date-fns')) return 'date-vendor';
+            if (id.includes('framer-motion')) return 'motion-vendor';
+          },
+        },
       },
     },
-  },
-},
   }
 })

@@ -19,7 +19,7 @@ const Properties = () => {
     const loadProperties = async () => {
       setLoading(true);
       try {
-        const data = await apiService.getAllProperties();
+        const data = await apiService.getAllPropertiesCached();
 
         // Filter only available properties
         const availableProperties = data.filter(

@@ -42,7 +42,7 @@ const PropertiesPage = () => {
   const loadProperties = async () => {
     setIsLoading(true);
     try {
-      const data = await apiService.getAllProperties();
+      const data = await apiService.getAllPropertiesCached();
       setProperties(
         data.filter(
           (p) => p.status === "available" || p.status === "sold"

@@ -316,6 +316,7 @@ const AdminAddProperty = () => {
       const allAdditionalImages = [...additionalImagePreviews, ...formData.additionalImages];
       const finalData = { ...formData, additionalImages: allAdditionalImages };
       const createdProperty = await apiService.createProperty(finalData);
+      apiService.invalidatePropertiesCache();
       console.log("Property created:", createdProperty);
       showToast({ type: "success", title: "Property Created", message: "Property created successfully.", duration: 3000 });
       navigate("/admin/properties");

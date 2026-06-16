@@ -24,6 +24,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
+  GraduationCap,
+  ScanSearch,
 } from "lucide-react";
 import {
   LineChart,
@@ -63,7 +66,10 @@ type ViewKey =
   | "articles"
   | "articles-add"
   | "contacts"
-  | "space-manager";
+  | "space-manager"
+  | "due-diligence"
+  | "gestion-stagiaires"
+  | "reverse-engineering";
 
 // ─── Fallback spinner ────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -109,6 +115,29 @@ const NavItem = ({
   </button>
 );
 
+// ─── IframeView ────────────────────────────────────────────────────────────── tous les trois liens sont a changer par les vrais
+const EXTERNAL_APPS: Record<string, { url: string; label: string }> = {
+  "due-diligence":       { url: "https://placeholder-due-diligence.vercel.app",      label: "Due Diligence" },
+  "gestion-stagiaires":  { url: "https://placeholder-gestion-stagiaires.vercel.app", label: "Gestion Stagiaires" },
+  "reverse-engineering": { url: "https://placeholder-reverse-engineering.vercel.app", label: "Reverse Engineering" },
+};
+
+const IframeView = ({ viewKey }: { viewKey: ViewKey }) => {
+  const app = EXTERNAL_APPS[viewKey];
+  if (!app) return null;
+  return (
+    <div className="flex flex-col h-full -mx-4 sm:-mx-6 -my-6">
+      <iframe
+        src={app.url}
+        title={app.label}
+        className="flex-1 w-full border-0"
+        style={{ height: "calc(100vh - 3.5rem)" }}
+        allow="fullscreen"
+      />
+    </div>
+  );
+};
+
 // ─── Main component ───────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -143,6 +172,9 @@ const AdminDashboard = () => {
     "space-manager": "Data Room",
     "properties-edit": "Edit Property",
     "articles-edit": "Edit Article",
+    "due-diligence":       "Due Diligence",
+    "gestion-stagiaires":  "Gestion Stagiaires",
+    "reverse-engineering": "Reverse Engineering",
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -378,6 +410,9 @@ const AdminDashboard = () => {
                 {!collapsed && <span>Manage Users</span>}
               </button>
               <NavItem icon={Home} label="Data Room" viewKey="space-manager" active={activeView === "space-manager"} collapsed={collapsed} onClick={() => goTo("space-manager")} />
+              <NavItem icon={ClipboardCheck} label="Due Diligence"      viewKey="due-diligence"       active={activeView === "due-diligence"}       collapsed={collapsed} onClick={() => goTo("due-diligence")}       />
+              <NavItem icon={GraduationCap}  label="Gestion Stagiaires" viewKey="gestion-stagiaires"  active={activeView === "gestion-stagiaires"}  collapsed={collapsed} onClick={() => goTo("gestion-stagiaires")}  />
+              <NavItem icon={ScanSearch}     label="Reverse Engineering" viewKey="reverse-engineering" active={activeView === "reverse-engineering"} collapsed={collapsed} onClick={() => goTo("reverse-engineering")} />
             </div>
           </div>
         )}
@@ -757,6 +792,10 @@ const AdminDashboard = () => {
       />
     </Suspense>
   );
+  case "due-diligence":
+  case "gestion-stagiaires":
+  case "reverse-engineering":
+    return <IframeView viewKey={activeView} />;
       default:
         return <DashboardHome />;
     }

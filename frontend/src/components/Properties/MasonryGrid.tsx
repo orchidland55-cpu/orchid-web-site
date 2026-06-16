@@ -27,9 +27,12 @@ const MasonryGrid = ({ properties }: MasonryGridProps) => {
               key={chunkIndex}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {chunk.map((property) => (
-                <div key={property._id} className="h-80">
-                  <PropertyCard property={property} />
+              {chunk.map((property, i) => (
+                <div key={property._id} className="h-96">
+                  <PropertyCard
+                    property={property}
+                    variant={i === 0 && chunk.length === 1 ? "large" : "default"}
+                  />
                 </div>
               ))}
             </div>

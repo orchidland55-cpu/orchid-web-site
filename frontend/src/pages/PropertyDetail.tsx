@@ -440,7 +440,7 @@ const PropertyDetail = () => {
   };
 
   const statusLabel =
-    { available: "Available", sold: "Sold", pending: "Pending", draft: "Draft" }[
+    { available: "Available", vendu: "Vendu", pending: "Pending", draft: "Draft" }[
       property.status
     ] || property.status;
 

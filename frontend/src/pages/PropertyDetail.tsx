@@ -256,6 +256,7 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
   const fixImgSrc = (html: string): string => {
     return html
@@ -485,6 +486,59 @@ const PropertyDetail = () => {
             />
           </div>
         </section>
+        {videos.length > 0 && (
+  <section className="py-8 sm:py-10 bg-muted/30 border-y">
+    <div className="container mx-auto px-4 sm:px-6">
+
+      {/* Header section */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Virtual Tour</h2>
+          {videos.length > 1 && (
+            <p className="text-xs text-muted-foreground mt-0.5">{videos.length} videos available</p>
+          )}
+        </div>
+      </div>
+
+      {/* Vidéo active */}
+      <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
+        <video
+          key={videos[currentVideoIndex]}
+          className="w-full h-full object-contain"
+          controls
+          preload="metadata"
+          playsInline
+        >
+          <source src={videos[currentVideoIndex]} type="video/mp4" />
+        </video>
+      </div>
+
+      {/* Carrousel dots + miniatures si plusieurs */}
+      {videos.length > 1 && (
+        <div className="max-w-4xl mx-auto mt-4 flex items-center justify-center gap-3">
+          {videos.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentVideoIndex(index)}
+              className={`transition-all duration-300 rounded-full ${
+                index === currentVideoIndex
+                  ? "w-6 h-2.5 bg-primary"
+                  : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+              }`}
+              aria-label={`Video ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+    </div>
+  </section>
+)}
 
         {/* ── Details ── */}
         <section className="py-8 sm:py-12 bg-background">

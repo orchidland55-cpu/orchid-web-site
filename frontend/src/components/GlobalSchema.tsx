@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 const GlobalSchema = () => {
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "RealEstateAgent",
     "@id": "https://orchidisland.immo/#organization",
     "name": "Orchid Island Real Estate",
     "url": "https://orchidisland.immo",
@@ -15,10 +15,15 @@ const GlobalSchema = () => {
       "https://www.instagram.com/orchid_island_real_estate?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw%3D%3D",
       "https://www.linkedin.com/company/orchid-island-real-estate-marrakech/"
     ],
-    "foundingOrganization": "Orchid Island Real Estate",
-    "knowsAbout": ["Real Estate", "Luxury Properties in Marrakech"],
+    "knowsAbout":[
+    "Luxury Real Estate",
+    "Luxury Villas Marrakech",
+    "Riads for Sale Marrakech",
+    "Investment Properties Morocco",
+    "Commercial Real Estate Morocco"
+  ],
     "areaServed": {
-        "@type": "Place",
+        "@type": "City",
         "name": "Marrakech, Morocco"
     }
   };

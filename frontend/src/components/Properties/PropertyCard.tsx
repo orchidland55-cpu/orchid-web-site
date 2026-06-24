@@ -10,7 +10,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
-  const isSold = property.status === "vendu";
+  const isSold = property.status === "sold";
   const isLarge = variant === "large";
 
   const imageCount =
@@ -67,15 +67,7 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
             {property.type}
           </span>
           {isSold && (
-            <span
-              className="text-[11px] font-medium text-red-300 px-2.5 py-1 rounded-full"
-              style={{
-                background: "rgba(239,68,68,0.2)",
-                border: "0.5px solid rgba(239,68,68,0.3)",
-              }}
-            >
-              Vendu
-            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-white px-3 py-1.5 rounded-md bg-red-600 shadow-lg"> Sold </span>
           )}
         </div>
 
@@ -175,12 +167,13 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
           </span>
           <div className="flex items-center gap-1.5">
             {isSold && (
-              <span
-                className="text-[10px] font-medium text-red-300 px-2 py-1 rounded"
-                style={{ background: "rgba(239,68,68,0.25)" }}
-              >
-                Vendu
-              </span>
+              <span 
+                className="text-[11px] font-medium text-red-300 px-2.5 py-1 rounded-full"
+                style={{
+                  background: "rgba(239,68,68,0.2)",
+                  border: "0.5px solid rgba(239,68,68,0.3)",
+                }}
+              > Slod</span>
             )}
             {imageCount > 1 && (
               <span

@@ -111,8 +111,8 @@ const AdminProperties = ({ onNavigate }: AdminPropertiesProps) => {
     switch (status) {
       case "available":
         return <Badge variant="default" className="bg-green-100 text-green-800">Available</Badge>;
-      case "vendu":
-        return <Badge variant="secondary" className="bg-red-100 text-red-800">Vendu</Badge>;
+      case "sold":
+        return <Badge variant="secondary" className="bg-red-100 text-red-800">Sold</Badge>;
       case "pending":
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       default:

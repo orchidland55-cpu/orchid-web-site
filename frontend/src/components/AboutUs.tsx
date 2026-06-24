@@ -130,7 +130,7 @@ const AboutUs = () => {
   <div className="relative">
     <div className="w-full h-96 bg-gradient-to-br from-cream to-light-gray rounded-lg shadow-elegant overflow-hidden">
       <img 
-        src={csrHero} 
+        src="https://res.cloudinary.com/drgg2rocc/image/upload/v1782205023/aboutsec_nr0krk.jpg"
         alt="Orchid Island Real Estate" 
         className="w-full h-full object-cover rounded-lg"
         loading="lazy"

@@ -840,7 +840,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                   <label className="block text-sm font-medium text-foreground mb-2">Status</label>
                   <select name="status" value={formData.status} onChange={handleInputChange} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
                     <option value="available">Available</option>
-                    <option value="vendu">Vendu</option>
+                    <option value="sold">Sold</option>
                     <option value="pending">Pending</option>
                     <option value="draft">Draft</option>
                   </select>

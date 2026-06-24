@@ -88,7 +88,7 @@ const Hero = () => {
                 className="notranslate luxury-gradient bg-clip-text text-transparent"
                 translate="no"
               >
-                Real estate
+                Luxury Real Estate in Marrakech and Morocco.
               </span>
             </h1>
 
@@ -113,12 +113,11 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
               <Link to="/properties">
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="bg-ivory-white/10 backdrop-blur-sm border-ivory-white/30 text-ivory-white hover:bg-ivory-white hover:text-charcoal font-playfair px-8 py-6 h-auto"
+                  className="bg-[#F5F2EB] hover:bg-white text-[#1a1a1a] border-none font-playfair font-semibold px-8 py-6 h-auto tracking-wide shadow-none"
                 >
-                  Discover our properties
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  View Luxury Properties
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
             </div>

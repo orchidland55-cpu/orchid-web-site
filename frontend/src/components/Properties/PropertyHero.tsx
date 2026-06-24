@@ -31,6 +31,16 @@ const PropertyHero = ({ property }: { property: Property }) => {
             {property.type}
           </span>
         </div>
+        <div className="absolute top-4 left-4">
+  <span className="inline-block bg-background/95 text-foreground text-xs font-medium px-3 py-1 rounded-full border border-border/40">
+    {property.type}
+  </span>
+  {property.status === "vendu" && (
+    <span className="inline-block bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md ml-2 shadow-lg">
+      Vendu
+    </span>
+  )}
+</div>
       </div>
 
       <div className="flex flex-col justify-center py-2">

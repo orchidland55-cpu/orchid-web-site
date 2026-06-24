@@ -3,56 +3,56 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    id: 1,
+    id: 2,
     name: "Ahmed Benali",
-    role: "Investisseur Immobilier",
+    role: "Real Estate Investor",
     location: "Casablanca",
-    content: "Orchid Island a dépassé toutes mes attentes. Leur expertise et leur professionnalisme m'ont permis de trouver la propriété de mes rêves. Un service véritablement haut de gamme.",
+    content: "Orchid Island exceeded all my expectations. Their expertise and professionalism helped me find the property of my dreams. A truly high-end service.",
     rating: 5,
     featured: true,
   },
   {
-    id: 2,
-    name: "Sophie Dubois",
-    role: "Entrepreneuse",
+    id: 1,
+    name: "Mohamed Malainine",
+    role: "Locak Guide",
     location: "Rabat", 
-    content: "L'équipe d'Orchid Island comprend parfaitement les besoins des clients internationaux. Leur accompagnement personnalisé a rendu notre acquisition simple et sécurisée.",
+    content: "Excellent experience with Orchid Island Real Estate! The team is highly professional, responsive, and truly attentive to client needs. They guided me throughout the entire process with transparency and efficiency. The properties offered are of great quality and perfectly matched my expectations. I highly recommend them for anyone looking for real estate in Marrakech.",
     rating: 5,
     featured: false,
   },
   {
     id: 3,
-    name: "Omar El Fassi",
-    role: "Directeur Financier",
+    name: "Salma Bouhlal",
+    role: "Client",
     location: "Marrakech",
-    content: "Une agence qui porte bien son nom - véritablement exclusive. Chaque propriété présentée était d'un niveau exceptionnel. The Address You'll Always Remember.",
+    content: "I had a great experience with Orchid Island Real Estate. The team is professional, responsive, and truly attentive to clients needs. They supported me throughout the entire process with transparency and efficiency, which made everything smooth and stress-free. I highly recommend their services to anyone looking for a reliable and trustworthy real estate agency. Thank you again for the excellent support!",
     rating: 5,
     featured: false,
   },
   {
     id: 4,
-    name: "Fatima Zahra",
-    role: "Consultante International",
+    name: "Hiba",
+    role: "International Consultant",
     location: "Tanger",
-    content: "Un service d'exception du premier contact à la signature. L'équipe a su comprendre mes critères très spécifiques et m'a proposé des biens parfaitement adaptés à mes besoins.",
+    content: "I purchased a property in Marrakech with the help of Orchid Island Real Estate, and I had a fantastic experience with them. Professional team, smooth process, and excellent expertise in luxury properties. I highly recommend them!",
     rating: 5,
     featured: false,
   },
   {
     id: 5,
-    name: "Jean-Pierre Martin",
-    role: "Retraité",
+    name: "JIHADE GHARBY",
+    role: "Retired",
     location: "Agadir",
-    content: "Après avoir visité plusieurs agences, Orchid Island s'est démarquée par son professionnalisme et sa connaissance approfondie du marché de luxe marocain.",
+    content: "An exceptional experience with Orchid Island! The team is incredibly professional, welcoming, and dedicated. It’s rare to find such a high standard of quality and innovation in Marrakech. Highly recommended!",
     rating: 5,
     featured: false,
   },
   {
     id: 6,
-    name: "Yasmine Tabet",
-    role: "Architecte",
+    name: "Edris",
+    role: "Architect",
     location: "Fès",
-    content: "Une expérience remarquable. L'attention portée aux détails et la qualité du service client sont vraiment exceptionnelles. Je recommande vivement Orchid Island.",
+    content: "From my very first conversation with Mr. Dekkak and the Orchid Island Real Estate agency, the firm demonstrated exceptional professionalism and provided unwavering support at every stage.",
     rating: 5,
     featured: false,
   },
@@ -66,14 +66,14 @@ const Testimonials = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-ivory-white/20 backdrop-blur-sm rounded-full px-6 py-2 mb-6">
             <div className="w-2 h-2 luxury-gradient rounded-full"></div>
-            <span className="text-ivory-white font-inter text-sm font-medium">Témoignages</span>
+            <span className="text-ivory-white font-inter text-sm font-medium">Testimonials</span>
           </div>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold text-ivory-white mb-6">
-            Ce que disent nos <span className="luxury-gradient bg-clip-text text-transparent">Clients</span>
+            What our <span className="luxury-gradient bg-clip-text text-transparent">customers</span> say 
           </h2>
           <p className="font-lora text-lg text-ivory-white/80 max-w-2xl mx-auto">
-            La satisfaction de nos clients est notre plus belle récompense. 
-            Découvrez leurs expériences avec Orchid Island.
+            Our clients’ satisfaction is our greatest reward.
+            Discover their experiences with Orchid Island.
           </p>
         </div>
 
@@ -134,20 +134,26 @@ const Testimonials = () => {
         </div>
 
         {/* Trust Indicators */}
-        <div className="text-center">
-          <div className="inline-flex items-center space-x-8 bg-ivory-white/10 backdrop-blur-sm rounded-full px-8 py-4">
+        <div className="text-center px-4">
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-3 bg-ivory-white/10 backdrop-blur-sm rounded-2xl sm:rounded-full px-6 py-4 max-w-full">
+    
             <div className="flex items-center space-x-2">
               <Star className="w-5 h-5 text-primary fill-current" />
               <span className="font-lora text-ivory-white font-medium">4.9/5</span>
             </div>
-            <div className="w-px h-6 bg-ivory-white/30"></div>
+
+            <div className="hidden sm:block w-px h-6 bg-ivory-white/30"></div>
+
             <div className="flex items-center space-x-2">
-              <span className="font-lora text-ivory-white font-medium">200+ Avis Clients</span>
+              <span className="font-lora text-ivory-white font-medium">200+ Customer Reviews</span>
             </div>
-            <div className="w-px h-6 bg-ivory-white/30"></div>
+
+            <div className="hidden sm:block w-px h-6 bg-ivory-white/30"></div>
+
             <div className="flex items-center space-x-2">
-              <span className="font-lora text-ivory-white font-medium">98% Recommandation</span>
+              <span className="font-lora text-ivory-white font-medium">98% Recommendation</span>
             </div>
+
           </div>
         </div>
       </div>

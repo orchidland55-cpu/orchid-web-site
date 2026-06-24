@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Bed, Bath, Square, Heart, Star, Eye, ArrowRight, Building, Home} from "lucide-react";
+import { MapPin, Bed, Bath, Square, Star, ArrowRight, Building, Home} from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
 import { getCloudinaryUrl } from "@/services/cloudinary";
@@ -21,13 +21,13 @@ const Properties = () => {
       try {
         const data = await apiService.getAllPropertiesCached();
 
-        // Filter only available properties
-        const availableProperties = data.filter(
-          (p) => p.status === "available"
-        );
+        // Filter available, sort newest first, take top 3
+        const latestProperties = data
+          .filter((p) => p.status === "available")
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 3);
 
-        // Take first 3
-        setProperties(availableProperties.slice(0, 3));
+          setProperties(latestProperties);
       } catch (err) {
         console.error("❌ API Error:", err);
         setError("Unable to load properties.");
@@ -38,14 +38,6 @@ const Properties = () => {
 
     loadProperties();
   }, []);
-
-  const toggleFavorite = (propertyId: string) => {
-    setFavorites(prev =>
-      prev.includes(propertyId)
-        ? prev.filter(id => id !== propertyId)
-        : [...prev, propertyId]
-    );
-  };
 
   const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
     const localeMap = {MAD: "fr-MA", USD: "en-US", EUR: "fr-FR",};
@@ -60,13 +52,6 @@ const Properties = () => {
       ? `${formatted} MAD`
       : `${symbolMap[currency]}${formatted}`;
   };
-
-  const stripHtml = (html: string) => {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || div.innerText || '';
-  };
-
 
   const getPropertyIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -126,8 +111,8 @@ const Properties = () => {
 
         {/* Properties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {[...properties].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-           .map((property) => (
+          {properties.map((property) => (
+            <Link to={propertyPath(property)}>
             <Card key={property._id} className="group overflow-hidden hover:shadow-luxury transition-all duration-500 min-h-[500px]">
               <div className="relative">
                 {/* Property Image */}
@@ -157,31 +142,7 @@ const Properties = () => {
                       {property.status}
                     </Badge>
                   </div>
-
-                  {/* Favorite Button */}
-                  <button
-                    onClick={() => toggleFavorite(property._id)}
-                    className="absolute top-4 right-4 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                  >
-                    <Heart
-                      className={`w-5 h-5 ${
-                        favorites.includes(property._id)
-                          ? 'text-red-500 fill-red-500'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  </button>
-
-                  {/* Quick View Button */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center font-lora">
-                    <Link to={propertyPath(property)}>
-                      <Button variant="secondary" size="sm" className="bg-white/90 text-foreground hover:bg-white">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                </div> 
 
                 <CardContent className="p-6 flex flex-col h-full">
                   {/* Property Type & Location */}
@@ -201,16 +162,6 @@ const Properties = () => {
                     {property.title}
                   </h3>
 
-                  {/* Property Description */}
-                  <p
-                    className="font-lora text-muted-foreground text-sm mb-4 line-clamp-2"
-                    dangerouslySetInnerHTML={{
-                      __html: property.description && property.description.length > 150
-                        ? property.description.substring(0, 150) + '...'
-                        : property.description || ''
-                    }}
-                  />
-
                   {/* Property Details */}
                   <div className="font-lora flex items-center justify-between mb-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-4">
@@ -229,20 +180,6 @@ const Properties = () => {
                     </div>
                   </div>
 
-                  {/* Amenities */}
-                  <div className="font-lora flex flex-wrap gap-1 mb-4">
-                    {property.amenities.slice(0, 3).map((amenity, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {amenity}
-                      </Badge>
-                    ))}
-                    {property.amenities.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{property.amenities.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-
                   {/* Price & CTA */}
                   <div className="flex items-center justify-between font-lora mt-auto">
                     <div>
@@ -250,15 +187,11 @@ const Properties = () => {
                                   {formatPrice(property.price, property.currency)}
                       </p>
                     </div>
-                    <Link to={propertyPath(property)}>
-                      <Button variant="luxury" size="sm">
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
                   </div>
                 </CardContent>
               </div>
             </Card>
+            </Link>
           ))}
         </div>
 
@@ -266,7 +199,7 @@ const Properties = () => {
         <div className="text-center font-lora">
           <Link to="/properties">
             <Button variant="luxury" size="lg" className="group">
-              View All Properties
+              Explore More Luxury Properties
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>

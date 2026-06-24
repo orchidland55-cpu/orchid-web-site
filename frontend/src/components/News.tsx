@@ -11,20 +11,23 @@ const News = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const articlePath = (id: string, slug?: string) =>
-  `/${slug || id}`;
+
+  const articlePath = (id: string, slug?: string) => `/${slug || id}`;
 
   useEffect(() => {
     const loadArticles = async () => {
       setLoading(true);
       try {
         const articlesData = await apiService.getAllArticles();
-        // console.log("🚀 Articles received from backend:", articlesData); // DEBUG
 
-        // Filter only published articles (status: "published")
-        const publishedArticles = articlesData.filter(
-          (article) => article.status === "published"
-        );
+        const publishedArticles = articlesData
+          .filter((article) => article.status === "published")
+          // ✅ Tri par date décroissante — le plus récent en premier
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return dateB - dateA;
+          });
 
         setArticles(publishedArticles);
       } catch (err) {
@@ -38,7 +41,6 @@ const News = () => {
     loadArticles();
   }, []);
 
-  // Loading state
   if (loading) {
     return (
       <section id="news" className="py-20 bg-background">
@@ -50,28 +52,20 @@ const News = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section id="news" className="py-20 bg-background">
         <div className="container mx-auto px-6 text-center">
           <p className="font-lora text-red-500 text-lg">{error}</p>
-          {/* <p className="text-muted-foreground mt-2">
-            Make sure the backend is running at <code>http://localhost:3000</code>
-          </p> */}
         </div>
       </section>
     );
   }
 
-  // Select featured article (or first one)
-  const featuredArticle = articles.find((a) => a.featured) || articles[0];
-  // Take next 2 articles (or first 2 if no featured)
-  const otherArticles = featuredArticle
-    ? articles.filter((a) => a._id !== featuredArticle._id).slice(0, 2)
-    : articles.slice(0, 2);
+  // ✅ Les 3 derniers articles — le [0] est toujours le plus récent
+  const featuredArticle = articles[0];
+  const otherArticles = articles.slice(1, 3);
 
-  // Utility function to truncate text
   const truncate = (str: string, n: number) => {
     return str?.length > n ? str.slice(0, n - 1) + "…" : str || "";
   };
@@ -94,75 +88,66 @@ const News = () => {
         </div>
 
         {/* Articles Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Featured Article (Large) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 lg:items-stretch">
+
+          {/* Featured Article — toujours le plus récent */}
           {featuredArticle && (
             <div className="lg:col-span-2 flex">
               <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full w-full">
-      
-              {/* Hauteur fixe selon breakpoint — évite l'image géante sur desktop */}
-            <div className="relative h-72 sm:h-96 lg:h-[520px]">
-              <img
-                src={getCloudinaryUrl(featuredArticle.image, 900, 520) || "/placeholder-article.jpg"}
-                alt={featuredArticle.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-                decoding="async"
-                width={900}
-                height={520}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+                <div className="relative h-72 sm:h-96 lg:h-full min-h-[400px]">
+                  <img
+                    src={getCloudinaryUrl(featuredArticle.image, 900, 520) || "/placeholder-article.jpg"}
+                    alt={featuredArticle.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                    width={900}
+                    height={520}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder-article.jpg";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
-                {/* Sur mobile : aligné en bas pour que le bouton reste visible
-                   Sur desktop : centré verticalement */}
-                <div className="absolute inset-0 flex items-end sm:items-center justify-center">
-                  <div className="font-lora text-center text-white p-4 sm:p-8 w-full">
-                   <Badge className="luxury-gradient text-primary-foreground font-lora mb-2 sm:mb-4">
-                    {featuredArticle.category || "Advice"}
-                   </Badge>
+                  <div className="absolute inset-0 flex items-end sm:items-center justify-center">
+                    <div className="font-lora text-center text-white p-4 sm:p-8 w-full">
+                      <Badge className="luxury-gradient text-primary-foreground font-lora mb-2 sm:mb-4">
+                        {featuredArticle.category || "Advice"}
+                      </Badge>
+                      <h3 className="font-playfair text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4 line-clamp-2">
+                        {featuredArticle.title}
+                      </h3>
+                      <p className="font-lora text-white/90 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 hidden sm:block line-clamp-3">
+                        {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
+                      </p>
+                      <Link to={articlePath(featuredArticle._id, featuredArticle.slug)}>
+                        <Button variant="luxury" className="w-fit">
+                          Read Article
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
 
-                    {/* Titre : taille réduite sur mobile */}
-                    <h3 className="font-playfair text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4 line-clamp-2">
-                    {featuredArticle.title}
-                    </h3>
-
-                {/* Excerpt : masqué sur mobile pour gagner de la place */}
-                <p className="font-lora text-white/90 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6 hidden sm:block line-clamp-3">
-                {truncate(featuredArticle.excerpt || featuredArticle.content, 120)}
-                </p>
-
-                <Link to={articlePath(featuredArticle._id, featuredArticle.slug)}>
-                 <Button variant="luxury" className="w-fit">
-                    Read Article
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
+                  {/* Badge "Latest" — remplace "Featured" car c'est toujours le dernier */}
+                  <div className="absolute top-4 right-4">
+                    <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
+                      Latest
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
             </div>
+          )}
 
-        {featuredArticle.featured && (
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
-              Featured
-            </Badge>
-          </div>
-        )}
-      </div>
-    </Card>
-  </div>
-)}
-
-          {/* Other Articles (Small cards) */}
-          <div className="space-y-6">
+          {/* 2 articles suivants */}
+          <div className="flex flex-col gap-6 h-full">
             {otherArticles.map((article) => (
               <Card
                 key={article._id}
-                className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card"
+                className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card flex flex-col flex-1"
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden flex-shrink-0">
                   <img
                     src={getCloudinaryUrl(article.image, 500, 200) || "/placeholder-article.jpg"}
                     alt={article.title}
@@ -181,14 +166,14 @@ const News = () => {
                     </Badge>
                   </div>
                 </div>
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex flex-col flex-1">
                   <h3 className="font-playfair text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-smooth">
                     {article.title}
                   </h3>
                   <p className="font-lora text-muted-foreground text-sm mb-4 leading-relaxed">
                     {truncate(article.excerpt || article.content, 80)}
                   </p>
-                  <div className="flex items-center justify-end">
+                  <div className="flex items-center justify-end mt-auto">
                     <Link to={articlePath(article._id, article.slug)}>
                       <Button
                         variant="ghost"
@@ -207,7 +192,7 @@ const News = () => {
 
         {/* Call to Action */}
         <div className="text-center">
-          <Link to={`/real-estate-guide-orchid-island-marrakech`}>
+          <Link to="/real-estate-guide-orchid-island-marrakech">
             <Button variant="elegant" size="lg" className="font-playfair text-lg px-10 py-6 h-auto">
               View All Articles
             </Button>

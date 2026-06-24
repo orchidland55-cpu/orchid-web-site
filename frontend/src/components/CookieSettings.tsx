@@ -20,7 +20,7 @@ const CookieSettings = () => {
       className="text-ivory-white/70 hover:text-ivory-white"
     >
       <Cookie className="w-4 h-4 mr-2" />
-      Paramètres des Cookies
+      Cookie Settings
     </Button>
   );
 };

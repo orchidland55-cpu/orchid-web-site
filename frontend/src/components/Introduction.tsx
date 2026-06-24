@@ -39,7 +39,7 @@ const Introduction = () => {
             {/* Main Image */}
             <div className="relative overflow-hidden rounded-2xl shadow-luxury">
               <img
-                src={csrHero}
+                src="https://res.cloudinary.com/drgg2rocc/image/upload/v1782205023/aboutsec_nr0krk.jpg"
                 alt="Orchid Island - Immobilier de luxe au Maroc"
                 className="w-full h-[500px] object-cover"
                 loading="lazy"

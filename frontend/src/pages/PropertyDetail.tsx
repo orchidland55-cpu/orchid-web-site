@@ -13,8 +13,10 @@ import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
 import { Helmet } from "react-helmet-async";
 import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
-import ImmersiveTourButton from "@/components/ImmersiveTourButton";
+// import ImmersiveTourButton from "@/components/ImmersiveTourButton";
 import ImmersiveTourModal from "@/components/ImmersiveTourModal";
+import PropertyContactForm from "@/components/PropertyContactForm";
+import SimilarProperties from "@/components/SimilarProperties";
 
 /* ─────────────────────────────────────────────────────────
    Cinematic Stack Gallery
@@ -440,10 +442,25 @@ const PropertyDetail = () => {
       : `${symbolMap[currency]}${formatted}`;
   };
 
-  const statusLabel =
-    { available: "Available", vendu: "Vendu", pending: "Pending", draft: "Draft" }[
-      property.status
-    ] || property.status;
+  // const statusLabel =
+  //   { available: "Available", sold: "Sold", pending: "Pending", draft: "Draft" }[
+  //     property.status
+  // ] || property.status;
+
+  const getStatusBadge = (status: string) => {
+  switch (status) {
+    case "available":
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">Available</Badge>;
+    case "sold":
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">Sold</Badge>;
+    case "pending":
+      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">Pending</Badge>;
+    case "draft":
+      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200">Draft</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
+};
 
   return (
     <div className="min-h-screen">
@@ -551,7 +568,7 @@ const PropertyDetail = () => {
                 {/* Titre + prix */}
                 <div>
                   <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <Badge variant="default">{statusLabel}</Badge>
+                    {getStatusBadge(property.status)} 
                   </div>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 leading-tight">
                     {property.title}
@@ -690,6 +707,10 @@ const PropertyDetail = () => {
                     </div>
                   </CardContent>
                 </Card>
+                <PropertyContactForm 
+                  propertyTitle={property.title} 
+                  propertyId={property._id || property.slug || id || ''} 
+                />
               </div>
             </div>
           </div>
@@ -702,7 +723,14 @@ const PropertyDetail = () => {
           isOpen={tourOpen}
           onClose={() => setTourOpen(false)}
         />
+        <SimilarProperties
+          currentPropertyId={property._id}
+          type={property.type}
+          city={property.city}
+          price={property.price}
+        />
       </main>
+
 
       <Footer />
     </div>

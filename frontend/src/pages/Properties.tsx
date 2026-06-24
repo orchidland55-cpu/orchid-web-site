@@ -45,7 +45,7 @@ const PropertiesPage = () => {
       const data = await apiService.getAllPropertiesCached();
       setProperties(
         data.filter(
-          (p) => p.status === "available" || p.status === "vendu"
+          (p) => p.status === "available" || p.status === "sold"
         )
       );
     } catch (err) {
@@ -171,7 +171,7 @@ const PropertiesPage = () => {
       <main>
         {/* ── Hero ── purely visual now: no search bar overlay.
             Filters live with the results below, where they belong. */}
- <section
+      <section
         className="relative min-h-[420px] flex items-center"
         rel="preload"
         style={{

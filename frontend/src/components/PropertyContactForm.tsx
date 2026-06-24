@@ -16,7 +16,7 @@ const PropertyContactForm = ({ propertyTitle, propertyId }: PropertyContactFormP
     name: "",
     email: "",
     phone: "",
-    message: `Bonjour, je suis intéressé(e) par la propriété "${propertyTitle}". Pouvez-vous me fournir plus d'informations ?`,
+    message: `Hello, I am interested in the property "${propertyTitle}". Can you provide me more information? ?`,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

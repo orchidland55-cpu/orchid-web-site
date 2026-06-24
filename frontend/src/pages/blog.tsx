@@ -9,17 +9,15 @@ import { apiService, Article } from "@/services/api";
 import {
   Calendar,
   ArrowRight,
-  Eye,
-  MessageCircle,
-  Share2,
   TrendingUp,
-  Home,
   Building,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
 import { getCloudinaryUrl } from "@/services/cloudinary";
+import { Helmet } from 'react-helmet-async';
+import { SITE_URL, ORGANIZATION_REF } from "@/config/schema";
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -82,6 +80,31 @@ const Blog = () => {
     if (selectedCategory === "All Posts") return true;
     return post.category === selectedCategory;
   });
+
+  
+
+const blogJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "@id": `${SITE_URL}/real-estate-guide-orchid-island-marrakech#blog`,
+  "name": "Orchid Island Real Estate Blog",
+  "description": "Expert insights and market analysis on Marrakech luxury real estate. Stay informed with the latest trends, property guides, and investment tips.",
+  "url": `${SITE_URL}/real-estate-guide-orchid-island-marrakech`,
+  "publisher": ORGANIZATION_REF,
+  "about": {
+    "@type": "Place",
+    "name": "Marrakech",
+    "description": "Luxury real estate market in Marrakech, Morocco"
+  },
+  "blogPost": filteredPosts.slice(0, 20).map(post => ({
+    "@type": "BlogPosting",
+    "@id": `${SITE_URL}/${post.slug || post.id}#article`,
+    "headline": post.title,
+    "description": post.excerpt,
+    "datePublished": post.createdAt,
+    "url": `${SITE_URL}/${post.slug || post.id}`
+  }))
+};
 
   const nonFeaturedPosts = filteredPosts
     .filter(post => !post.featured)
@@ -219,9 +242,27 @@ const Blog = () => {
     );
   }
 
-  return (
+
+  return (    
     <div className="min-h-screen">
-      <Header />
+    <Helmet>
+      <title>Real Estate Blog | Orchid Island - Luxury Real Estate Insights</title>
+      <meta 
+        name="description" 
+        content="Expert insights and market analysis on Marrakech luxury real estate. Stay informed with the latest trends, property guides, and investment tips." 
+      />
+      <link rel="canonical" href="https://orchidisland.immo/real-estate-guide-orchid-island-marrakech" />
+      <meta property="og:title" content="Real Estate Blog | Orchid Island - Luxury Real Estate Insights" />
+      <meta property="og:description" content="Expert insights and market analysis on Marrakech luxury real estate." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://orchidisland.immo/real-estate-guide-orchid-island-marrakech" />
+      <meta property="og:site_name" content="Orchid Island Real Estate" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Real Estate Blog | Orchid Island" />
+      <meta name="twitter:description" content="Expert insights on Marrakech luxury real estate market." />
+      <script type="application/ld+json">{JSON.stringify(blogJsonLd)}</script>
+    </Helmet>
+    <Header />
       <main>
         {/* Hero Section */}
         <section className="py-20 bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -275,12 +316,19 @@ const Blog = () => {
                   <div className="aspect-video md:aspect-auto">
                     <img
                       src={getCloudinaryUrl(post.image, 500, 350)}
+                      srcSet={`
+                        ${getCloudinaryUrl(post.image, 600, 450)} 600w,
+                        ${getCloudinaryUrl(post.image, 800, 600)} 800w,
+                        ${getCloudinaryUrl(post.image, 1200, 900)} 1200w
+                      `}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       alt={post.title}
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      fetchPriority="high"
+                      loading="eager"
                       decoding="async"
-                      width={500}
-                      height={350}
+                      width={800}
+                      height={600}
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -332,13 +380,19 @@ const Blog = () => {
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
                       <img
-                        src={getCloudinaryUrl(post.image, 500, 350)}
+                        src={getCloudinaryUrl(post.image, 600, 400)}
+                        srcSet={`
+                          ${getCloudinaryUrl(post.image, 400, 267)} 400w,
+                          ${getCloudinaryUrl(post.image, 600, 400)} 600w,
+                          ${getCloudinaryUrl(post.image, 800, 533)} 800w
+                        `}
+                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         decoding="async"
-                        width={500}
-                        height={350}  
+                        width={600}
+                        height={400}
                       />
                     </div>
                     <CardContent className="font-lora p-6">

@@ -11,6 +11,7 @@ import { Helmet } from 'react-helmet-async';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
+import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF, AUTHOR_SCHEMA } from "@/config/schema"; 
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -143,47 +144,83 @@ const ArticleDetail = () => {
   }
 
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": ["Article", "WebPage"],
-    "@id": `https://orchidisland.immo/${article.slug}#article`,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://orchidisland.immo/${article.slug}`
-    },
-    "url": `https://orchidisland.immo/${article.slug}`,
-    "headline": article.title,
-    "description": article.excerpt,
-    "image": 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + article.image,
-    "datePublished": article.createdAt,
-    "dateModified": article.updatedAt,
-    "author": {
-      "@type": "Person",
-      "@id": `https://orchidisland.immo/#person/Mohamed-DEKKAK`,
-      "name": "Mohamed DEKKAK",
-      // "url": "https://orchidisland.immo/#organization"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "@id": "https://orchidisland.immo/#organization",
-      "name": "Orchid Island Real Estate",
-      "url": "https://orchidisland.immo",
-      "logo": {
-        "@type": "ImageObject",
-       "url": "https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png",
-     }
-    },
-    "isPartOf": {
-      "@id": "https://orchidisland.immo/#website"
-    }
-  };
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "@id": `${SITE_URL}/${article.slug || article._id}#article`,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `${SITE_URL}/${article.slug || article._id}#webpage`
+  },
+  "url": `${SITE_URL}/${article.slug || article._id}`,
+  "headline": article.title,
+  "description": article.excerpt?.substring(0, 160),
+  "image": article.image?.startsWith('http') 
+    ? article.image 
+    : `https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/${article.image}`,
+  "datePublished": article.createdAt,
+  "dateModified": article.updatedAt,
+  "author": AUTHOR_SCHEMA,
+  "publisher": ORGANIZATION_REF,
+  "isPartOf": {
+    "@id": `${SITE_URL}/real-estate-guide-orchid-island-marrakech#blog`
+  },
+  "about": {
+    "@type": "Place",
+    "name": "Marrakech",
+    "sameAs": "https://en.wikipedia.org/wiki/Marrakech"
+  },
+  "keywords": article.tags?.length 
+    ? article.tags.join(", ") 
+    : `Marrakech, Luxury Real Estate, ${article.category}`
+};
 
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>{article.title} | Orchid Island Real Estate</title>
         <meta name="description" content={article.excerpt?.substring(0, 160)} />
+        <link rel="canonical" href={`https://orchidisland.immo/${article.slug || article._id}`} />
+        <meta property="og:title" content={`${article.title} | Orchid Island`} />
+        <meta property="og:description" content={article.excerpt?.substring(0, 160)} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://orchidisland.immo/${article.slug || article._id}`} />
+        <meta property="article:published_time" content={article.createdAt} />
+        <meta property="article:modified_time" content={article.updatedAt} />
+        <meta property="article:author" content="Mohamed DEKKAK" />
         <script type="application/ld+json">
           {JSON.stringify(jsonLd)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+           "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://orchidisland.immo"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Blog",
+                "item": "https://orchidisland.immo/real-estate-guide-orchid-island-marrakech"
+             },
+             {
+               "@type": "ListItem",
+               "position": 3,
+               "name": article.category || "Article",
+               "item": `https://orchidisland.immo/real-estate-guide-orchid-island-marrakech?category=${encodeURIComponent(article.category || '')}`
+             },
+             {
+               "@type": "ListItem",
+               "position": 4,
+               "name": article.title,
+               "item": `https://orchidisland.immo/${article.slug || article._id}`
+              }
+            ]
+          })}
         </script>
       </Helmet>
       <Header />
@@ -251,8 +288,19 @@ const ArticleDetail = () => {
                   <div className="mb-8 sm:mb-12">
                     <img
                       src={getCloudinaryUrl(article.image, 800, 600) || "/fallback.jpg"}
+                      srcSet={`
+                       ${getCloudinaryUrl(article.image, 600, 450)} 600w,
+                       ${getCloudinaryUrl(article.image, 800, 600)} 800w,
+                       ${getCloudinaryUrl(article.image, 1200, 900)} 1200w
+                      `}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
                       alt={article.title}
                       className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
+                      fetchPriority="high"
+                      loading="eager"
+                      decoding="sync"
+                      width={800}
+                      height={600}
                     />
                   </div>
 
@@ -333,13 +381,18 @@ const ArticleDetail = () => {
                               >
                                 <div className="flex gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors">
                                   <img
-                                    src={getCloudinaryUrl(recent.image, 80, 80) || "/fallback.jpg"}
+                                    src={getCloudinaryUrl(recent.image, 120, 120) || "/fallback.jpg"}
+                                    srcSet={`
+                                      ${getCloudinaryUrl(recent.image, 80, 80)} 80w,
+                                      ${getCloudinaryUrl(recent.image, 120, 120)} 120w
+                                    `}
+                                    sizes="80px"
                                     alt={recent.title}
                                     className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg shrink-0"
                                     loading="lazy"
                                     decoding="async"
-                                    width={80}
-                                    height={80}
+                                    width={120}
+                                    height={120}
                                   />
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-playfair font-medium text-sm text-foreground group-hover:text-primary line-clamp-2 mb-1 leading-snug">
@@ -413,13 +466,19 @@ const ArticleDetail = () => {
                               <CardHeader className="p-0">
                                 <div className="relative overflow-hidden rounded-t-lg">
                                   <img
-                                    src={getCloudinaryUrl(relatedArticle.image, 400, 300) || "/fallback.jpg"}
+                                    src={getCloudinaryUrl(relatedArticle.image, 600, 450) || "/fallback.jpg"}
+                                    srcSet={`
+                                      ${getCloudinaryUrl(relatedArticle.image, 400, 300)} 400w,
+                                      ${getCloudinaryUrl(relatedArticle.image, 600, 450)} 600w,
+                                      ${getCloudinaryUrl(relatedArticle.image, 800, 600)} 800w
+                                    `}
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     alt={relatedArticle.title}
                                     className="w-full h-44 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                                     loading="lazy"
                                     decoding="async"
-                                    width={400}
-                                    height={300}
+                                    width={600}
+                                    height={450}
                                   />
                                   <div className="font-lora absolute top-4 left-4">
                                     <Badge variant="secondary">

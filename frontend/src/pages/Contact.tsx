@@ -276,8 +276,9 @@ const Contact = () => {
                     </div>
                   )}
                   {/* reCAPTCHA placeholder */}
-                    <div className="mb-4">
+                  <div className="mb-4">
                    <ReCAPTCHA
+                     ref = {recaptchaRef}
                      sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
                       onChange={handleRecaptchaChange}
                     />

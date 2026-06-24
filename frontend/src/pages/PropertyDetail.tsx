@@ -17,6 +17,7 @@ import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
 import ImmersiveTourModal from "@/components/ImmersiveTourModal";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import SimilarProperties from "@/components/SimilarProperties";
+import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF } from "@/config/schema";
 
 /* ─────────────────────────────────────────────────────────
    Cinematic Stack Gallery
@@ -330,42 +331,44 @@ const PropertyDetail = () => {
   }
 
   /* ── JSON-LD ── */
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": ["Offer", "WebPage"],
-    "@id": `https://orchidisland.immo/property/${property.slug}#offer`,
-    url: `https://orchidisland.immo/property/${property.slug}`,
-    isPartOf: { "@id": "https://orchidisland.immo/#website" },
-    price: property.price,
-    priceCurrency: property.currency || "MAD",
-    itemOffered: {
-      "@type": "Residence",
-      "@id": `https://orchidisland.immo/property/${property.slug}#property`,
-      name: property.title,
-      description: property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
-      image: property.mainImage,
-      numberOfRooms: property.bedrooms,
-      floorSize: { "@type": "QuantitativeValue", value: property.area, unitCode: "MTK" },
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: property.city,
-        addressRegion: property.location,
-        addressCountry: "MA",
-      },
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": ["Offer", "WebPage"],
+  "@id": `${SITE_URL}/property/${property.slug || property._id}#offer`,
+  "url": `${SITE_URL}/property/${property.slug || property._id}`,
+  "isPartOf": WEBSITE_REF,
+  "price": property.price,
+  "priceCurrency": property.currency || "MAD",
+  "itemOffered": {
+    "@type": "Residence",
+    "@id": `${SITE_URL}/property/${property.slug || property._id}#property`,
+    "name": property.title,
+    "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
+    "image": property.mainImage,
+    "numberOfRooms": property.bedrooms,
+    "floorSize": { 
+      "@type": "QuantitativeValue", 
+      "value": property.area, 
+      "unitCode": "MTK" 
     },
-    seller: {
-      "@type": "RealEstateAgent",
-      "@id": "https://orchidisland.immo/#organization",
-      name: "Orchid Island Real Estate",
-      url: "https://orchidisland.immo",
-      areaServed: { "@type": "Place", name: "Marrakech, Morocco" },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": property.city,
+      "addressRegion": property.location,
+      "addressCountry": "MA",
     },
-    mainEntityOfPage: { "@id": `https://orchidisland.immo/property/${property.slug}#webpage` },
-    potentialAction: {
-      "@type": "ViewAction",
-      target: `https://orchidisland.immo/property/${property.slug}`,
-    },
-  };
+    "amenityFeature": property.amenities?.map(a => ({
+      "@type": "LocationFeatureSpecification",
+      "name": a,
+      "value": true
+    }))
+  },
+  "seller": ORGANIZATION_REF,
+  "mainEntityOfPage": {
+    "@id": `${SITE_URL}/property/${property.slug || property._id}#webpage`
+  }
+};
 
   /* ── Construire la liste d'images ── */
   const imagesToShow: string[] = [];

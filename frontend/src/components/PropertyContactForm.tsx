@@ -220,7 +220,6 @@ const PropertyContactForm = ({ propertyTitle, propertyId }: PropertyContactFormP
                 ref={recaptchaRef}
                 sitekey={RECAPTCHA_SITE_KEY}
                 onChange={handleRecaptchaChange}
-                size="compact"
               />
             </div>
 

@@ -180,6 +180,17 @@ const ArticleDetail = () => {
         <title>{article.title} | Orchid Island Real Estate</title>
         <meta name="description" content={article.excerpt?.substring(0, 160)} />
         <link rel="canonical" href={`https://orchidisland.immo/${article.slug || article._id}`} />
+        <link 
+          rel="preload" 
+          as="image" 
+          href={getCloudinaryUrl(article.image, 800, 600)} 
+          imageSrcSet={`
+            ${getCloudinaryUrl(article.image, 600, 450)} 600w,
+            ${getCloudinaryUrl(article.image, 800, 600)} 800w,
+            ${getCloudinaryUrl(article.image, 1200, 900)} 1200w
+          `}
+          imageSizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+        />
         <meta property="og:title" content={`${article.title} | Orchid Island`} />
         <meta property="og:description" content={article.excerpt?.substring(0, 160)} />
         <meta property="og:type" content="article" />
@@ -187,6 +198,10 @@ const ArticleDetail = () => {
         <meta property="article:published_time" content={article.createdAt} />
         <meta property="article:modified_time" content={article.updatedAt} />
         <meta property="article:author" content="Mohamed DEKKAK" />
+        <meta property="article:section" content={article.category} />
+        {article.tags?.map((tag, i) => (
+          <meta key={i} property="article:tag" content={tag.trim()} />
+        ))}
         <script type="application/ld+json">
           {JSON.stringify(jsonLd)}
         </script>
@@ -327,11 +342,8 @@ const ArticleDetail = () => {
                             src={getCloudinaryUrl(article.image, 300, 200) || "/fallback.jpg"}
                             alt={article.title}
                             className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
-                            fetchPriority="high"
-                            loading="eager"
+                            loading="lazy"
                             decoding="async"
-                            width={300}
-                            height={200}
                           />
                           <div className="font-lora absolute top-4 left-4">
                             <Badge variant="secondary">{article.category}</Badge>

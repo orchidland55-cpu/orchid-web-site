@@ -315,7 +315,7 @@ const blogJsonLd = {
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto">
                     <img
-                      src={getCloudinaryUrl(post.image, 500, 350)}
+                      src={getCloudinaryUrl(post.image, 800, 600)}
                       srcSet={`
                         ${getCloudinaryUrl(post.image, 600, 450)} 600w,
                         ${getCloudinaryUrl(post.image, 800, 600)} 800w,
@@ -326,7 +326,7 @@ const blogJsonLd = {
                       className="w-full h-full object-cover"
                       fetchPriority="high"
                       loading="eager"
-                      decoding="async"
+                      decoding="sync"
                       width={800}
                       height={600}
                     />

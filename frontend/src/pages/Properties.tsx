@@ -178,7 +178,7 @@ const PropertiesPage = () => {
         rel="preload"
         style={{
           backgroundImage: `url('${getCloudinaryUrl(
-           "pexels-iwashere-18320910_1_fv44s3.jpg", 
+           "hero_tweegz.webp",
            1600,  900, "auto",
             { format: "auto", crop: "fill", gravity: "auto" }
           )}')`,

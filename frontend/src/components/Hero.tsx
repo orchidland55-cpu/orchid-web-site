@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 // Cloudinary URLs centralisés
 const HERO_IMAGE_URL =
-  "https://res.cloudinary.com/drgg2rocc/image/upload/v1782416336/hero_tweegz.webp";
+  "https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,w_1200,dpr_auto/v1782416336/hero_tweegz.webp";
 
 const HERO_VIDEO_URL =
   "https://res.cloudinary.com/drgg2rocc/video/upload/q_auto,f_auto/v1781262489/14763266_3840_2160_60fps_1_vghvkk.mp4";

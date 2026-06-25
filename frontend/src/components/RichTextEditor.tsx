@@ -5,7 +5,7 @@ import {
   AlignLeft, AlignCenter, AlignRight,
   List, ListOrdered, Link2, Image as ImageIcon,
   Quote, Palette, Undo2, Redo2,
-  Maximize2, Minimize2, X,
+  Maximize2, Minimize2, X, Tag,
 } from "lucide-react";
 import { uploadToCloudinary } from "@/services/cloudinary";
 
@@ -18,6 +18,12 @@ interface RichTextEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   uploadFolder?: string;
+}
+
+// ✅ NOUVEAU : état du panneau alt inline
+interface PendingAlt {
+  img: HTMLImageElement;
+  value: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,7 +79,6 @@ function countWords(html: string): { words: number; chars: number } {
   return { words: text.split(" ").filter(Boolean).length, chars: text.length };
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Composant principal
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,9 +94,9 @@ const RichTextEditor = ({
   const editorRef     = useRef<HTMLDivElement>(null);
   const fileInputRef  = useRef<HTMLInputElement>(null);
   const wrapperRef    = useRef<HTMLDivElement>(null);
+  // ✅ NOUVEAU : ref pour l'input alt (focus auto)
+  const altInputRef   = useRef<HTMLInputElement>(null);
 
-  // Sélection sauvegardée dans onMouseDown de chaque bouton toolbar,
-  // avant que le blur du contentEditable soit déclenché.
   const savedRangeRef = useRef<Range | null>(null);
   const lastValueRef  = useRef<string>(value ?? "");
   const isFocusedRef  = useRef(false);
@@ -101,6 +106,9 @@ const RichTextEditor = ({
   const [uploadError,  setUploadError]  = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wordStats,    setWordStats]    = useState(() => countWords(value ?? ""));
+
+  // ✅ NOUVEAU : panneau alt inline — null = caché, objet = visible
+  const [pendingAlt, setPendingAlt] = useState<PendingAlt | null>(null);
 
   const [fmt, setFmt] = useState({
     bold: false, italic: false, underline: false, strikeThrough: false,
@@ -117,8 +125,8 @@ const RichTextEditor = ({
     if (incoming) {
       el.innerHTML = incoming;
       lastValueRef.current = incoming;
-     setWordStats(countWords(incoming));
-   }
+      setWordStats(countWords(incoming));
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync si la valeur change depuis l'extérieur (hors focus)
@@ -132,6 +140,14 @@ const RichTextEditor = ({
       setWordStats(countWords(incoming));
     }
   }, [value]);
+
+  // ✅ NOUVEAU : focus auto sur l'input alt quand le panneau apparaît
+  useEffect(() => {
+    if (pendingAlt) {
+      // Petit délai pour laisser le DOM se mettre à jour
+      setTimeout(() => altInputRef.current?.focus(), 50);
+    }
+  }, [pendingAlt]);
 
   // ── État actif de la toolbar ──────────────────────────────────────────────
 
@@ -160,12 +176,19 @@ const RichTextEditor = ({
   // ── Escape fullscreen ─────────────────────────────────────────────────────
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape" && isFullscreen) setIsFullscreen(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        // ✅ Escape ferme d'abord le panneau alt si ouvert
+        if (pendingAlt) {
+          confirmAlt(pendingAlt.value);
+          return;
+        }
+        if (isFullscreen) setIsFullscreen(false);
+      }
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [isFullscreen]);
-
-
+  }, [isFullscreen, pendingAlt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── emitChange ────────────────────────────────────────────────────────────
 
@@ -178,17 +201,7 @@ const RichTextEditor = ({
     setWordStats(countWords(html));
   }, [onChange]);
 
-  // ── execCmd : LA fonction centrale ───────────────────────────────────────
-  //
-  // RÈGLE ABSOLUE : cette fonction est toujours appelée en synchrone
-  // depuis un onMouseDown avec e.preventDefault() déjà fait.
-  // JAMAIS dans un setTimeout — cela perd la sélection restaurée.
-  //
-  // Séquence exacte :
-  // 1. focus() sur l'éditeur
-  // 2. restoreRange() avec le range sauvegardé dans onMouseDown
-  // 3. execCommand()
-  // 4. emitChange()
+  // ── execCmd ───────────────────────────────────────────────────────────────
 
   const execCmd = useCallback((command: string, val?: string) => {
     const el = editorRef.current;
@@ -199,14 +212,13 @@ const RichTextEditor = ({
     emitChange();
   }, [emitChange]);
 
-  // ── Toggle blockquote : désactive si déjà actif ───────────────────────────
+  // ── Toggle blockquote ──────────────────────────────────────────────────────
 
   const toggleBlockquote = useCallback(() => {
     const el = editorRef.current;
     if (!el) return;
     el.focus({ preventScroll: true });
     restoreRange(savedRangeRef.current);
-    // Si déjà dans un blockquote → repasser en paragraphe
     if (isInsideBlockquote()) {
       document.execCommand("formatBlock", false, "p");
     } else {
@@ -215,13 +227,7 @@ const RichTextEditor = ({
     emitChange();
   }, [emitChange]);
 
-  // ── Listes : s'assurer qu'il y a du contenu sélectionnable ───────────────
-  //
-  // Problème : si le curseur est sur une ligne vide, insertUnorderedList
-  // ne voit rien à convertir et semble ne rien faire.
-  // Fix : si la sélection est collapsed sur un nœud vide, on insère un
-  // espace insécable invisible pour donner une "ancre" à execCommand,
-  // puis on exécute la commande.
+  // ── Listes ────────────────────────────────────────────────────────────────
 
   const execList = useCallback((command: "insertUnorderedList" | "insertOrderedList") => {
     const el = editorRef.current;
@@ -232,12 +238,11 @@ const RichTextEditor = ({
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
-      // Si sélection collapsed et nœud parent vide → insérer un espace pour ancrer
       if (range.collapsed) {
         const parent = range.commonAncestorContainer;
         const textContent = (parent.nodeType === Node.TEXT_NODE ? parent : (parent as Element)).textContent ?? "";
         if (textContent.trim() === "") {
-          document.execCommand("insertText", false, "\u200B"); // zero-width space
+          document.execCommand("insertText", false, "\u200B");
         }
       }
     }
@@ -246,17 +251,11 @@ const RichTextEditor = ({
     emitChange();
   }, [emitChange]);
 
-  // ── Couleur — prompt() natif, synchrone, préserve la sélection ──────────
-  //
-  // Le prompt() est bloquant : pendant qu'il est ouvert, le navigateur
-  // maintient la sélection du contentEditable intacte. C'est la méthode
-  // la plus fiable pour ce cas d'usage.
+  // ── Couleur ───────────────────────────────────────────────────────────────
 
   const handleColor = useCallback(() => {
     const el = editorRef.current;
     if (!el) return;
-    // On est dans onMouseDown donc le focus est encore dans l'éditeur.
-    // On sauvegarde avant d'ouvrir le prompt.
     const range = saveRange(el);
     const color = prompt("Couleur du texte (ex: #ff0000, red, rgb(255,0,0)) :");
     if (!color) return;
@@ -266,7 +265,7 @@ const RichTextEditor = ({
     emitChange();
   }, [emitChange]);
 
-  // ── Lien — prompt() natif, synchrone, préserve la sélection ─────────────
+  // ── Lien ──────────────────────────────────────────────────────────────────
 
   const handleLink = useCallback(() => {
     const el = editorRef.current;
@@ -280,8 +279,6 @@ const RichTextEditor = ({
     emitChange();
   }, [emitChange]);
 
-
-
   // ── Image ─────────────────────────────────────────────────────────────────
 
   const validateFile = (file: File): string | null => {
@@ -291,6 +288,26 @@ const RichTextEditor = ({
       return `Fichier trop lourd (max ${MAX_FILE_SIZE_MB} Mo).`;
     return null;
   };
+
+  // ✅ NOUVEAU : génère l'alt depuis le nom du fichier
+  const generateAltFromFilename = (filename: string): string => {
+    return filename
+      .replace(/\.[^/.]+$/, "")   // retire l'extension
+      .replace(/[-_]/g, " ")      // remplace - et _ par des espaces
+      .replace(/\s+/g, " ")       // nettoie les espaces multiples
+      .trim();
+  };
+
+  // ✅ NOUVEAU : confirme l'alt et ferme le panneau
+  // Appelé par "Valider", "Passer", ou Escape
+  const confirmAlt = useCallback((altValue: string) => {
+    if (!pendingAlt) return;
+    // Met à jour l'alt sur l'élément img déjà dans le DOM
+    pendingAlt.img.alt = altValue.trim();
+    setPendingAlt(null);
+    // Émet le HTML mis à jour avec le bon alt
+    emitChange();
+  }, [pendingAlt, emitChange]);
 
   const uploadAndInsert = useCallback(async (file: File) => {
     const err = validateFile(file);
@@ -303,7 +320,6 @@ const RichTextEditor = ({
       if (!el) return;
       el.focus({ preventScroll: true });
       if (!restoreRange(savedRangeRef.current)) {
-        // Pas de sélection sauvegardée : on va à la fin
         const range = document.createRange();
         range.selectNodeContents(el);
         range.collapse(false);
@@ -311,9 +327,15 @@ const RichTextEditor = ({
         s?.removeAllRanges();
         s?.addRange(range);
       }
+
+      // ✅ MODIFIÉ : on génère l'alt auto depuis le nom du fichier
+      const autoAlt = generateAltFromFilename(file.name);
+
       const img = document.createElement("img");
       img.src = result.url;
       img.className = "rich-img";
+      img.alt = autoAlt; // alt auto dès l'insertion
+
       const s = window.getSelection();
       if (s && s.rangeCount > 0) {
         const range = s.getRangeAt(0);
@@ -324,7 +346,14 @@ const RichTextEditor = ({
         s.removeAllRanges();
         s.addRange(range);
       }
+
+      // emitChange d'abord pour que le parent ait le HTML avec l'alt auto
       emitChange();
+
+      // ✅ NOUVEAU : ouvre le panneau alt inline pour que l'utilisateur
+      // puisse confirmer ou modifier — sans bloquer l'UI
+      setPendingAlt({ img, value: autoAlt });
+
     } catch (e: unknown) {
       setUploadError(e instanceof Error ? e.message : "Échec de l'upload.");
     } finally {
@@ -350,11 +379,6 @@ const RichTextEditor = ({
 
   const Divider = () => <div className="w-px h-5 bg-border mx-0.5 flex-shrink-0" aria-hidden />;
 
-  // ToolBtn : le onMouseDown est synchrone.
-  // e.preventDefault() empêche le blur du contentEditable.
-  // saveRange() capture la sélection AVANT la perte de focus.
-  // L'action est exécutée immédiatement après, sans setTimeout.
-
   const ToolBtn = ({
     icon: Icon, title, active = false, disabled = false,
     onAction,
@@ -377,12 +401,11 @@ const RichTextEditor = ({
         active ? "bg-accent text-accent-foreground ring-1 ring-accent-foreground/20" : "",
       ].join(" ")}
       onMouseDown={(e) => {
-        e.preventDefault(); // ← empêche le blur
-        // Sauvegarde la sélection avant toute action
+        e.preventDefault();
         if (editorRef.current) {
           savedRangeRef.current = saveRange(editorRef.current);
         }
-        onAction(); // ← synchrone, pas de setTimeout
+        onAction();
       }}
     >
       <Icon className="w-4 h-4" />
@@ -390,21 +413,15 @@ const RichTextEditor = ({
   );
 
   // ── Rendu toolbar ─────────────────────────────────────────────────────────
-  //
-  // sticky top-0 z-10 : reste visible au scroll dans la zone d'édition.
-  // La zone d'édition a overflow-y-auto et une hauteur fixe, donc c'est
-  // le contentEditable qui scrolle, pas la page — la toolbar ne bouge pas.
 
   const renderToolbar = () => (
     <div className="border-b border-border p-2 bg-card flex-shrink-0">
       <div className="flex flex-wrap items-center gap-0.5">
 
-        {/* Undo / Redo */}
         <ToolBtn icon={Undo2} title="Annuler (Ctrl+Z)"        active={false} onAction={() => execCmd("undo")} />
         <ToolBtn icon={Redo2} title="Rétablir (Ctrl+Shift+Z)" active={false} onAction={() => execCmd("redo")} />
         <Divider />
 
-        {/* Style */}
         <select
           className="h-8 px-1.5 text-xs border border-border rounded-md bg-background cursor-pointer flex-shrink-0"
           title="Style de paragraphe"
@@ -414,9 +431,8 @@ const RichTextEditor = ({
           }}
           onChange={(e) => {
             const val = e.target.value;
-            e.target.value = ""; // reset visuel immédiat
+            e.target.value = "";
             if (!val) return;
-            // On a sauvegardé la sélection dans onMouseDown, on exécute directement
             const el = editorRef.current;
             if (!el) return;
             el.focus({ preventScroll: true });
@@ -433,7 +449,6 @@ const RichTextEditor = ({
           <option value="p">Paragraphe</option>
         </select>
 
-        {/* Taille */}
         <select
           className="h-8 px-1.5 text-xs border border-border rounded-md bg-background cursor-pointer flex-shrink-0"
           title="Taille de police"
@@ -464,22 +479,19 @@ const RichTextEditor = ({
 
         <Divider />
 
-        {/* Formatage inline */}
-        <ToolBtn icon={Bold}          title="Gras (Ctrl+B)"     active={fmt.bold}         onAction={() => execCmd("bold")} />
-        <ToolBtn icon={Italic}        title="Italique (Ctrl+I)" active={fmt.italic}       onAction={() => execCmd("italic")} />
-        <ToolBtn icon={Underline}     title="Souligné (Ctrl+U)" active={fmt.underline}    onAction={() => execCmd("underline")} />
+        <ToolBtn icon={Bold}          title="Gras (Ctrl+B)"     active={fmt.bold}          onAction={() => execCmd("bold")} />
+        <ToolBtn icon={Italic}        title="Italique (Ctrl+I)" active={fmt.italic}        onAction={() => execCmd("italic")} />
+        <ToolBtn icon={Underline}     title="Souligné (Ctrl+U)" active={fmt.underline}     onAction={() => execCmd("underline")} />
         <ToolBtn icon={Strikethrough} title="Barré"             active={fmt.strikeThrough} onAction={() => execCmd("strikeThrough")} />
 
         <Divider />
 
-        {/* Alignement */}
         <ToolBtn icon={AlignLeft}   title="Aligner à gauche" active={fmt.justifyLeft}   onAction={() => execCmd("justifyLeft")} />
         <ToolBtn icon={AlignCenter} title="Centrer"          active={fmt.justifyCenter} onAction={() => execCmd("justifyCenter")} />
         <ToolBtn icon={AlignRight}  title="Aligner à droite" active={fmt.justifyRight}  onAction={() => execCmd("justifyRight")} />
 
         <Divider />
 
-        {/* Listes — utilisent execList, pas execCmd */}
         <ToolBtn
           icon={List}
           title="Liste à puces"
@@ -492,8 +504,6 @@ const RichTextEditor = ({
           active={fmt.insertOrderedList}
           onAction={() => execList("insertOrderedList")}
         />
-
-        {/* Citation — toggle intelligent */}
         <ToolBtn
           icon={Quote}
           title="Citation (toggle)"
@@ -503,28 +513,13 @@ const RichTextEditor = ({
 
         <Divider />
 
-        {/* Couleur — prompt() natif comme dans le composant original */}
-        <ToolBtn
-          icon={Palette}
-          title="Couleur du texte"
-          onAction={handleColor}
-        />
-
-        {/* Lien — prompt() natif comme dans le composant original */}
-        <ToolBtn
-          icon={Link2}
-          title="Insérer un lien"
-          onAction={handleLink}
-        />
-
-        {/* Image */}
+        <ToolBtn icon={Palette} title="Couleur du texte"  onAction={handleColor} />
+        <ToolBtn icon={Link2}   title="Insérer un lien"   onAction={handleLink} />
         <ToolBtn
           icon={ImageIcon}
           title={`Insérer une image (max ${MAX_FILE_SIZE_MB} Mo)`}
           disabled={isUploading}
-          onAction={() => {
-            fileInputRef.current?.click();
-          }}
+          onAction={() => { fileInputRef.current?.click(); }}
         />
 
         {isUploading && (
@@ -535,21 +530,16 @@ const RichTextEditor = ({
 
         <div className="flex-1 min-w-0" />
 
-        {/* Plein écran */}
         <button
           type="button"
           title={isFullscreen ? "Quitter le plein écran (Échap)" : "Plein écran"}
           className="p-0 h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent transition-colors"
           onClick={() => setIsFullscreen(v => !v)}
         >
-          {isFullscreen
-            ? <Minimize2 className="w-4 h-4" />
-            : <Maximize2 className="w-4 h-4" />
-          }
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Erreur upload */}
       {uploadError && (
         <div className="mt-1.5 flex items-center gap-2 text-xs text-destructive bg-destructive/10 px-2.5 py-1.5 rounded-md">
           <X className="w-3 h-3 flex-shrink-0" />
@@ -562,6 +552,54 @@ const RichTextEditor = ({
       )}
     </div>
   );
+
+  // ✅ NOUVEAU : panneau alt inline — rendu sous la zone d'édition
+  const renderAltPanel = () => {
+    if (!pendingAlt) return null;
+    return (
+      <div className="border-t border-border bg-card px-4 py-3 flex-shrink-0">
+        <div className="flex items-center gap-2 mb-2">
+          <Tag className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+          <span className="text-xs font-medium text-foreground">Texte alternatif (alt)</span>
+          <span className="text-xs text-muted-foreground ml-auto">Pour le SEO et l'accessibilité</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            ref={altInputRef}
+            type="text"
+            value={pendingAlt.value}
+            onChange={(e) => setPendingAlt(prev => prev ? { ...prev, value: e.target.value } : null)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                confirmAlt(pendingAlt.value);
+              }
+              // Escape géré dans le useEffect global
+            }}
+            placeholder="Décrivez l'image..."
+            className="flex-1 h-8 px-3 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <button
+            type="button"
+            onClick={() => confirmAlt(pendingAlt.value)}
+            className="h-8 px-3 text-xs rounded-md border border-border bg-background hover:bg-muted text-foreground transition-colors flex-shrink-0"
+          >
+            Passer
+          </button>
+          <button
+            type="button"
+            onClick={() => confirmAlt(pendingAlt.value)}
+            className="h-8 px-3 text-xs rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex-shrink-0 font-medium"
+          >
+            Valider ↵
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1.5">
+          Généré depuis le nom du fichier · modifiable
+        </p>
+      </div>
+    );
+  };
 
   // ── CSS ───────────────────────────────────────────────────────────────────
 
@@ -599,14 +637,6 @@ const RichTextEditor = ({
   `;
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
-  //
-  // Architecture pour la toolbar sticky :
-  // Le wrapper est un flex-col avec une hauteur max fixe.
-  // La toolbar est flex-shrink-0 (ne rétrécit jamais).
-  // Le contentEditable a overflow-y-auto et flex-1 → c'est LUI qui scrolle.
-  // Résultat : la toolbar reste toujours visible, même en mode normal.
-  //
-  // En fullscreen : position fixed, même principe.
 
   return (
     <>
@@ -642,6 +672,9 @@ const RichTextEditor = ({
           }}
           onKeyDown={() => { /* fermeture popovers gérée par prompt() natif */ }}
         />
+
+        {/* ✅ NOUVEAU : panneau alt inline — apparaît après upload image */}
+        {renderAltPanel()}
 
         {/* Footer compteur */}
         <div className="border-t border-border px-4 py-1.5 bg-muted/20 flex justify-end flex-shrink-0">

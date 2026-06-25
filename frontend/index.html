@@ -6,6 +6,46 @@
     <title>Luxury Real Estate in Marrakech | Villas, Riads & Investment Properties | Orchid Island</title>
     <meta name="description"
       content="Discover luxury villas, riads, apartments and investment properties in Marrakech with Orchid Island Real Estate. Trusted experts in high-end Moroccan real estate." />
+    
+    <!-- ✅ CSS critique inline (styles essentiels pour le header et hero) -->
+    <style>
+      /* Styles critiques pour le rendu initial */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #fffff0;
+        color: #082648;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root { min-height: 100vh; display: flex; flex-direction: column; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+      .h-\[80px\] { height: 80px; }
+      .fixed { position: fixed; }
+      .top-0 { top: 0; }
+      .left-0 { left: 0; }
+      .right-0 { right: 0; }
+      .w-full { width: 100%; }
+      .z-50 { z-index: 50; }
+      .bg-background\/70 { background: rgba(255, 255, 240, 0.7); }
+      .backdrop-blur-md { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+      .border-b { border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+      .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .hidden { display: none; }
+      .md\\:flex { display: flex; }
+      .h-12 { height: 3rem; }
+      .w-auto { width: auto; }
+      .text-foreground { color: #082648; }
+      .hover\\:text-primary:hover { color: #ccac36; }
+      .transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .font-playfair { font-family: 'Playfair Display', serif; }
+      .font-lora { font-family: 'Lora', serif; }
+      .font-inter { font-family: 'Inter', sans-serif; }
+    </style>
 
     <!-- Préconnexion Railway — réduit le handshake TCP+TLS au premier fetch -->
     <link rel="preconnect" href="https://orchid-web-site-production.up.railway.app" />

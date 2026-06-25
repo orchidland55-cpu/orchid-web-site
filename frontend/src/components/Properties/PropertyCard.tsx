@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Bed, Bath, Square, Images, ArrowRight } from "lucide-react";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 import { propertyPath, formatPrice } from "@/utils/Property";
+import { LazyImage } from "@/components/OptimizedImage";
 
 interface PropertyCardProps {
   property: Property;
@@ -29,20 +30,19 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
         className="group relative flex h-full w-full rounded-xl overflow-hidden bg-neutral-900 block ring-1 ring-[#D4AF37]/40 hover:ring-[#D4AF37]/70 transition-all duration-300"
         style={{ minHeight: "340px" }}
       >
-        {/* Image full-bleed — contain pour voir l'image entière */}
-        <img
-          src={
-            property.mainImage
-              ? getCloudinaryUrl(property.mainImage, 900, 600)
-              : "/api/placeholder/900/600"
-          }
+        {/* Image full-bleed avec LazyImage */}
+        <LazyImage
+          src={property.mainImage}
           alt={property.title}
+          width={900}
+          height={600}
           className={`absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-[1.02] ${
             isSold ? "grayscale-[40%]" : ""
           }`}
-          style={{ objectFit: "contain" }}
-          loading="lazy"
-          decoding="async"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          widths={[400, 600, 900, 1200]}
+          crop="fill"
+          blurPlaceholder
         />
 
         {/* Dégradé bas */}
@@ -133,24 +133,23 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
       className="group h-full flex flex-col rounded-xl overflow-hidden border bg-card hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)] transition-all duration-300 ring-1 ring-[#D4AF37]/40 hover:ring-[#D4AF37]/70"
       style={{ borderColor: "var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
     >
-      {/* Image — contain pour voir l'image entière */}
+      {/* Image avec LazyImage */}
       <div
         className="relative flex-1 min-h-[160px] overflow-hidden"
         style={{ background: "#1a1a1a" }}
       >
-        <img
-          src={
-            property.mainImage
-              ? getCloudinaryUrl(property.mainImage, 640, 400)
-              : "/api/placeholder/640/400"
-          }
+        <LazyImage
+          src={property.mainImage}
           alt={property.title}
+          width={640}
+          height={400}
           className={`absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-[1.02] ${
             isSold ? "grayscale-[40%]" : ""
           }`}
-          style={{ objectFit: "contain" }}
-          loading="lazy"
-          decoding="async"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          widths={[300, 640, 900]}
+          crop="fill"
+          blurPlaceholder
         />
 
         {/* Badges */}
@@ -173,7 +172,7 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
                   background: "rgba(239,68,68,0.2)",
                   border: "0.5px solid rgba(239,68,68,0.3)",
                 }}
-              > Slod</span>
+              > Sold</span>
             )}
             {imageCount > 1 && (
               <span

@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import PropertyHero from "@/components/Properties/PropertyHero";
 import PropertyFilterBar from "@/components/Properties/PropertyFilterBar";
 import MasonryGrid from "@/components/Properties/MasonryGrid";
+import { getCloudinaryUrl } from "@/services/cloudinary";
+
 
 const PropertiesPage = () => {
   const filterBarRef = useRef<HTMLDivElement>(null);
@@ -175,9 +177,13 @@ const PropertiesPage = () => {
         className="relative min-h-[420px] flex items-center"
         rel="preload"
         style={{
-          backgroundImage: `url('https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1781262920/pexels-iwashere-18320910_1_fv44s3.jpg')`,
+          backgroundImage: `url('${getCloudinaryUrl(
+           "pexels-iwashere-18320910_1_fv44s3.jpg", 
+           1600,  900, "auto",
+            { format: "auto", crop: "fill", gravity: "auto" }
+          )}')`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+         backgroundPosition: "center",
         }}
       >
         <div className="absolute inset-0 bg-black/45" />

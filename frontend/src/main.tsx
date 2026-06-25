@@ -15,9 +15,21 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { HelmetProvider } from 'react-helmet-async';
-import ReactGA from 'react-ga4';
+import { loadGTM } from '@/utils/gtm';
 
-ReactGA.initialize('G-PNVYWFNNY5');
+// ✅ Charger Google Analytics après le rendu initial (2 secondes de délai)
+const loadAnalytics = async () => {
+  try {
+    const ReactGA = (await import('react-ga4')).default;
+    ReactGA.initialize('G-PNVYWFNNY5');
+  } catch (error) {
+    // Ignorer les erreurs de chargement
+  }
+};
+
+setTimeout(loadGTM, 3000); // Charger après 3 secondes
+// Démarrer le chargement après 2 secondes pour ne pas bloquer le rendu
+setTimeout(loadAnalytics, 2000);
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

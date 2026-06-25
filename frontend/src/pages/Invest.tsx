@@ -237,6 +237,10 @@ Message : ${formData.message || "—"}
                       src="https://res.cloudinary.com/drgg2rocc/image/upload/v1782221631/pexels-so-kenobi-323520146-18446424_gtbun0.jpg"
                       alt="Real Estate Investment"
                       className="w-full h-80 object-cover rounded-xl shadow-lg"
+                      width={600}
+                      height={400}
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute -top-4 -left-4 bg-white rounded-xl p-4 shadow-lg">
                       <div className="font-playfair text-center">

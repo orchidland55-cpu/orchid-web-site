@@ -110,7 +110,6 @@ const DataCentersPage = () => {
 
         {/* ── Hero ──────────────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-[#0a0f1e] text-white py-28 px-6">
-          {/* Grid background */}
           <div
             className="absolute inset-0 opacity-30"
             style={{
@@ -120,7 +119,6 @@ const DataCentersPage = () => {
               backgroundRepeat: "no-repeat",
             }}
           />
-          {/* Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[10px] pointer-events-none" />
 
           <div className="relative container mx-auto max-w-4xl text-center">
@@ -309,7 +307,6 @@ const DataCentersPage = () => {
                 </ul>
               </motion.div>
 
-              {/* Visual placeholder — replace with real image */}
               <motion.div
                 variants={fadeUp}
                 initial="hidden"
@@ -326,7 +323,6 @@ const DataCentersPage = () => {
                     backgroundRepeat: "no-repeat",
                   }}
                 />
-                
               </motion.div>
             </div>
           </div>
@@ -382,7 +378,6 @@ const DataCentersPage = () => {
         <section className="py-24 px-6 bg-background">
           <div className="container mx-auto max-w-6xl">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Visual */}
               <motion.div
                 variants={fadeUp}
                 initial="hidden"
@@ -459,15 +454,16 @@ const DataCentersPage = () => {
               <h2 className="font-playfair text-3xl md:text-4xl font-bold mt-2">
                 A Landmark Deal Shaping Sovereign AI Infrastructure
               </h2>
-              <div className="mt-6 rounded-lg overflow-hidden border border-primary/20"> 
-                <img src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777375520/dcdkwebp-768x432_lshzeb.webp" 
-                     alt=""
-                     style={{
-                        width: "100%",
-                        height: "auto",
-                        backgroundSize: "cover",
-                        
-                     }} />
+              <div className="mt-6 rounded-lg overflow-hidden border border-primary/20">
+                <img 
+                  src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777375520/dcdkwebp-768x432_lshzeb.webp" 
+                  alt="Sovereign AI Infrastructure Partnership"
+                  className="w-full h-auto rounded-lg"
+                  width={768}
+                  height={432}
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
               <p className="text-white/60 mt-4 max-w-2xl mx-auto">
                 A strategic alliance redefining the landscape of AI

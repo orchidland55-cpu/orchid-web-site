@@ -11,7 +11,8 @@ import { Helmet } from 'react-helmet-async';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
-import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF, AUTHOR_SCHEMA } from "@/config/schema"; 
+import { SITE_URL, ORGANIZATION_REF, AUTHOR_SCHEMA } from "@/config/schema"; 
+import { PriorityImage, LazyImage } from '@/components/OptimizedImage';
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -145,7 +146,7 @@ const ArticleDetail = () => {
 
   const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "BlogPosting",
+  "@type": "Article",
   "@id": `${SITE_URL}/${article.slug || article._id}#article`,
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -301,21 +302,15 @@ const ArticleDetail = () => {
 
                   {/* Hero Image */}
                   <div className="mb-8 sm:mb-12">
-                    <img
-                      src={getCloudinaryUrl(article.image, 800, 600) || "/fallback.jpg"}
-                      srcSet={`
-                       ${getCloudinaryUrl(article.image, 600, 450)} 600w,
-                       ${getCloudinaryUrl(article.image, 800, 600)} 800w,
-                       ${getCloudinaryUrl(article.image, 1200, 900)} 1200w
-                      `}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                    <PriorityImage
+                      src={article.image}
                       alt={article.title}
-                      className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
-                      fetchPriority="high"
-                      loading="eager"
-                      decoding="sync"
                       width={800}
                       height={600}
+                      className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                      widths={[400, 600, 800, 1200]}
+                      blurPlaceholder
                     />
                   </div>
 
@@ -340,10 +335,18 @@ const ArticleDetail = () => {
                         <div className="relative">
                           <img
                             src={getCloudinaryUrl(article.image, 300, 200) || "/fallback.jpg"}
+                            srcSet={`
+                              ${getCloudinaryUrl(article.image, 200, 133)} 200w,
+                              ${getCloudinaryUrl(article.image, 300, 200)} 300w,
+                              ${getCloudinaryUrl(article.image, 400, 267)} 400w
+                            `}
+                            sizes="300px"
                             alt={article.title}
-                            className="w-full h-52 sm:h-72 md:h-96 object-cover rounded-lg shadow-lg"
+                            className="w-full h-48 object-cover rounded-t-lg"
                             loading="lazy"
                             decoding="async"
+                            width={300}
+                           height={200}
                           />
                           <div className="font-lora absolute top-4 left-4">
                             <Badge variant="secondary">{article.category}</Badge>
@@ -392,20 +395,16 @@ const ArticleDetail = () => {
                                 className="block group"
                               >
                                 <div className="flex gap-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                                  <img
-                                    src={getCloudinaryUrl(recent.image, 120, 120) || "/fallback.jpg"}
-                                    srcSet={`
-                                      ${getCloudinaryUrl(recent.image, 80, 80)} 80w,
-                                      ${getCloudinaryUrl(recent.image, 120, 120)} 120w
-                                    `}
-                                    sizes="80px"
-                                    alt={recent.title}
-                                    className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg shrink-0"
-                                    loading="lazy"
-                                    decoding="async"
-                                    width={120}
-                                    height={120}
-                                  />
+                                  <LazyImage
+                                   src={recent.image}
+                                   alt={recent.title}
+                                  width={120}
+                                  height={120}
+                                  className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg shrink-0"
+                                  sizes="80px"
+                                  widths={[60, 120, 180]}
+                                  crop="thumb"
+                                />
                                   <div className="flex-1 min-w-0">
                                     <h4 className="font-playfair font-medium text-sm text-foreground group-hover:text-primary line-clamp-2 mb-1 leading-snug">
                                       {recent.title}
@@ -480,9 +479,9 @@ const ArticleDetail = () => {
                                   <img
                                     src={getCloudinaryUrl(relatedArticle.image, 600, 450) || "/fallback.jpg"}
                                     srcSet={`
-                                      ${getCloudinaryUrl(relatedArticle.image, 400, 300)} 400w,
+                                      ${getCloudinaryUrl(relatedArticle.image, 300, 225)} 300w,
                                       ${getCloudinaryUrl(relatedArticle.image, 600, 450)} 600w,
-                                      ${getCloudinaryUrl(relatedArticle.image, 800, 600)} 800w
+                                      ${getCloudinaryUrl(relatedArticle.image, 900, 675)} 900w
                                     `}
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     alt={relatedArticle.title}

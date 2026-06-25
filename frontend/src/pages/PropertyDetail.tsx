@@ -18,6 +18,7 @@ import ImmersiveTourModal from "@/components/ImmersiveTourModal";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import SimilarProperties from "@/components/SimilarProperties";
 import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF } from "@/config/schema";
+import { OptimizedImage, LazyImage } from "@/components/OptimizedImage";
 
 /* ─────────────────────────────────────────────────────────
    Cinematic Stack Gallery
@@ -114,14 +115,19 @@ const CinematicGallery = ({
               zIndex: i === current ? 1 : 0,
             }}
           >
-            <img
+            <OptimizedImage
               src={src}
               alt={`${title} — photo ${i + 1}`}
+              width={1200}
+              height={800}
               className="w-full h-full object-contain cursor-zoom-in"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              widths={[400, 800, 1200, 1600]}
+              priority={i === 0}
               onClick={() => setLightbox(src)}
               onError={(e) => {
-                e.currentTarget.src =
-                  "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
+               e.currentTarget.src =
+                 "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
               }}
             />
           </div>
@@ -190,10 +196,16 @@ const CinematicGallery = ({
                     opacity: i === current ? 1 : 0.6,
                   }}
                 >
-                  <img
+                  <LazyImage
                     src={thumb}
                     alt={`Miniature ${i + 1}`}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
+                    sizes="80px"
+                    widths={[40, 80, 120]}
+                    crop="thumb"
+                    quality={30}
                     onError={(e) => {
                       e.currentTarget.src =
                         "https://placehold.co/80x80/f3f4f6/374151?text=img";

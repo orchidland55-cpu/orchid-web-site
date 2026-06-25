@@ -15,9 +15,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
-import { getCloudinaryUrl } from "@/services/cloudinary";
 import { Helmet } from 'react-helmet-async';
 import { SITE_URL, ORGANIZATION_REF } from "@/config/schema";
+import { PriorityImage,LazyImage } from '@/components/OptimizedImage';
 
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
@@ -294,6 +294,7 @@ const blogJsonLd = {
                   size="sm"
                   className="rounded-full"
                   onClick={() => setSelectedCategory(category)}
+                  aria-pressed={selectedCategory === category}
                 >
                   {category}
                 </Button>
@@ -314,21 +315,14 @@ const blogJsonLd = {
               <Card className="overflow-hidden hover:shadow-luxury transition-all duration-300">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-video md:aspect-auto">
-                    <img
-                      src={getCloudinaryUrl(post.image, 800, 600)}
-                      srcSet={`
-                        ${getCloudinaryUrl(post.image, 600, 450)} 600w,
-                        ${getCloudinaryUrl(post.image, 800, 600)} 800w,
-                        ${getCloudinaryUrl(post.image, 1200, 900)} 1200w
-                      `}
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                    <PriorityImage
+                     src={post.image}
                       alt={post.title}
-                      className="w-full h-full object-cover"
-                      fetchPriority="high"
-                      loading="eager"
-                      decoding="sync"
                       width={800}
                       height={600}
+                      className="w-full h-full object-cover"
+                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                      widths={[400, 600, 800, 1200]}
                     />
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -379,20 +373,15 @@ const blogJsonLd = {
                 <Link key={post.id} to={articlePath(post.id, post.slug)}>
                   <Card className="group hover:shadow-luxury transition-all duration-300 overflow-hidden h-full">
                     <div className="aspect-video overflow-hidden">
-                      <img
-                        src={getCloudinaryUrl(post.image, 600, 400)}
-                        srcSet={`
-                          ${getCloudinaryUrl(post.image, 400, 267)} 400w,
-                          ${getCloudinaryUrl(post.image, 600, 400)} 600w,
-                          ${getCloudinaryUrl(post.image, 800, 533)} 800w
-                        `}
-                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      <LazyImage
+                       src={post.image}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        decoding="async"
-                        width={600}
-                        height={400}
+                       width={600}
+                       height={400}
+                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                       widths={[300, 600, 900]}
+                       blurPlaceholder
                       />
                     </div>
                     <CardContent className="font-lora p-6">

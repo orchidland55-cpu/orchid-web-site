@@ -75,6 +75,10 @@ const ParallaxImage = ({ src, alt }) => {
       initial={{ opacity: 0, scale: 1.1 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 1.2, ease: "easeOut" }}
+      width={1920}
+      height={1080}
+      loading="lazy"
+      decoding="async"
     />
   );
 };
@@ -94,6 +98,11 @@ const CSR = () => {
               src={csrHero}
               alt="Orchid Island Social Responsibility"
               className="w-full h-full object-cover animate-scale-in"
+              width={1920}
+              height={1080}
+              loading="eager"
+              decoding="sync"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-slate-900/60"></div>
           </div>
@@ -139,6 +148,10 @@ const CSR = () => {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8, type: "spring", stiffness: 120 }}
+                    width={600}
+                    height={400}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -245,6 +258,10 @@ const CSR = () => {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8, type: "spring", stiffness: 120 }}
+                    width={600}
+                    height={400}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -270,6 +287,10 @@ const CSR = () => {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8, type: "spring", stiffness: 120 }}
+                    width={600}
+                    height={400}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="animate-slide-in-right">
@@ -333,8 +354,6 @@ const CSR = () => {
           </div>
         </section>
       </div>
-
-      {/* Footer */}
       <Footer />
     </>
   );

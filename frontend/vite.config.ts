@@ -1,10 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, ConfigEnv, UserConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import Sitemap from "vite-plugin-sitemap";
 import { fetchDynamicRoutes } from "./scripts/fetchDynamicRoutes";
-
 
 const staticRoutes = [
   '/',
@@ -26,11 +25,11 @@ const staticRoutes = [
   '/privacy-policy',
   '/terms-and-conditions',
   '/legal-notice',
-]
+];
 
-// ✅ On passe à une fonction async pour pouvoir awaiter le fetch
-export default defineConfig(async ({ mode }) => {
-  const dynamicRoutes = await fetchDynamicRoutes()
+// ✅ CORRECTION : Déclarer le type de retour explicitement
+export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => {
+  const dynamicRoutes = await fetchDynamicRoutes();
 
   return {
     server: {
@@ -63,23 +62,40 @@ export default defineConfig(async ({ mode }) => {
       },
       dedupe: ["react", "react-dom"],
     },
-     build: {
+    build: {
       cssCodeSplit: true,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: mode === 'production',
+          drop_debugger: mode === 'production',
+          pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        },
+      },
       rollupOptions: {
         output: {
           manualChunks(id: string) {
             if (!id.includes('node_modules')) return;
+            
             if (id.includes('react-dom') || id.includes('react-router-dom') || id.includes('react')) {
               return 'react-vendor';
-            };
+            }
             if (id.includes('@tanstack')) return 'query-vendor';
             if (id.includes('@radix-ui')) return 'ui-vendor';
             if (id.includes('lucide-react')) return 'icons-vendor';
             if (id.includes('date-fns')) return 'date-vendor';
-            if (id.includes('framer-motion')) return 'motion-vendor';
+            if (id.includes('framer-motion') || id.includes('gsap')) return 'animation-vendor';
+            if (id.includes('recharts')) return 'charts-vendor';
+            if (id.includes('embla-carousel')) return 'carousel-vendor';
+            if (id.includes('axios')) return 'http-vendor';
+            if (id.includes('zod') || id.includes('react-hook-form')) return 'forms-vendor';
+            
+            if (id.includes('/pages/Admin')) return 'admin-vendor';
+            if (id.includes('/pages/services/')) return 'services-vendor';
           },
         },
       },
+      chunkSizeWarningLimit: 1000,
     },
-  }
-})
+  };
+});

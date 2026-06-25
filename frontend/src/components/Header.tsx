@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, Instagram, Facebook, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { PriorityImage } from '@/components/OptimizedImage';
 
 // ─── X (Twitter) icon — lucide ne l'inclut pas, on le dessine ────────────────
 const XIcon = ({ className }: { className?: string }) => (
@@ -62,10 +63,15 @@ const Header = () => {
               {/* Logo */}
               <div className="flex items-center space-x-3">
                 <Link to="/">
-                  <img
-                    src="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png"
+                  <PriorityImage
+                    src="logopng_j3hjit.png"
                     alt="Orchid Island Logo"
+                    width={400}
+                    height={130}
                     className="h-12 w-auto"
+                    sizes="(max-width: 768px) 200px, 400px"
+                    widths={[200, 400, 600]}
+                    crop="scale"
                   />
                 </Link>
               </div>
@@ -145,6 +151,7 @@ const Header = () => {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden p-2 text-foreground hover:text-primary transition-smooth"
+                aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -165,6 +172,8 @@ const Header = () => {
                     <button
                       onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
                       className="font-lora flex items-center gap-1 text-foreground hover:text-primary transition-smooth w-full text-left"
+                      aria-expanded={mobileServicesOpen}
+                      aria-controls="mobile-services-menu"
                     >
                       Services
                       <ChevronDown className={`w-3.5 h-3.5 ml-1 transition-transform duration-200 ${mobileServicesOpen ? "rotate-180" : ""}`} />

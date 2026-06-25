@@ -313,6 +313,9 @@ const Contact = () => {
                   className="w-full h-full"
                   allowFullScreen
                   loading="lazy"
+                  width="100%"
+                  height="384"
+                  title="Orchid Island Real Estate Location Map"
                 />
               </div>
             </div>

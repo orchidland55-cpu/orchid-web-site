@@ -565,13 +565,22 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
                   </div>
                   {(imagePreview || formData.image) && (
                     <div className="mt-4">
-                      <p className="text-sm font-medium text-foreground mb-2">Preview:</p>
-                      <img
-                        src={ 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + (imagePreview || formData.image) }
-                        alt={formData.imageAlt || "Preview"}
-                        className="w-full h-48 object-cover rounded-lg border"
-                        onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/800x400?text=Image+not+found"; }}
-                      />
+                    <p className="text-sm font-medium text-foreground mb-2">Preview:</p>
+                    <img
+                     src={
+                       imagePreview
+                       ? imagePreview
+                       : formData.image.startsWith("http")
+                       ? formData.image
+                       : `https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/${formData.image}`
+                      }
+                     alt={formData.imageAlt || "Preview"}
+                     className="w-full h-48 object-cover rounded-lg border"
+                     onError={(e) => {
+                       e.currentTarget.onerror = null;
+                       e.currentTarget.style.display = "none";
+                     }}
+                    />
                     </div>
                   )}
                 </CardContent>
@@ -738,7 +747,17 @@ const AdminEditArticle = ({ id: propId, onDone }: AdminEditArticleProps = {}) =>
                     <Eye className="w-5 h-5" />
                     <span>Article Preview</span>
                   </CardTitle>
-                  <CardImage src={ 'https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/' + formData.image || "https://via.placeholder.com/800x400?text=No+Image"} alt={formData.imageAlt || "Article Image"} className="w-16 h-16 object-cover rounded" />
+                  <CardImage
+                  src={
+                    formData.image
+                    ? formData.image.startsWith("http")
+                    ? formData.image
+                    : `https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/${formData.image}`
+                    : ""
+                  }
+                  alt={formData.imageAlt || "Article Image"}
+                  className="w-16 h-16 object-cover rounded"
+                />
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">

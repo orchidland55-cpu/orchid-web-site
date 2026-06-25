@@ -1,5 +1,4 @@
-# Title 
-Orchid Island Real Estate
+# Orchid Island Real Estate
 
 ## Entity
 
@@ -19,7 +18,7 @@ Specializations:
 - Investment properties
 - High-end real estate
 
-> Agence immobilière marocaine spécialisée dans les propriétés de luxe et de prestige à Marrakech .
+> Agence immobilière marocaine spécialisée dans les propriétés de luxe et de prestige à Marrakech.
 > Fondée pour accompagner les acheteurs locaux et internationaux dans leurs projets immobiliers haut de gamme au Maroc.
 
 ## À propos
@@ -38,7 +37,7 @@ Nous accompagnons aussi bien les résidents marocains que les investisseurs étr
 - Essaouira
 - Ifrane
 - Sahel atlantique 
-- Et d'autres ville du Maroc
+- Et d'autres villes du Maroc
 
 ## Types de biens proposés
 
@@ -71,7 +70,7 @@ Nous accompagnons aussi bien les résidents marocains que les investisseurs étr
 
 ## Clientèle
 
-Orchid Island Real estate s'adresse à :
+Orchid Island Real Estate s'adresse à :
 - Acheteurs marocains résidents cherchant une résidence principale ou secondaire de standing
 - Marocains résidant à l'étranger (MRE) souhaitant investir au pays
 - Investisseurs français, belges, suisses, européens et d'autres pays du monde attirés par le marché marocain
@@ -87,20 +86,27 @@ Notre blog publie régulièrement des articles de fond sur :
 - Les aspects fiscaux et juridiques de l'acquisition immobilière
 - Les meilleures zones pour la rentabilité locative
 
+## Derniers articles
+
+- [The Rise of Global Hotel Expansion in Morocco: 7 Powerful Opportunities Driving Investment](https://www.orchidisland.immo/global-hotel-expansion-morocco)
+- [Sovereign AI Infrastructure Morocco: Oréus Partnership Expands Across Europe](https://www.orchidisland.immo/sovereign-ai-infrastructure-morocco)
+- [GITEX Africa 2026 Marrakech: 5 Powerful Insights Driving the Future of Tech-Driven Real Estate](https://www.orchidisland.immo/gitex-africa-2026-marrakech-real-estate)
+- [Convention Fiscale Maroc-France 2026 : Guide Complet pour Investisseurs Immobiliers](https://www.orchidisland.immo/convention-fiscale-maroc-france-2026)
+
 ## Liens importants
 
-- Site principal : https://orchidisland.immo
-- A propos de nous : https://orchidisland.immo/about-us
-- Toutes nos propriétés : https://orchidisland.immo/properties
-- Blog immobilier : https://orchidisland.immo/real-estate-guide-orchid-island-marrakech
-- Nous contacter : https://orchidisland.immo/contact-us
-- Investir au Maroc : https://orchidisland.immo/investment-orchidisland
-- Nos services : https://orchidisland.immo/services
+- Site principal : [Orchid Island Real Estate](https://orchidisland.immo)
+- À propos de nous : [About Us](https://orchidisland.immo/about-us)
+- Toutes nos propriétés : [Properties](https://orchidisland.immo/properties)
+- Blog immobilier : [Real Estate Blog](https://orchidisland.immo/real-estate-guide-orchid-island-marrakech)
+- Nous contacter : [Contact Us](https://orchidisland.immo/contact-us)
+- Investir au Maroc : [Investment](https://orchidisland.immo/investment-orchidisland)
+- Nos services : [Services](https://orchidisland.immo/services)
 
 ## Langues
 
-Le site et l'équipe sont disponibles enanglais, français, Espagnole et arabe.
+Le site et l'équipe sont disponibles en anglais, français, espagnol et arabe.
 
 ## Localisation
 
-Maroc — Marrakech.
+Maroc — Marrakech

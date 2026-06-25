@@ -163,6 +163,7 @@ const blogJsonLd = {
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className="min-w-[90px]"
+            aria-label="Page précédente"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
@@ -184,6 +185,8 @@ const blogJsonLd = {
                   size="sm"
                   onClick={() => handlePageChange(pageNumber as number)}
                   className={`min-w-[40px] ${currentPage === pageNumber ? "text-white" : ""}`}
+                  aria-label={`Aller à la page ${pageNumber}`}
+                  aria-current={currentPage === pageNumber ? "page" : undefined}
                 >
                   {pageNumber}
                 </Button>
@@ -197,6 +200,7 @@ const blogJsonLd = {
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="min-w-[90px]"
+            
           >
             Next
             <ChevronRight className="w-4 h-4 ml-1" />
@@ -289,18 +293,22 @@ const blogJsonLd = {
             <div className="font-lora flex flex-wrap gap-2 justify-center">
               {categories.map((category) => (
                 <Button
-                  key={category}
-                  variant={selectedCategory === category ? "luxury" : "outline"}
+                 key={category}
+                 variant={selectedCategory === category ? "luxury" : "outline"}
                   size="sm"
-                  className="rounded-full"
-                  onClick={() => setSelectedCategory(category)}
-                  aria-pressed={selectedCategory === category}
-                >
+                 className={`rounded-full ${
+                   selectedCategory === category 
+                     ? "bg-primary text-white hover:bg-primary/90 border-primary" 
+                     : "border-border text-foreground hover:bg-primary/10 hover:text-primary"
+                 }`}
+                 onClick={() => setSelectedCategory(category)}
+                 aria-pressed={selectedCategory === category}
+               >
                   {category}
-                </Button>
-              ))}
-            </div>
-          </div>
+               </Button>
+             ))}
+           </div>
+         </div>
         </section>
 
         {/* Featured Post */}

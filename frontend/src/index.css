@@ -207,3 +207,16 @@ body { top: 0 !important; position: static !important; }
 /* Hide the injected iframe */
 iframe.goog-te-banner-frame { display: none !important; }
 iframe.skiptranslate { display: none !important; }
+
+/* ✅ Classe pour texte accessible mais caché visuellement */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

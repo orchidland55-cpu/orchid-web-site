@@ -36,16 +36,54 @@
       .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
       .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
       .hidden { display: none; }
-      .md\\:flex { display: flex; }
+      .md\:flex { display: flex; }
       .h-12 { height: 3rem; }
       .w-auto { width: auto; }
       .text-foreground { color: #082648; }
-      .hover\\:text-primary:hover { color: #ccac36; }
+      .hover\:text-primary:hover { color: #ccac36; }
       .transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
       .font-playfair { font-family: 'Playfair Display', serif; }
       .font-lora { font-family: 'Lora', serif; }
       .font-inter { font-family: 'Inter', sans-serif; }
     </style>
+
+    <!-- ✅ CHARGEMENT ASYNCHRONE DU CSS (NOUVEAU) -->
+    <!-- Vite injecte automatiquement les fichiers CSS avec des hashes uniques -->
+    <!-- On utilise un script pour charger le CSS après le rendu initial -->
+    <script>
+      (function() {
+        // Charger le CSS principal de manière asynchrone
+        function loadCSS(href) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          link.media = 'print';
+          link.onload = function() {
+            this.media = 'all';
+          };
+          document.head.appendChild(link);
+        }
+        
+        // Attendre que la page soit chargée pour charger les CSS
+        if (document.readyState === 'complete') {
+          loadCSS('/assets/index-DJ0k1ATB.css');
+          loadCSS('/assets/react-vendor-ComhdInD.css');
+        } else {
+          window.addEventListener('load', function() {
+            setTimeout(function() {
+              loadCSS('/assets/index-DJ0k1ATB.css');
+              loadCSS('/assets/react-vendor-ComhdInD.css');
+            }, 100);
+          });
+        }
+      })();
+    </script>
+
+    <!-- ✅ Fallback si JavaScript est désactivé -->
+    <noscript>
+      <link rel="stylesheet" href="/assets/index-DJ0k1ATB.css">
+      <link rel="stylesheet" href="/assets/react-vendor-ComhdInD.css">
+    </noscript>
 
     <!-- Préconnexion Railway — réduit le handshake TCP+TLS au premier fetch -->
     <link rel="preconnect" href="https://orchid-web-site-production.up.railway.app" />

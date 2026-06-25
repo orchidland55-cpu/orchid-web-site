@@ -64,7 +64,7 @@ const Header = () => {
               <div className="flex items-center space-x-3">
                 <Link to="/">
                   <PriorityImage
-                    src="logopng_j3hjit.png"
+                    src="logo_rwq4mt.webp"
                     alt="Orchid Island Logo"
                     width={400}
                     height={130}
@@ -214,12 +214,20 @@ const Header = () => {
 
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {socialLinks.map(({ href, icon: Icon, label }) => (
-                      <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-[#b8972e] hover:text-[#d4af50] transition-colors">
-                        <Icon className="w-4 h-4" />
-                      </a>
-                    ))}
-                  </div>
+                  {socialLinks.map(({ href, icon: Icon, label }) => (
+                   <a 
+                     key={label} 
+                     href={href} 
+                     target="_blank" 
+                     rel="noopener noreferrer" 
+                     aria-label={label}
+                     className="text-[#b8972e] hover:text-[#d4af50] transition-colors"
+                   >
+                     <Icon className="w-4 h-4" aria-hidden="true" />
+                     <span className="sr-only">{label}</span>
+                   </a>
+                  ))}
+                </div>
                   <LanguageSwitcher />
                 </div>
               </div>

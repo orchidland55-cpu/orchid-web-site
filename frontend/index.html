@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- index.html — dans <head>, AVANT tout <script> -->
+    <link
+     rel="preload"
+     as="image"
+     href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1200,dpr_1/v1782416336/hero_tweegz.webp"
+     fetchpriority="high"
+     media="(max-width: 767px)"
+    />
+    <!-- Pour desktop, on précharge aussi le poster de la vidéo -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1920/v1782416336/hero_tweegz.webp"
+      fetchpriority="high"
+      media="(min-width: 768px)"
+    />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Luxury Real Estate in Marrakech | Villas, Riads & Investment Properties | Orchid Island</title>
     <meta name="description"
       content="Discover luxury villas, riads, apartments and investment properties in Marrakech with Orchid Island Real Estate. Trusted experts in high-end Moroccan real estate." />
-    
-    <!-- ✅ CSS critique inline (styles essentiels pour le header et hero) -->
     <style>
-      /* Styles critiques pour le rendu initial */
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { 
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -46,13 +59,8 @@
       .font-lora { font-family: 'Lora', serif; }
       .font-inter { font-family: 'Inter', sans-serif; }
     </style>
-
-    <!-- ✅ CHARGEMENT ASYNCHRONE DU CSS (NOUVEAU) -->
-    <!-- Vite injecte automatiquement les fichiers CSS avec des hashes uniques -->
-    <!-- On utilise un script pour charger le CSS après le rendu initial -->
     <script>
       (function() {
-        // Charger le CSS principal de manière asynchrone
         function loadCSS(href) {
           var link = document.createElement('link');
           link.rel = 'stylesheet';
@@ -63,8 +71,6 @@
           };
           document.head.appendChild(link);
         }
-        
-        // Attendre que la page soit chargée pour charger les CSS
         if (document.readyState === 'complete') {
           loadCSS('/assets/index-DJ0k1ATB.css');
           loadCSS('/assets/react-vendor-ComhdInD.css');
@@ -78,29 +84,13 @@
         }
       })();
     </script>
-
-    <!-- ✅ Fallback si JavaScript est désactivé -->
     <noscript>
       <link rel="stylesheet" href="/assets/index-DJ0k1ATB.css">
       <link rel="stylesheet" href="/assets/react-vendor-ComhdInD.css">
     </noscript>
-
-    <!-- Préconnexion Railway — réduit le handshake TCP+TLS au premier fetch -->
     <link rel="preconnect" href="https://orchid-web-site-production.up.railway.app" />
     <link rel="dns-prefetch" href="https://orchid-web-site-production.up.railway.app" />
-
-    <!-- Préconnexion Cloudinary -->
     <link rel="preconnect" href="https://res.cloudinary.com" />
-
-    <!-- Précharge de l'image LCP (hero-villa) -->
-    <link
-      rel="preload"
-      as="image"
-      href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,w_1200,dpr_auto/v1782416336/hero_tweegz.webp"
-      fetchpriority="high"
-    />
-
-    <!-- Métadonnées Open Graph et Twitter -->
     <meta name="orchid Island" content="orchid Island" />
     <meta property="og:title" content="Orchid Island - Luxury Real Estate" />
     <meta property="og:description" content="Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives." />

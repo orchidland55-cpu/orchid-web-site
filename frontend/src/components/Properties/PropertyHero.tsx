@@ -18,7 +18,7 @@ const PropertyHero = ({ property }: { property: Property }) => {
       <div className="relative rounded-xl overflow-hidden bg-muted h-64 md:h-[26rem]">
         <PriorityImage
           src={property.mainImage}
-          alt={property.title}
+          alt={`Photo principale — ${property.title}, ${property.city}`} 
           width={800}
           height={600}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -30,17 +30,12 @@ const PropertyHero = ({ property }: { property: Property }) => {
           <span className="inline-block bg-background/95 text-foreground text-xs font-medium px-3 py-1 rounded-full border border-border/40">
             {property.type}
           </span>
+          {property.status === "vendu" && (
+            <span className="inline-block bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md ml-2 shadow-lg">
+             Vendu
+            </span>
+          )}
         </div>
-        <div className="absolute top-4 left-4">
-  <span className="inline-block bg-background/95 text-foreground text-xs font-medium px-3 py-1 rounded-full border border-border/40">
-    {property.type}
-  </span>
-  {property.status === "vendu" && (
-    <span className="inline-block bg-red-600 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md ml-2 shadow-lg">
-      Vendu
-    </span>
-  )}
-</div>
       </div>
 
       <div className="flex flex-col justify-center py-2">

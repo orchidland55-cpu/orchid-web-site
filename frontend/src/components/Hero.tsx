@@ -24,30 +24,17 @@ const Hero = () => {
 
   return (
     <>
-      {/* Preload image LCP sur mobile */}
-      {!isDesktop && (
-        <link
-          rel="preload"
-          as="image"
-          href={HERO_IMAGE_URL}
-          // @ts-ignore — fetchpriority est valide HTML mais pas encore dans les types React
-          fetchpriority="high"
-        />
-      )}
-
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 z-0">
           {isDesktop ? (
             // Desktop : vidéo
             <video
-              autoPlay
-              muted
-              loop
-              playsInline
+              autoPlay muted loop playsInline
               preload="none"
               poster={HERO_IMAGE_URL}
               className="w-full h-full object-cover"
+              aria-hidden="true"
             >
               <source src={HERO_VIDEO_URL} type="video/mp4" />
             </video>

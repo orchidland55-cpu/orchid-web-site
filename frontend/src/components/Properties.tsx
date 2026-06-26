@@ -6,12 +6,12 @@ import { MapPin, Bed, Bath, Square, Star, ArrowRight, Building, Home} from "luci
 import { Link } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
 import { getCloudinaryUrl } from "@/services/cloudinary";
+
 const propertyPath = (property: Property) =>
   `/property/${property.slug || property._id}`;
 
 const Properties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

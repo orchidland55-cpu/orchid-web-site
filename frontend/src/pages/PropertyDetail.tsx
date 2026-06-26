@@ -350,12 +350,6 @@ const jsonLd = {
     "name": property.title,
     "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
     "image": property.mainImage,
-    // "numberOfRooms": property.bedrooms,
-    // "floorSize": { 
-    //   "@type": "QuantitativeValue", 
-    //   "value": property.area, 
-    //   "unitCode": "MTK" 
-    // },
     "address": {
       "@type": "PostalAddress",
       "addressLocality": property.city,

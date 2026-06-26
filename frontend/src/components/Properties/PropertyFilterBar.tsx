@@ -1,7 +1,10 @@
 import { Search, Camera, X, Link, PanelRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { showToast } from "@/components/ToastContainer";
+// Debounce sur la recherche texte
+import { useDebouncedCallback } from "use-debounce"; // npm i use-debounce
+
+
 
 // ── Config ────────────────────────────────────────────────────────────────────
 // Remplace cette URL quand le front de recherche par image est déployé
@@ -19,6 +22,7 @@ interface PropertyFilterBarProps {
   onImageSearch?: (file: File | null, url: string | null) => void;
   isImageSearchMode?: boolean;
 }
+
 
 // ── Image Search Sidebar ──────────────────────────────────────────────────────
 const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
@@ -44,6 +48,8 @@ const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
   //   window.addEventListener("message", handleMessage);
   //   return () => window.removeEventListener("message", handleMessage);
   // }, []);
+
+  
 
   return (
     <>
@@ -123,6 +129,11 @@ const PropertyFilterBar = ({
 }: PropertyFilterBarProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => onSearchChange(value),
+    200
+  );
+
   return (
     <>
       <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 bg-card border border-border/60 rounded-2xl px-4 py-3">
@@ -134,7 +145,7 @@ const PropertyFilterBar = ({
             type="text"
             placeholder="Rechercher une propriété..."
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => debouncedSearch(e.target.value)}
             className="border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-sm bg-transparent"
           />
           {/* Bouton caméra */}
@@ -156,7 +167,8 @@ const PropertyFilterBar = ({
 
         {/* Selects */}
         <div className="flex items-center gap-3">
-          <select
+          <label htmlFor="filter-type" className="sr-only">Filter By Type</label>
+          <select  id="filter-type" 
             value={filterType}
             onChange={(e) => onFilterTypeChange(e.target.value)}
             disabled={isImageSearchMode}
@@ -164,7 +176,7 @@ const PropertyFilterBar = ({
               isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
             }`}
           >
-            <option value="all">Tous les types</option>
+            <option value="all">All Types</option>
             {propertyTypes.map((t) => (
               <option key={t} value={t}>
                 {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -172,7 +184,8 @@ const PropertyFilterBar = ({
             ))}
           </select>
 
-          <select
+          <label htmlFor="filter-city" className="sr-only">Filter By City</label>  
+          <select id="filter-city"
             value={filterCity}
             onChange={(e) => onFilterCityChange(e.target.value)}
             disabled={isImageSearchMode}

@@ -1,5 +1,6 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const faqData = [
   {
@@ -35,6 +36,42 @@ const faqData = [
 ];
 
 const FAQ = () => {
+  // Injection du JSON-LD pour le SEO
+  useEffect(() => {
+    // Vérifier si le script existe déjà pour éviter les doublons
+    const existingScript = document.getElementById('faq-jsonld-home');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqData.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    };
+
+    const script = document.createElement('script');
+    script.id = 'faq-jsonld-home';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(jsonLd);
+    document.head.appendChild(script);
+
+    // Nettoyage lors du démontage du composant
+    return () => {
+      const scriptToRemove = document.getElementById('faq-jsonld-home');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+    };
+  }, []);
+
   return (
     <section id="faq" className="py-20 bg-background">
       <div className="container mx-auto px-6">
@@ -83,10 +120,8 @@ const FAQ = () => {
               about luxury real estate in Morocco.
             </p>
             <Link to="/contact-us" className="bg-primary hover:bg-primary/90 text-primary-foreground font-lora font-medium px-8 py-3 rounded-lg shadow-luxury hover:shadow-elegant transition-luxury">
-                         <button>Contact Us</button> 
-                        </Link>
-           
-            
+              <button>Contact Us</button> 
+            </Link>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import Sitemap from "vite-plugin-sitemap";
 import { fetchDynamicRoutes } from "./scripts/fetchDynamicRoutes";
+import viteCompression from 'vite-plugin-compression';
 
 const staticRoutes = [
   '/',
@@ -38,6 +39,8 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
     },
     plugins: [
       react(),
+      viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
+      viteCompression({ algorithm: 'gzip', ext: '.gz' }),  // fallback
       mode === 'development' && componentTagger(),
       Sitemap({
         hostname: 'https://www.orchidisland.immo/',

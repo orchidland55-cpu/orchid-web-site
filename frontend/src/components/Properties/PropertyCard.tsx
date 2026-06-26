@@ -27,6 +27,7 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
     return (
       <Link
         to={propertyPath(property)}
+        aria-label={`Voir la propriété : ${property.title}, ${property.city}`}
         className="group relative flex h-full w-full rounded-xl overflow-hidden bg-neutral-900 block ring-1 ring-[#D4AF37]/40 hover:ring-[#D4AF37]/70 transition-all duration-300"
         style={{ minHeight: "340px" }}
       >
@@ -130,12 +131,12 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
   return (
     <Link
       to={propertyPath(property)}
+      aria-label={`Voir la propriété : ${property.title}, ${property.city}`}
       className="group h-full flex flex-col rounded-xl overflow-hidden border bg-card hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)] transition-all duration-300 ring-1 ring-[#D4AF37]/40 hover:ring-[#D4AF37]/70"
       style={{ borderColor: "var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
     >
       {/* Image avec LazyImage */}
-      <div
-        className="relative flex-1 min-h-[160px] overflow-hidden"
+      <div className="relative aspect-[4/3] overflow-hidden"
         style={{ background: "#1a1a1a" }}
       >
         <LazyImage
@@ -210,11 +211,16 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
             className="py-2 text-center"
             style={{ borderRight: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
           >
+            {/* <span className="flex items-center gap-1.5 text-white/70 text-[12px]">
+            <Bed className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="sr-only">Chambres :</span>
+              {property.bedrooms}
+            </span> */}
             <div className="flex items-center justify-center mb-0.5">
               <Bed className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
-            <div className="text-[13px] font-medium text-foreground">{property.bedrooms}</div>
-            <div className="text-[10px] text-muted-foreground">ch.</div>
+            <div className="text-[13px] font-medium text-foreground"><span className="sr-only">Chambres :</span>  {property.bedrooms}</div>
+            <div className="text-[10px] text-muted-foreground">ch.</div> 
           </div>
           <div
             className="py-2 text-center"

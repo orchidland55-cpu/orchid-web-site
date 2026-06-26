@@ -1,21 +1,26 @@
 import { Property } from "@/services/api";
 import PropertyCard from "./PropertyCard";
 import "@/styles/Masonry.css";
+import { useMemo } from "react";
 
 
 const CELL_KEYS = ["a", "b", "c", "d", "e", "f"] as const;
 // "a" and "d" are the 2x2 featured slots in the masonry pattern.
 const LARGE_CELLS = new Set(["a", "d"]);
 
+
 interface MasonryGridProps {
   properties: Property[];
 }
 
 const MasonryGrid = ({ properties }: MasonryGridProps) => {
-  const chunks: Property[][] = [];
-  for (let i = 0; i < properties.length; i += 6) {
-    chunks.push(properties.slice(i, i + 6));
-  }
+  const chunks = useMemo(() => {
+    const result: Property[][] = [];
+    for (let i = 0; i < properties.length; i += 6) {
+      result.push(properties.slice(i, i + 6));
+    }
+    return result;
+  }, [properties]);
 
   return (
     <div className="flex flex-col gap-6">

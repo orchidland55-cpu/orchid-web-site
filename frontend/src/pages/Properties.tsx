@@ -41,6 +41,22 @@ const PropertiesPage = () => {
     setCurrentPage(1);
   }, [searchTerm, filterType, filterCity]);
 
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = getCloudinaryUrl("hero_tweegz.webp", 1600, 900, "auto", {
+      format: "auto",
+      crop: "fill",
+     gravity: "auto",
+    });
+    document.head.appendChild(link); // ← ne pas return cette ligne
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
+
   const loadProperties = async () => {
     setIsLoading(true);
     try {
@@ -174,15 +190,14 @@ const PropertiesPage = () => {
         {/* ── Hero ── purely visual now: no search bar overlay.
             Filters live with the results below, where they belong. */}
       <section
-        className="relative min-h-[420px] flex items-center"
-        rel="preload"
+        className="relative h-[420px] md:h-[520px] flex items-center"
         style={{
-          backgroundImage: `url('${getCloudinaryUrl(
+         backgroundImage: `url('${getCloudinaryUrl(
            "hero_tweegz.webp",
-           1600,  900, "auto",
-            { format: "auto", crop: "fill", gravity: "auto" }
-          )}')`,
-          backgroundSize: "cover",
+           1600, 900, "auto",
+           { format: "auto", crop: "fill", gravity: "auto" }
+         )}')`,
+         backgroundSize: "cover",
          backgroundPosition: "center",
         }}
       >
@@ -217,7 +232,7 @@ const PropertiesPage = () => {
 
         {/* ── Results ── */}
         {isLoading ? (
-          <section className="py-20">
+          <section className="py-20 min-h-[600px]">
             <div className="container mx-auto px-6 text-center">
               <div className="w-16 h-16 luxury-gradient rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
                 <Building className="w-8 h-8 text-white" />
@@ -229,7 +244,7 @@ const PropertiesPage = () => {
             </div>
           </section>
         ) : (
-          <section className="py-16 bg-background">
+          <section className="py-16 bg-background min-h-[600px]">
             <div className="container mx-auto px-6">
               <div className="mb-8">
 

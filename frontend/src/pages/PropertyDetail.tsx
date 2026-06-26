@@ -20,14 +20,6 @@ import SimilarProperties from "@/components/SimilarProperties";
 import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF } from "@/config/schema";
 import { OptimizedImage, LazyImage } from "@/components/OptimizedImage";
 
-/* ─────────────────────────────────────────────────────────
-   Cinematic Stack Gallery
-   • Grand visuel plein-largeur
-   • Strip de thumbnails transparent superposé en bas
-   • Pill Virtual Tour glassmorphism en bas à droite
-   • Transition cross-fade + léger scale
-   • Compteur discret en haut à droite
-───────────────────────────────────────────────────────── */
 
 interface CinematicGalleryProps {
   images: string[];
@@ -358,12 +350,12 @@ const jsonLd = {
     "name": property.title,
     "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
     "image": property.mainImage,
-    "numberOfRooms": property.bedrooms,
-    "floorSize": { 
-      "@type": "QuantitativeValue", 
-      "value": property.area, 
-      "unitCode": "MTK" 
-    },
+    // "numberOfRooms": property.bedrooms,
+    // "floorSize": { 
+    //   "@type": "QuantitativeValue", 
+    //   "value": property.area, 
+    //   "unitCode": "MTK" 
+    // },
     "address": {
       "@type": "PostalAddress",
       "addressLocality": property.city,

@@ -4,7 +4,6 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import Sitemap from "vite-plugin-sitemap";
 import { fetchDynamicRoutes } from "./scripts/fetchDynamicRoutes";
-import viteCompression from 'vite-plugin-compression';
 
 const staticRoutes = [
   '/',
@@ -28,7 +27,6 @@ const staticRoutes = [
   '/legal-notice',
 ];
 
-// ✅ CORRECTION : Déclarer le type de retour explicitement
 export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => {
   const dynamicRoutes = await fetchDynamicRoutes();
 
@@ -39,8 +37,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
     },
     plugins: [
       react(),
-      viteCompression({ algorithm: 'brotliCompress', ext: '.br' }),
-      viteCompression({ algorithm: 'gzip', ext: '.gz' }),  // fallback
+      // ✅ Supprimé : vite-plugin-compression (Vercel le gère nativement)
       mode === 'development' && componentTagger(),
       Sitemap({
         hostname: 'https://www.orchidisland.immo/',
@@ -79,21 +76,25 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         output: {
           manualChunks(id: string) {
             if (!id.includes('node_modules')) return;
-            
-            if (id.includes('react-dom') || id.includes('react-router-dom') || id.includes('react')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@tanstack')) return 'query-vendor';
-            if (id.includes('@radix-ui')) return 'ui-vendor';
-            if (id.includes('lucide-react')) return 'icons-vendor';
-            if (id.includes('date-fns')) return 'date-vendor';
-            if (id.includes('framer-motion') || id.includes('gsap')) return 'animation-vendor';
-            if (id.includes('recharts')) return 'charts-vendor';
-            if (id.includes('embla-carousel')) return 'carousel-vendor';
-            if (id.includes('axios')) return 'http-vendor';
-            if (id.includes('zod') || id.includes('react-hook-form')) return 'forms-vendor';
-            
-            if (id.includes('/pages/Admin')) return 'admin-vendor';
+
+            // ✅ ORDRE CRITIQUE : du plus spécifique au plus général
+            if (id.includes('react-router-dom')) return 'react-vendor';
+            if (id.includes('react-dom'))        return 'react-vendor';
+            if (id.includes('/react/'))          return 'react-vendor'; // ← match exact, pas partiel
+
+            if (id.includes('@tanstack'))        return 'query-vendor';
+            if (id.includes('@radix-ui'))        return 'ui-vendor';
+            if (id.includes('lucide-react'))     return 'icons-vendor';
+            if (id.includes('date-fns'))         return 'date-vendor';
+            if (id.includes('framer-motion'))    return 'animation-vendor';
+            if (id.includes('gsap'))             return 'animation-vendor';
+            if (id.includes('recharts'))         return 'charts-vendor';
+            if (id.includes('embla-carousel'))   return 'carousel-vendor';
+            if (id.includes('axios'))            return 'http-vendor';
+            if (id.includes('zod'))              return 'forms-vendor';
+            if (id.includes('react-hook-form'))  return 'forms-vendor';
+
+            if (id.includes('/pages/Admin'))     return 'admin-vendor';
             if (id.includes('/pages/services/')) return 'services-vendor';
           },
         },

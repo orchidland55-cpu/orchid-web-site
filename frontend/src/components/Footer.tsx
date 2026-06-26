@@ -28,16 +28,16 @@ const Footer = () => {
               Your trusted partner for luxury real estate in Morocco. The Address You'll Always Remember.
             </p>
             <div className="flex space-x-4">
-              <a href="https://web.facebook.com/people/Orchid-Island/61577156887769/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
+              <a href="https://web.facebook.com/people/Orchid-Island/61577156887769/" target="_blank" rel="noopener noreferrer" aria-label="Suivez Orchid Island sur Facebook" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="https://www.instagram.com/orchid_island_real_estate?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw%3D%3D" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
+              <a href="https://www.instagram.com/orchid_island_real_estate?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw%3D%3D" target="_blank" rel="noopener noreferrer" aria-label="Suivez Orchid Island sur Instagram" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://www.linkedin.com/company/orchid-island-real-estate-marrakech/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
+              <a href="https://www.linkedin.com/company/orchid-island-real-estate-marrakech/" target="_blank" rel="noopener noreferrer" aria-label="Suivez Orchid Island sur Linkedin" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="https://x.com/EstateOrch47105" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
+              <a href="https://x.com/EstateOrch47105" target="_blank" rel="noopener noreferrer" aria-label="Suivez Orchid Island sur X" className="w-10 h-10 bg-ivory-white/10 rounded-full flex items-center justify-center hover:bg-primary transition-smooth">
                 <Twitter className="w-5 h-5" />
               </a>
             </div>

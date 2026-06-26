@@ -61,8 +61,9 @@ export default function ShareButton({ showText = true }: { showText?: boolean })
         size="sm"
         onClick={() => setIsOpen(true)}
         className="flex items-center gap-2"
+        aria-label="Partager cet article"
       >
-        <Share2 className="w-4 h-4" />
+        <Share2 className="w-4 h-4" aria-hidden="true" />
         {showText && 'Share'}
       </Button>
 

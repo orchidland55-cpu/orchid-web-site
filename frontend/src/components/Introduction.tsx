@@ -35,13 +35,13 @@ const Introduction = () => {
       <div className="container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Side - Image */}
-          <div className="relative">
+          <div className="relative hidden lg:block">
             {/* Main Image */}
             <div className="relative overflow-hidden rounded-2xl shadow-luxury">
               <img
                 src="https://res.cloudinary.com/drgg2rocc/image/upload/v1782205023/aboutsec_nr0krk.jpg"
                 alt="Orchid Island - Immobilier de luxe au Maroc"
-                className="w-full h-[500px] object-cover"
+                className="w-full h-64 sm:h-80 md:h-[500px] object-cover"
                 loading="lazy"
                 decoding="async"
                 width={800}

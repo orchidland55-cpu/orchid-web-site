@@ -19,16 +19,13 @@ const News = () => {
       setLoading(true);
       try {
         const articlesData = await apiService.getAllArticles();
-
         const publishedArticles = articlesData
           .filter((article) => article.status === "published")
-          // ✅ Tri par date décroissante — le plus récent en premier
           .sort((a, b) => {
             const dateA = new Date(a.createdAt || 0).getTime();
             const dateB = new Date(b.createdAt || 0).getTime();
             return dateB - dateA;
           });
-
         setArticles(publishedArticles);
       } catch (err) {
         console.error("❌ Error loading articles:", err);
@@ -37,7 +34,6 @@ const News = () => {
         setLoading(false);
       }
     };
-
     loadArticles();
   }, []);
 
@@ -62,7 +58,6 @@ const News = () => {
     );
   }
 
-  // ✅ Les 3 derniers articles — le [0] est toujours le plus récent
   const featuredArticle = articles[0];
   const otherArticles = articles.slice(1, 3);
 
@@ -73,6 +68,7 @@ const News = () => {
   return (
     <section id="news" className="py-20 bg-background">
       <div className="container mx-auto px-6">
+
         {/* Section Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 bg-cream/50 rounded-full px-6 py-2 mb-6">
@@ -88,12 +84,12 @@ const News = () => {
         </div>
 
         {/* Articles Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 lg:items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
 
-          {/* Featured Article — toujours le plus récent */}
+          {/* Featured Article */}
           {featuredArticle && (
-            <div className="lg:col-span-2 flex">
-              <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full w-full">
+            <div className="lg:col-span-2">
+              <Card className="group relative overflow-hidden shadow-elegant hover:shadow-luxury transition-luxury border-0 bg-transparent h-full">
                 <div className="relative h-72 sm:h-96 lg:h-full min-h-[400px]">
                   <img
                     src={getCloudinaryUrl(featuredArticle.image, 900, 520) || "/placeholder-article.jpg"}
@@ -108,7 +104,6 @@ const News = () => {
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
-
                   <div className="absolute inset-0 flex items-end sm:items-center justify-center">
                     <div className="font-lora text-center text-white p-4 sm:p-8 w-full">
                       <Badge className="luxury-gradient text-primary-foreground font-lora mb-2 sm:mb-4">
@@ -128,8 +123,6 @@ const News = () => {
                       </Link>
                     </div>
                   </div>
-
-                  {/* Badge "Latest" — remplace "Featured" car c'est toujours le dernier */}
                   <div className="absolute top-4 right-4">
                     <Badge className="bg-white/90 backdrop-blur-sm text-charcoal font-lora">
                       Latest
@@ -140,14 +133,16 @@ const News = () => {
             </div>
           )}
 
-          {/* 2 articles suivants */}
-          <div className="flex flex-col gap-6 h-full">
+          {/* 2 articles suivants — FIX : pas de flex-1 ni h-full sur les cards */}
+          <div className="flex flex-col gap-6">
             {otherArticles.map((article) => (
               <Card
                 key={article._id}
-                className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card flex flex-col flex-1"
+                className="group overflow-hidden shadow-subtle hover:shadow-elegant transition-luxury border-0 bg-card"
+                // ✅ Pas de flex-1 ici — hauteur déterminée par le contenu
               >
-                <div className="relative h-48 overflow-hidden flex-shrink-0">
+                {/* ✅ Hauteur fixe stable + overflow-hidden sur le wrapper, pas sur l'img */}
+                <div className="relative overflow-hidden" style={{ height: "192px" }}>
                   <img
                     src={getCloudinaryUrl(article.image, 500, 200) || "/placeholder-article.jpg"}
                     alt={article.title}
@@ -166,14 +161,15 @@ const News = () => {
                     </Badge>
                   </div>
                 </div>
-                <CardContent className="p-6 flex flex-col flex-1">
+
+                <CardContent className="p-6">
                   <h3 className="font-playfair text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-smooth">
                     {article.title}
                   </h3>
                   <p className="font-lora text-muted-foreground text-sm mb-4 leading-relaxed">
                     {truncate(article.excerpt || article.content, 80)}
                   </p>
-                  <div className="flex items-center justify-end mt-auto">
+                  <div className="flex items-center justify-end">
                     <Link to={articlePath(article._id, article.slug)}>
                       <Button
                         variant="ghost"

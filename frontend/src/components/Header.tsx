@@ -68,8 +68,8 @@ const Header = () => {
                     alt="Orchid Island Logo"
                     width={400}
                     height={130}
-                    className="h-12 w-auto"
-                    sizes="(max-width: 768px) 200px, 400px"
+                    className="h-8 w-auto sm:h-10 md:h-12"
+                    sizes="(max-width: 640px) 150px, (max-width: 768px) 200px, 400px"
                     widths={[200, 400, 600]}
                     crop="scale"
                   />

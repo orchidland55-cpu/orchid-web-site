@@ -49,8 +49,6 @@ const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
   //   return () => window.removeEventListener("message", handleMessage);
   // }, []);
 
-  
-
   return (
     <>
       {/* Backdrop semi-transparent */}
@@ -59,7 +57,7 @@ const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
         onClick={onClose}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar — inchangée */}
       <aside className="fixed top-0 right-0 z-50 h-screen w-full max-w-lg flex flex-col bg-background border-l border-border shadow-2xl animate-in slide-in-from-right duration-300">
 
         {/* Header */}
@@ -81,7 +79,6 @@ const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
 
         {/* Iframe */}
         <div className="flex-1 relative">
-          {/* Spinner pendant le chargement de l'iframe */}
           {!iframeReady && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background">
               <div className="w-8 h-8 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
@@ -136,19 +133,26 @@ const PropertyFilterBar = ({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 bg-card border border-border/60 rounded-2xl px-4 py-3">
+      {/* ── Pill container ── */}
+      <div className="flex items-center bg-background border border-border/60 rounded-full shadow-sm px-2 py-1.5 gap-1 w-full">
 
-        {/* Search */}
-        <div className="flex items-center gap-2 md:w-64 shrink-0">
-          <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-          <Input
-            type="text"
-            placeholder="Rechercher une propriété..."
-            value={searchTerm}
-            onChange={(e) => debouncedSearch(e.target.value)}
-            className="border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-sm bg-transparent"
-          />
-          {/* Bouton caméra */}
+        {/* Search input slot */}
+        <div className="flex items-center gap-2 flex-1 min-w-0 px-3 py-1.5">
+          <Search className="w-4 h-4 text-primary shrink-0" />
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
+              Search
+            </span>
+            <Input
+              type="text"
+              placeholder=""
+              value={searchTerm}
+              onChange={(e) => debouncedSearch(e.target.value)}
+              className="border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-sm bg-transparent font-lora"
+            />
+          </div>
+
+          {/* Bouton caméra — commenté intentionnellement */}
           <button
             onClick={() => setSidebarOpen(true)}
             title="Rechercher par image"
@@ -162,17 +166,20 @@ const PropertyFilterBar = ({
           </button>
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Divider */}
+        <span className="hidden md:block w-px h-7 bg-border/60 shrink-0" />
 
-        {/* Selects */}
-        <div className="flex items-center gap-3">
-          <label htmlFor="filter-type" className="sr-only">Filter By Type</label>
-          <select  id="filter-type" 
+        {/* Type select slot */}
+        <div className="hidden md:flex flex-col min-w-0 px-3 py-1.5">
+          <label htmlFor="filter-type" className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
+            Type
+          </label>
+          <select
+            id="filter-type"
             value={filterType}
             onChange={(e) => onFilterTypeChange(e.target.value)}
             disabled={isImageSearchMode}
-            className={`border border-border/60 rounded-full bg-transparent text-sm text-foreground px-3 py-1.5 focus:outline-none transition-opacity ${
+            className={`font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer transition-opacity ${
               isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
             }`}
           >
@@ -183,23 +190,70 @@ const PropertyFilterBar = ({
               </option>
             ))}
           </select>
+        </div>
 
-          <label htmlFor="filter-city" className="sr-only">Filter By City</label>  
-          <select id="filter-city"
+        {/* Divider */}
+        <span className="hidden md:block w-px h-7 bg-border/60 shrink-0" />
+
+        {/* City select slot */}
+        <div className="hidden md:flex flex-col min-w-0 px-3 py-1.5">
+          <label htmlFor="filter-city" className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
+            Location
+          </label>
+          <select
+            id="filter-city"
             value={filterCity}
             onChange={(e) => onFilterCityChange(e.target.value)}
             disabled={isImageSearchMode}
-            className={`border border-border/60 rounded-full bg-transparent text-sm text-foreground px-3 py-1.5 focus:outline-none transition-opacity ${
+            className={`font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer transition-opacity ${
               isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
             }`}
           >
             <option value="all">Toutes les villes</option>
             {propertyCities.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Mobile: selects inline compacts */}
+        <div className="flex md:hidden items-center gap-2 px-1">
+          <select
+            value={filterType}
+            onChange={(e) => onFilterTypeChange(e.target.value)}
+            disabled={isImageSearchMode}
+            className={`font-lora text-xs text-foreground bg-transparent border border-border/60 rounded-full px-2.5 py-1 focus:outline-none transition-opacity ${
+              isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
+            }`}
+          >
+            <option value="all">All Types</option>
+            {propertyTypes.map((t) => (
+              <option key={t} value={t}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
               </option>
             ))}
           </select>
+          <select
+            value={filterCity}
+            onChange={(e) => onFilterCityChange(e.target.value)}
+            disabled={isImageSearchMode}
+            className={`font-lora text-xs text-foreground bg-transparent border border-border/60 rounded-full px-2.5 py-1 focus:outline-none transition-opacity ${
+              isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
+            }`}
+          >
+            <option value="all">Villes</option>
+            {propertyCities.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Search button */}
+        <div className="pl-1 shrink-0">
+          <button className="flex items-center gap-2 bg-foreground text-background font-lora text-sm font-medium px-4 py-2.5 rounded-full hover:opacity-90 active:scale-95 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
+            <Search className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Search</span>
+          </button>
         </div>
       </div>
 

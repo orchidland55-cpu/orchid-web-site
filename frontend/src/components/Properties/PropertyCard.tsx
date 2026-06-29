@@ -107,25 +107,31 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
           >
             {property.title}
           </h3>
-
+          
           <div className="flex items-center gap-5">
-            <div className="flex items-center gap-1.5 text-white/70 text-[12px]">
-              <Bed className="w-3.5 h-3.5" />
-              {property.bedrooms} ch.
-            </div>
-            <div className="flex items-center gap-1.5 text-white/70 text-[12px]">
-              <Bath className="w-3.5 h-3.5" />
-              {property.bathrooms} sdb
-            </div>
+          {!!property.bedrooms && (
+           <div className="flex items-center gap-1.5 text-white/70 text-[12px]">
+             <Bed className="w-3.5 h-3.5" />
+             {property.bedrooms} ch.
+           </div>
+         )}
+         {!!property.bathrooms && (
+           <div className="flex items-center gap-1.5 text-white/70 text-[12px]">
+             <Bath className="w-3.5 h-3.5" />
+             {property.bathrooms} sdb
+           </div>
+         )}
+          {!!property.area && (
             <div className="flex items-center gap-1.5 text-white/70 text-[12px]">
               <Square className="w-3.5 h-3.5" />
-              {property.area} m²
-            </div>
-          </div>
+             {property.area} m²
+           </div>
+         )}
         </div>
-      </Link>
-    );
-  }
+               </div>
+             </Link>
+           );
+         }
 
   // ── Direction C : Luxury card structurée (petits slots) ───────────────────
   return (
@@ -203,43 +209,57 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
         </h3>
 
         {/* Stats dans bloc encadré */}
+        {(!!property.bedrooms || !!property.bathrooms || !!property.area) && (
         <div
-          className="grid grid-cols-3 rounded-lg overflow-hidden"
-          style={{ border: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
+         className="flex rounded-lg overflow-hidden"
+         style={{ border: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
         >
-          <div
-            className="py-2 text-center"
-            style={{ borderRight: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
-          >
-            {/* <span className="flex items-center gap-1.5 text-white/70 text-[12px]">
-            <Bed className="w-3.5 h-3.5" aria-hidden="true" />
-            <span className="sr-only">Chambres :</span>
-              {property.bedrooms}
-            </span> */}
-            <div className="flex items-center justify-center mb-0.5">
-              <Bed className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <div className="text-[13px] font-medium text-foreground"><span className="sr-only">Chambres :</span>  {property.bedrooms}</div>
-            <div className="text-[10px] text-muted-foreground">ch.</div> 
-          </div>
-          <div
-            className="py-2 text-center"
-            style={{ borderRight: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }}
-          >
-            <div className="flex items-center justify-center mb-0.5">
-              <Bath className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <div className="text-[13px] font-medium text-foreground">{property.bathrooms}</div>
-            <div className="text-[10px] text-muted-foreground">sdb</div>
-          </div>
-          <div className="py-2 text-center">
-            <div className="flex items-center justify-center mb-0.5">
-              <Square className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-            <div className="text-[13px] font-medium text-foreground">{property.area}</div>
-            <div className="text-[10px] text-muted-foreground">m²</div>
-          </div>
+         {!!property.bedrooms && (
+            <div
+             className="flex-1 py-2 text-center"
+             style={
+               (!!property.bathrooms || !!property.area)
+                  ? { borderRight: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }
+                 : {}
+             }
+           >
+             <div className="flex items-center justify-center mb-0.5">
+               <Bed className="w-3.5 h-3.5 text-muted-foreground" />
+             </div>
+              <div className="text-[13px] font-medium text-foreground">
+                <span className="sr-only">Chambres :</span>
+                {property.bedrooms}
+              </div>
+             <div className="text-[10px] text-muted-foreground">ch.</div>
+           </div>
+          )}
+         {!!property.bathrooms && (
+           <div
+             className="flex-1 py-2 text-center"
+              style={
+               !!property.area
+                 ? { borderRight: "0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1))" }
+                 : {}
+              }
+           >
+             <div className="flex items-center justify-center mb-0.5">
+               <Bath className="w-3.5 h-3.5 text-muted-foreground" />
+             </div>
+              <div className="text-[13px] font-medium text-foreground">{property.bathrooms}</div>
+             <div className="text-[10px] text-muted-foreground">sdb</div>
+           </div>
+         )}
+         {!!property.area && (
+           <div className="flex-1 py-2 text-center">
+              <div className="flex items-center justify-center mb-0.5">
+               <Square className="w-3.5 h-3.5 text-muted-foreground" />
+             </div>
+              <div className="text-[13px] font-medium text-foreground">{property.area}</div>
+             <div className="text-[10px] text-muted-foreground">m²</div>
+           </div>
+         )}
         </div>
+      )}
 
         {/* Prix + CTA */}
         <div className="flex items-center justify-between pt-1">
@@ -253,7 +273,7 @@ const PropertyCard = ({ property, variant = "default" }: PropertyCardProps) => {
             </div>
             {!isSold && (
               <div className="text-[11px] mt-0.5" style={{ color: "#D4AF37" }}>
-                Disponible
+                Available
               </div>
             )}
           </div>

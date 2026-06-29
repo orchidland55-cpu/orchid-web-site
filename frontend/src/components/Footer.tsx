@@ -111,7 +111,7 @@ const Footer = () => {
               <a href="/legal-notice" className="text-ivory-white/60 hover:text-primary transition-smooth">
                 Legal Notice
               </a>
-              <CookieSettings />
+              {/* <CookieSettings /> */}
             </div>
           </div>
         </div>

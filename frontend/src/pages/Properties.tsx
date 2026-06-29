@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiService, Property } from "@/services/api";
 import { Building, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
@@ -14,12 +15,16 @@ const PropertiesPage = () => {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [filterSticky, setFilterSticky] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
+  // const [filterType, setFilterType] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 18;
+  const [searchParams] = useSearchParams();
+  const [filterType, setFilterType] = useState<string>(
+    searchParams.get("type") ?? "all"
+  );
 
   useEffect(() => {
     const sentinel = sentinelRef.current;

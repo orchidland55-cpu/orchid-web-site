@@ -8,14 +8,27 @@ import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import OurPartners from "@/components/Ourpartners";
+import PropertyCategories from "@/components/PropertyCategories";
+import { useState } from "react";
+import HeroSearchBar, { HeroFilters } from "@/components/HeroSearchBar";
 
 const Index = () => {
+  
+  const [heroFilters, setHeroFilters] = useState<HeroFilters>({
+      type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
+    });
+
+
   return (
     <div className="min-h-screen">
       <Header />
       <main>
         <Hero />
-        <Properties />
+        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
+          <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
+        </div>
+        <Properties filters={heroFilters} />
+        <PropertyCategories/>
         <Introduction />
         <News />
         <OurPartners />

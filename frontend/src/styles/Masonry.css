@@ -6,7 +6,7 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, minmax(180px, 1fr));
+  grid-template-rows: auto auto auto;
   grid-template-areas:
     "a a b"
     "c d d"
@@ -27,17 +27,44 @@
 .masonry-cell-e { grid-area: e; }
 .masonry-cell-f { grid-area: f; }
 
+/* Hauteur minimale sur les grandes cellules uniquement */
+.masonry-cell-a,
+.masonry-cell-d {
+  min-height: 340px;
+}
+
+/* Les petites cellules s'alignent en haut, hauteur naturelle */
+.masonry-cell-b,
+.masonry-cell-c,
+.masonry-cell-e,
+.masonry-cell-f {
+  align-self: start;
+}
+
 /* Tablet: two columns, two "wide" slots (a and d) spanning both columns */
 @media (max-width: 1024px) {
   .masonry-grid,
   .masonry-grid--mirrored {
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(4, minmax(220px, 1fr));
+    grid-template-rows: auto auto auto auto;
     grid-template-areas:
       "a a"
       "b c"
       "d d"
       "e f";
+  }
+
+  .masonry-cell-a,
+  .masonry-cell-d {
+    min-height: 300px;
+  }
+
+  /* Sur tablet b/c et e/f sont côte à côte : on les laisse s'étirer mutuellement */
+  .masonry-cell-b,
+  .masonry-cell-c,
+  .masonry-cell-e,
+  .masonry-cell-f {
+    align-self: stretch;
   }
 }
 

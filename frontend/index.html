@@ -59,34 +59,7 @@
       .font-lora { font-family: 'Lora', serif; }
       .font-inter { font-family: 'Inter', sans-serif; }
     </style>
-    <script>
-      (function() {
-        function loadCSS(href) {
-          var link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = href;
-          link.media = 'print';
-          link.onload = function() {
-            this.media = 'all';
-          };
-          document.head.appendChild(link);
-        }
-        if (document.readyState === 'complete') {
-          loadCSS('/assets/index-DJ0k1ATB.css');
-          loadCSS('/assets/react-vendor-ComhdInD.css');
-        } else {
-          window.addEventListener('load', function() {
-            setTimeout(function() {
-              loadCSS('/assets/index-DJ0k1ATB.css');
-              loadCSS('/assets/react-vendor-ComhdInD.css');
-            }, 100);
-          });
-        }
-      })();
-    </script>
-    <noscript>
-      <link rel="stylesheet" href="/assets/react-vendor-ComhdInD.css">
-    </noscript>
+
     <link rel="preconnect" href="https://orchid-web-site-production.up.railway.app" />
     <link rel="dns-prefetch" href="https://orchid-web-site-production.up.railway.app" />
     <link rel="preconnect" href="https://res.cloudinary.com" />
@@ -104,5 +77,6 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Vite injectera automatiquement les liens CSS ici lors du build -->
   </body>
 </html>

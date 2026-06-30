@@ -37,7 +37,6 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
     },
     plugins: [
       react(),
-      // ✅ Supprimé : vite-plugin-compression (Vercel le gère nativement)
       mode === 'development' && componentTagger(),
       Sitemap({
         hostname: 'https://www.orchidisland.immo/',
@@ -63,7 +62,9 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       dedupe: ["react", "react-dom"],
     },
     build: {
-      cssCodeSplit: true,
+      // ✅ IMPORTANT : Vite injecte automatiquement les CSS dans index.html
+      // Pas besoin de configuration spéciale pour cela
+      cssCodeSplit: true, // ← Gardé true, Vite génère des CSS par chunk
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -80,7 +81,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
             // ✅ ORDRE CRITIQUE : du plus spécifique au plus général
             if (id.includes('react-router-dom')) return 'react-vendor';
             if (id.includes('react-dom'))        return 'react-vendor';
-            if (id.includes('/react/'))          return 'react-vendor'; // ← match exact, pas partiel
+            if (id.includes('/react/'))          return 'react-vendor';
 
             if (id.includes('@tanstack'))        return 'query-vendor';
             if (id.includes('@radix-ui'))        return 'ui-vendor';

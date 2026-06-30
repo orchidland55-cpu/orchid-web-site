@@ -118,7 +118,7 @@ const NavItem = ({
 // ─── IframeView ────────────────────────────────────────────────────────────── tous les trois liens sont a changer par les vrais
 const EXTERNAL_APPS: Record<string, { url: string; label: string }> = {
   "due-diligence":       { url: "https://placeholder-due-diligence.vercel.app",      label: "Due Diligence" },
-  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Gestion Stagiaires" },
+  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Price Prediction" },
   "reverse-engineering": { url: "https://placeholder-reverse-engineering.vercel.app", label: "Reverse Engineering" },
 };
 
@@ -411,7 +411,7 @@ const AdminDashboard = () => {
               </button>
               <NavItem icon={Home} label="Data Room" viewKey="space-manager" active={activeView === "space-manager"} collapsed={collapsed} onClick={() => goTo("space-manager")} />
               <NavItem icon={ClipboardCheck} label="Due Diligence"      viewKey="due-diligence"       active={activeView === "due-diligence"}       collapsed={collapsed} onClick={() => goTo("due-diligence")}       />
-              <NavItem icon={GraduationCap}  label="Gestion Stagiaires" viewKey="price-prediction"  active={activeView === "price-prediction"}  collapsed={collapsed} onClick={() => goTo("price-prediction")}  />
+              <NavItem icon={GraduationCap}  label="Price Prediction" viewKey="price-prediction"  active={activeView === "price-prediction"}  collapsed={collapsed} onClick={() => goTo("price-prediction")}  />
               <NavItem icon={ScanSearch}     label="Reverse Engineering" viewKey="reverse-engineering" active={activeView === "reverse-engineering"} collapsed={collapsed} onClick={() => goTo("reverse-engineering")} />
             </div>
           </div>

@@ -173,7 +173,7 @@ const AdminDashboard = () => {
     "properties-edit": "Edit Property",
     "articles-edit": "Edit Article",
     "due-diligence":       "Due Diligence",
-    "price-prediction":  "Gestion Stagiaires",
+    "price-prediction":  "Price Prediction",
     "reverse-engineering": "Reverse Engineering",
   };
 

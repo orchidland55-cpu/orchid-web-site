@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Globe, ChevronDown } from 'lucide-react';
+import { Globe, ChevronDown, Loader2 } from 'lucide-react';
 import { initGoogleTranslate, switchGoogleLanguage, getCurrentGoogleLanguage } from '@/hooks/useGoogleTranslate';
 
 // ─── Supported languages ──────────────────────────────────────────────────────
@@ -22,6 +22,7 @@ const languages = [
 
 const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isChanging, setIsChanging] = useState(false);
 
   // Read active language from the Google Translate cookie (persists on reload)
   const currentCode = getCurrentGoogleLanguage();
@@ -29,12 +30,34 @@ const LanguageSwitcher = () => {
     languages.find((l) => l.code === currentCode) || languages[0];
 
   const handleChange = async (code: string) => {
-  setIsOpen(false);
-  if (code !== currentCode) {
-    await initGoogleTranslate(); // charge uniquement si pas encore chargé
-    switchGoogleLanguage(code);
-  }
-};
+    // Éviter les changements multiples ou inutiles
+    if (isChanging || code === currentCode) {
+      setIsOpen(false);
+      return;
+    }
+
+    setIsChanging(true);
+    setIsOpen(false);
+
+    try {
+      // Initialiser Google Translate si pas encore fait
+      await initGoogleTranslate();
+      
+      // Changer la langue
+      await switchGoogleLanguage(code);
+      
+      // Attendre que la traduction soit appliquée
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Forcer un re-render pour mettre à jour l'UI
+      window.dispatchEvent(new Event('languageChanged'));
+      
+    } catch (error) {
+      console.error('Failed to switch language:', error);
+    } finally {
+      setIsChanging(false);
+    }
+  };
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -43,10 +66,19 @@ const LanguageSwitcher = () => {
           variant="ghost"
           size="sm"
           className="flex items-center space-x-2 text-foreground hover:text-primary transition-smooth"
+          disabled={isChanging}
         >
-          <Globe className="w-4 h-4" />
+          {isChanging ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Globe className="w-4 h-4" />
+          )}
           <span className="text-sm">{currentLanguage.flag}</span>
-          <ChevronDown className="w-3 h-3" />
+          {isChanging ? (
+            <span className="w-3 h-3" />
+          ) : (
+            <ChevronDown className="w-3 h-3" />
+          )}
         </Button>
       </DropdownMenuTrigger>
 
@@ -59,7 +91,8 @@ const LanguageSwitcher = () => {
               onClick={() => handleChange(language.code)}
               className={`flex items-center space-x-2 cursor-pointer ${
                 isActive ? 'bg-primary/10 text-primary' : ''
-              }`}
+              } ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isChanging}
             >
               <span>{language.flag}</span>
               <span>{language.name}</span>

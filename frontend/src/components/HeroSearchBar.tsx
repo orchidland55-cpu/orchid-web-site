@@ -67,6 +67,7 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
             Location
           </span>
           <select
+            aria-label="location"
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
             className="font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer w-full truncate"
@@ -89,6 +90,7 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
             Property type
           </span>
           <select
+            aria-label="property-type"
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
             className="font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer w-full truncate"
@@ -111,6 +113,7 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
             Budget
           </span>
           <select
+            aria-label="budget"
             value={selectedBudget}
             onChange={(e) => setSelectedBudget(Number(e.target.value))}
             className="font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer w-full truncate"

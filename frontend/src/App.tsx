@@ -14,9 +14,11 @@ import { startKeepAlive } from "@/utils/keepAlive";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+
 // ── Imports statiques (chargés immédiatement) ─────────────────────────────────
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
+import { useGoogleTranslate } from '@/hooks/useGoogleTranslate';
 
 // ── Imports lazy (chargés uniquement à la navigation) ────────────────────────
 const Blog             = lazy(() => import("./pages/blog"));
@@ -89,6 +91,23 @@ const queryClient = new QueryClient({
 
 function App() {
   startKeepAlive();
+  useGoogleTranslate();
+
+  const [languageKey, setLanguageKey] = useState(0);
+
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      // Forcer un re-render de l'application quand la langue change
+      setLanguageKey(prev => prev + 1);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+    };
+  }, []);
+
 
   // ✅ Hook pour charger les widgets après 3 secondes
   const useWidgets = () => {
@@ -139,6 +158,7 @@ function App() {
   };
 
   return (
+    <div key={languageKey}>
     <HelmetProvider>
       <div className="overflow-x-clip">
         <QueryClientProvider client={queryClient}>
@@ -209,6 +229,7 @@ function App() {
         </QueryClientProvider>
       </div>
     </HelmetProvider>
+    </div>
   );
 }
 

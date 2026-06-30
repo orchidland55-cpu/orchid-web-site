@@ -68,7 +68,7 @@ type ViewKey =
   | "contacts"
   | "space-manager"
   | "due-diligence"
-  | "gestion-stagiaires"
+  | "price-prediction"
   | "reverse-engineering";
 
 // ─── Fallback spinner ────────────────────────────────────────────────────────
@@ -118,7 +118,7 @@ const NavItem = ({
 // ─── IframeView ────────────────────────────────────────────────────────────── tous les trois liens sont a changer par les vrais
 const EXTERNAL_APPS: Record<string, { url: string; label: string }> = {
   "due-diligence":       { url: "https://placeholder-due-diligence.vercel.app",      label: "Due Diligence" },
-  "gestion-stagiaires":  { url: "https://placeholder-gestion-stagiaires.vercel.app", label: "Gestion Stagiaires" },
+  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Gestion Stagiaires" },
   "reverse-engineering": { url: "https://placeholder-reverse-engineering.vercel.app", label: "Reverse Engineering" },
 };
 
@@ -173,7 +173,7 @@ const AdminDashboard = () => {
     "properties-edit": "Edit Property",
     "articles-edit": "Edit Article",
     "due-diligence":       "Due Diligence",
-    "gestion-stagiaires":  "Gestion Stagiaires",
+    "price-prediction":  "Gestion Stagiaires",
     "reverse-engineering": "Reverse Engineering",
   };
 
@@ -411,7 +411,7 @@ const AdminDashboard = () => {
               </button>
               <NavItem icon={Home} label="Data Room" viewKey="space-manager" active={activeView === "space-manager"} collapsed={collapsed} onClick={() => goTo("space-manager")} />
               <NavItem icon={ClipboardCheck} label="Due Diligence"      viewKey="due-diligence"       active={activeView === "due-diligence"}       collapsed={collapsed} onClick={() => goTo("due-diligence")}       />
-              <NavItem icon={GraduationCap}  label="Gestion Stagiaires" viewKey="gestion-stagiaires"  active={activeView === "gestion-stagiaires"}  collapsed={collapsed} onClick={() => goTo("gestion-stagiaires")}  />
+              <NavItem icon={GraduationCap}  label="Gestion Stagiaires" viewKey="price-prediction"  active={activeView === "price-prediction"}  collapsed={collapsed} onClick={() => goTo("price-prediction")}  />
               <NavItem icon={ScanSearch}     label="Reverse Engineering" viewKey="reverse-engineering" active={activeView === "reverse-engineering"} collapsed={collapsed} onClick={() => goTo("reverse-engineering")} />
             </div>
           </div>
@@ -793,7 +793,7 @@ const AdminDashboard = () => {
     </Suspense>
   );
   case "due-diligence":
-  case "gestion-stagiaires":
+  case "price-prediction":
   case "reverse-engineering":
     return <IframeView viewKey={activeView} />;
       default:

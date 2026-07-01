@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Clock, Send, MessageCircle, Calendar} from "lucide-react";
-import { useRef,useState } from "react";
+import { MapPin, Phone, Clock, Send, MessageCircle, Calendar } from "lucide-react";
+import { useRef, useState } from "react";
 import ScheduleMeetingModal from "@/components/ScheduleMeetingModal";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -46,13 +46,26 @@ const Contact = () => {
     setSubmitMessage("");
 
     try {
-      const response = await fetch('https://orchid-web-site-production.up.railway.app/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      const locationData = JSON.parse(
+        localStorage.getItem("visitorLocation") || "{}"
+      );
+
+      const response = await fetch(
+        "https://orchid-web-site-production.up.railway.app/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            visitorId: localStorage.getItem("visitorId"),
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            locationSource: locationData.locationSource,
+          }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -267,43 +280,42 @@ const Contact = () => {
                   </div>
 
                   {submitMessage && (
-                    <div className={`p-4 rounded-md mb-4 ${
-                      submitMessage.includes('✅')
-                        ? 'bg-green-50 text-green-800 border border-green-200'
-                        : 'bg-red-50 text-red-800 border border-red-200'
-                    }`}>
+                    <div className={`p-4 rounded-md mb-4 ${submitMessage.includes('✅')
+                      ? 'bg-green-50 text-green-800 border border-green-200'
+                      : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}>
                       {submitMessage}
                     </div>
                   )}
                   {/* reCAPTCHA placeholder */}
                   <div className="mb-4">
-                   <ReCAPTCHA
-                     ref = {recaptchaRef}
-                     sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
                       onChange={handleRecaptchaChange}
                     />
                   </div>
                   <div className="grid lg:grid-cols-2 gap-12">
-                  <Button
-                    type="submit"
-                    variant="luxury"
-                    size="lg"
-                    className="w-full"
-                    disabled={!recaptchaToken || isSubmitting}
-                  >
-                    <Send className="w-5 h-5 mr-2" />
-                    {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
-                  <Button
-                    variant="elegant"
-                    size="lg"
-                    className="w-full"
-                    onClick={() => setIsScheduleModalOpen(true)}
-                  >
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Schedule a Visit
-                  </Button>
-                </div>
+                    <Button
+                      type="submit"
+                      variant="luxury"
+                      size="lg"
+                      className="w-full"
+                      disabled={!recaptchaToken || isSubmitting}
+                    >
+                      <Send className="w-5 h-5 mr-2" />
+                      {isSubmitting ? "Sending..." : "Send Message"}
+                    </Button>
+                    <Button
+                      variant="elegant"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => setIsScheduleModalOpen(true)}
+                    >
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Schedule a Visit
+                    </Button>
+                  </div>
                 </form>
               </div>
               {/* Map */}

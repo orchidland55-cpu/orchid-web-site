@@ -118,7 +118,7 @@ const NavItem = ({
 // ─── IframeView ────────────────────────────────────────────────────────────── tous les trois liens sont a changer par les vrais
 const EXTERNAL_APPS: Record<string, { url: string; label: string }> = {
   "due-diligence":       { url: "https://placeholder-due-diligence.vercel.app",      label: "Due Diligence" },
-  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Gestion Stagiaires" },
+  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Price Prediction" },
   "reverse-engineering": { url: "https://placeholder-reverse-engineering.vercel.app", label: "Reverse Engineering" },
 };
 

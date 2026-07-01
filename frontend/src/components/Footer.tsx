@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Mail, Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import orchidFooterLogo from "@/assets/logowhitepro-r.png";
-import CookieSettings from "@/components/CookieSettings";
+
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -19,9 +18,12 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="mb-6">
               <img
-                src={orchidFooterLogo}
-                alt="Orchid Island Logo"
-                className="h-16 w-auto mb-4"
+                src="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto/v1782820067/logowhitepro-r_tz0xpt.png"
+                alt="Orchid Island Logo"                
+                height={130}
+                width={400}
+                className="h-8 w-auto sm:h-10 md:h-12"
+                sizes="(max-width: 640px) 150px, (max-width: 768px) 200px, 400px"
               />
             </div>
             <p className="font-lora text-ivory-white/80 mb-6 leading-relaxed">

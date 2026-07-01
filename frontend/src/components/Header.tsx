@@ -61,20 +61,16 @@ const Header = () => {
             <div className="flex items-center justify-between">
 
               {/* Logo */}
-              <div className="flex items-center space-x-3">
-                <Link to="/">
-                  <PriorityImage
-                    src="logo_rwq4mt.webp"
-                    alt="Orchid Island Logo"
-                    width={400}
-                    height={130}
-                    className="h-8 w-auto sm:h-10 md:h-12"
-                    sizes="(max-width: 640px) 150px, (max-width: 768px) 200px, 400px"
-                    widths={[200, 400, 600]}
-                    crop="scale"
-                  />
-                </Link>
-              </div>
+              <Link to="/" className="flex items-center h-8 sm:h-10 md:h-12 shrink-0">
+                <img
+                  src="https://res.cloudinary.com/drgg2rocc/image/upload/v1782421119/logo_rwq4mt.webp"
+                 alt="Orchid Island Logo"
+                 className="h-full w-auto object-contain"
+                 fetchPriority="high"
+                 loading="eager"
+                  decoding="sync"
+                />
+              </Link>
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-8">

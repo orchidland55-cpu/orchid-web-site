@@ -1,18 +1,12 @@
 require('dotenv').config();
 const { Resend } = require('resend');
-const nodemailer = require("nodemailer");
+
 
 // ── Client Resend ─────────────────────────────────────────────────────────────
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const gmailTransporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
-  }
-});
+
 
 // En dev, on log les emails au lieu de les envoyer si pas de clé configurée
 const isDev = process.env.NODE_ENV !== 'production';
@@ -235,16 +229,11 @@ Generated automatically by Orchid Island CRM
 </html>
 `;
 
-  await gmailTransporter.sendMail({
-
-    from: `"Orchid Notifications" <${process.env.GMAIL_USER}>`,
-
-    to: process.env.GMAIL_USER,
-
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL,
+    to: process.env.NOTIFICATION_EMAIL,
     subject: `🏝 New Lead - ${name}`,
-
     html
-
   });
 
   console.log("✅ Lead email notification sent");
@@ -377,16 +366,11 @@ Generated automatically by Orchid Island CRM
 </html>
 `;
 
-  await gmailTransporter.sendMail({
-
-    from: `"Orchid Notifications" <${process.env.GMAIL_USER}>`,
-
-    to: process.env.GMAIL_USER,
-
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL,
+    to: process.env.NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL,
     subject: `📅 New Visit Request - ${name}`,
-
-    html
-
+    html,
   });
 
   console.log("✅ Visit request email notification sent");

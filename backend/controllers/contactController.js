@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const Lead = require('../models/Lead');
 const Contact = require("../models/Contact");
@@ -1311,115 +1310,25 @@ ${new Date().toLocaleString()}
         pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
       },
     });*/
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Demande de visite envoyée avec succès !"
     });
 
-
-    // Contenu de l'email pour la planification de visite
-    const mailOptions = {
-      from: '"Orchid Real Estate" <noreply@orchid-realestate.com>',
-      to: process.env.ADMIN_EMAIL || "orchido651@gmail.com",
-      subject: `📅 Nouvelle demande de visite: ${meetingType || "Consultation"}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4F46E5; border-bottom: 2px solid #4F46E5; padding-bottom: 10px;">
-            📅 Nouvelle demande de planification de visite
-          </h2>
-
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">👤 Informations du client</h3>
-            <p><strong>Nom:</strong> ${name}</p>
-            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-            <p><strong>Téléphone:</strong> ${phone || "Non précisé"}</p>
-          </div>
-
-          <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">📅 Détails du rendez-vous</h3>
-            <p><strong>Type de rendez-vous:</strong> ${meetingType || "Non précisé"}</p>
-            <p><strong>Date souhaitée:</strong> ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}</p>
-            <p><strong>Heure souhaitée:</strong> ${timeSlot || "Non précisée"}</p>
-          </div>
-
-          ${message ? `
-          <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #333; margin-top: 0;">💬 Message</h3>
-            <p style="white-space: pre-wrap;">${message}</p>
-          </div>
-          ` : ''}
-
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-            </p>
-            <p style="color: #4F46E5; font-weight: bold;">
-              ⚡ Action requise: Confirmer le rendez-vous avec le client
-            </p>
-          </div>
-        </div>
-      `,
-      text: `
-Nouvelle demande de planification de visite
-
-Informations du client:
-Nom: ${name}
-Email: ${email}
-Téléphone: ${phone || "Non précisé"}
-
-Détails du rendez-vous:
-Type: ${meetingType || "Non précisé"}
-Date: ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}
-Heure: ${timeSlot || "Non précisée"}
-
-${message ? `Message:\n${message}\n` : ''}
-
-Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-
-Action requise: Confirmer le rendez-vous avec le client
-      `,
-    };
-
-    // Envoyer l'email
-    console.log('📤 Envoi de l\'email de planification...');
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log('✅ Email de planification envoyé:', info.messageId);
-
-      res.status(200).json({
-        success: true,
-        message: "Demande de visite envoyée avec succès ! Nous vous confirmerons par email.",
-        emailId: info.messageId
-      });
-    } catch (emailError) {
-      console.log('⚠️ Email de planification non envoyé (temporaire):', emailError.message);
-
-      // Succès partiel : demande reçue, email en attente
-      res.status(200).json({
-        success: true,
-        message: "Demande de visite reçue ! Nous vous confirmerons par email dès que possible.",
-        emailStatus: "pending",
-        note: "Votre demande de visite a été enregistrée. Nous vous contacterons bientôt."
-      });
-    }
-
   } catch (error) {
-    console.error('❌ Erreur dans scheduleVisit:', error);
-    res.status(500).json({
+    console.error("❌ Erreur dans scheduleVisit:", error);
+
+    return res.status(500).json({
       success: false,
       error: "Erreur lors du traitement de la demande de visite",
       details: error.message
     });
   }
+
 };
 
-// Export des fonctions
 module.exports = {
   addContact,
   getAllContacts,

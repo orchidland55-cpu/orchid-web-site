@@ -124,19 +124,25 @@ function App() {
       console.log("Visitor ID created:", visitorId);
     }
 
-    const locationStored =
-      localStorage.getItem("visitorLocation");
+    const locationStored = localStorage.getItem("visitorLocation");
 
-    if (locationStored) return;
+    if (locationStored) {
+      const location = JSON.parse(locationStored);
 
+      if (location.locationSource === "gps") {
+        return;
+      }
+
+      // If it was previously denied, try again.
+      localStorage.removeItem("visitorLocation");
+    }
+    console.log("Requesting GPS permission...");
     navigator.geolocation.getCurrentPosition(
-
       (position) => {
-
         const locationData = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-          locationSource: "gps"
+          locationSource: "gps",
         };
 
         localStorage.setItem(
@@ -144,29 +150,27 @@ function App() {
           JSON.stringify(locationData)
         );
 
-        console.log(
-          "GPS location saved:",
-          locationData
-        );
+        console.log("GPS location saved:", locationData);
       },
 
       (error) => {
-
-        console.log(
-          "Location denied:",
-          error.message
-        );
+        console.log("Location error:", error);
 
         localStorage.setItem(
           "visitorLocation",
           JSON.stringify({
             latitude: null,
             longitude: null,
-            locationSource: "denied"
+            locationSource: "denied",
           })
         );
-      }
+      },
 
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
     );
 
   }, []);

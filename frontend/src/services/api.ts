@@ -231,7 +231,7 @@ export interface SpaceFile {
   uploadedBy: string;
   uploadedAt: string;
 }
- 
+
 export interface SpaceData {
   _id: string;
   name: string;
@@ -245,18 +245,18 @@ export interface SpaceData {
   createdAt: string;
   updatedAt: string;
 }
- 
+
 export interface SpaceDataWithPassword extends SpaceData {
   passwordPlain: string;    // retourné UNE SEULE FOIS à la création
 }
- 
+
 export interface CreateSpacePayload {
   name: string;
   password: string;
   allowUpload?: boolean;
   description?: string;
 }
- 
+
 export interface UpdateSpacePayload {
   name?: string;
   description?: string;
@@ -264,12 +264,12 @@ export interface UpdateSpacePayload {
   isActive?: boolean;
   password?: string;
 }
- 
+
 export interface SpaceAccessPayload {
   spaceId: string;
   password: string;
 }
- 
+
 export interface SpaceAccessResponse {
   success: boolean;
   token: string;
@@ -280,7 +280,7 @@ export interface SpaceAccessResponse {
     description: string;
   };
 }
- 
+
 export interface SpaceFilesData {
   name: string;
   spaceId: string;
@@ -325,7 +325,7 @@ class ApiService {
             try {
               const body = await response.json();
               errorMessage = body.message || 'Cet email est déjà utilisé.';
-            } catch {}
+            } catch { }
             break;
           case 413:
             errorMessage = 'Les données sont trop volumineuses. Veuillez réduire la taille des images ou du contenu.';
@@ -348,7 +348,7 @@ class ApiService {
             try {
               const errorData = await response.json();
               errorMessage = errorData.message || errorData.error || errorMessage;
-            } catch {}
+            } catch { }
         }
 
         throw new Error(errorMessage);
@@ -393,64 +393,64 @@ class ApiService {
   //   }
   // }
 
-//   async verifyToken(): Promise<{ valid: boolean; role?: string }> {
-//     const token = localStorage.getItem("adminToken");
-//     if (!token) return { valid: false };
-//     try {
-//       const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-//       headers: { Authorization: `Bearer ${token}` },
-//     });
-//     if (!res.ok) return { valid: false };
-//     const data = await res.json();
-//     return { valid: true, role: data.user.role }; // ← data.user.role
-//   } catch {
-//     return { valid: false };
-//   }
-// }
+  //   async verifyToken(): Promise<{ valid: boolean; role?: string }> {
+  //     const token = localStorage.getItem("adminToken");
+  //     if (!token) return { valid: false };
+  //     try {
+  //       const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     if (!res.ok) return { valid: false };
+  //     const data = await res.json();
+  //     return { valid: true, role: data.user.role }; // ← data.user.role
+  //   } catch {
+  //     return { valid: false };
+  //   }
+  // }
 
-async verifyToken(): Promise<{ valid: boolean; role?: string }> {
-  const token = localStorage.getItem("adminToken");
+  async verifyToken(): Promise<{ valid: boolean; role?: string }> {
+    const token = localStorage.getItem("adminToken");
 
-  if (!token) {
-    return { valid: false };
-  }
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    // Token invalide ou expiré
-    if (res.status === 401) {
-      localStorage.removeItem("adminToken");
-
+    if (!token) {
       return { valid: false };
     }
 
-    // Autre erreur backend
-    if (!res.ok) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Token invalide ou expiré
+      if (res.status === 401) {
+        localStorage.removeItem("adminToken");
+
+        return { valid: false };
+      }
+
+      // Autre erreur backend
+      if (!res.ok) {
+        return { valid: false };
+      }
+
+      const data = await res.json();
+
+      return {
+        valid: true,
+        role: data.user.role,
+      };
+
+    } catch (error) {
+
+      // Erreur réseau → on NE supprime PAS forcément le token
+      console.error("verifyToken error:", error);
+
       return { valid: false };
     }
-
-    const data = await res.json();
-
-    return {
-      valid: true,
-      role: data.user.role,
-    };
-
-  } catch (error) {
-
-    // Erreur réseau → on NE supprime PAS forcément le token
-    console.error("verifyToken error:", error);
-
-    return { valid: false };
   }
-}
-  
+
 
   async getAdmins(): Promise<Admin[]> {
     const res = await this.request<{ success: boolean; data: Admin[] }>('/api/auth/admins');
@@ -559,7 +559,7 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
       videos: Array.isArray(formData.videos)              // ✅ Vidéos
         ? formData.videos.filter(url => url && url.startsWith('http')).slice(0, 10)
         : [],
-        // ── SEO ──────────────────────────────────────
+      // ── SEO ──────────────────────────────────────
       slug: formData.slug || undefined,
       seoTitle: formData.seoTitle || undefined,
       metaDescription: formData.metaDescription || undefined,
@@ -584,11 +584,11 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
   }
 
   invalidatePropertiesCache() {
-   this._propertiesCache = null;
+    this._propertiesCache = null;
   }
-   async getAllProperties(): Promise<Property[]> {
-     return this.request<Property[]>('/properties');
-   }
+  async getAllProperties(): Promise<Property[]> {
+    return this.request<Property[]>('/properties');
+  }
 
   async getPropertyById(id: string): Promise<Property> {
     const property = await this.request<Property>(`/properties/${id}`);
@@ -730,7 +730,7 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
   async createPostulation(formData: FormData): Promise<Postulation> {
     const url = `${API_BASE_URL}/postulations`;
     const token = localStorage.getItem("adminToken");
-    
+
 
     try {
       const response = await fetch(url, {
@@ -749,7 +749,7 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
             try {
               const errorData = await response.json();
               errorMessage = errorData.error || errorMessage;
-            } catch {}
+            } catch { }
         }
         throw new Error(errorMessage);
       }
@@ -782,22 +782,64 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
   }
 
   async trackPageView(page: string): Promise<void> {
-    try {
-      await fetch(`${API_BASE_URL}/api/analytics/track-page`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page }),
-      });
-    } catch (error) {
-      console.error('Erreur tracking page view:', error);
-    }
+
+    const visitorId = localStorage.getItem("visitorId");
+
+    console.log(
+      "visitorLocation (raw):",
+      localStorage.getItem("visitorLocation")
+    );
+
+    const locationData = JSON.parse(
+      localStorage.getItem("visitorLocation") || "{}"
+    );
+
+    console.log(
+      "visitorLocation (parsed):",
+      locationData
+    );
+
+    await fetch(`${API_BASE_URL}/api/analytics/track-page`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        page,
+        visitorId,
+
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        locationSource: locationData.locationSource
+      })
+    });
   }
-   /** Liste tous les espaces. */
+
+  async trackServiceTime(
+    visitorId: string,
+    serviceName: string,
+    timeSpentSeconds: number
+  ): Promise<void> {
+
+    await fetch(`${API_BASE_URL}/lead-activity/service-time`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        visitorId,
+        serviceName,
+        timeSpentSeconds
+      })
+    });
+  }
+
+  /** Liste tous les espaces. */
   async getSpaces(): Promise<SpaceData[]> {
     const res = await this.request<{ success: boolean; data: SpaceData[] }>('/api/spaces');
     return res.data;
   }
- 
+
   /**
    * Crée un espace.
    * Retourne le mot de passe en clair dans `passwordPlain` — à afficher UNE SEULE FOIS.
@@ -809,7 +851,7 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
     );
     return res.data;
   }
- 
+
   /** Met à jour un espace. */
   async updateSpace(id: string, payload: UpdateSpacePayload): Promise<SpaceData> {
     const body = { ...payload };
@@ -820,12 +862,12 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
     );
     return res.data;
   }
- 
+
   /** Supprime un espace et tous ses fichiers Cloudinary. */
   async deleteSpace(id: string): Promise<void> {
     await this.request<void>(`/api/spaces/${id}`, { method: 'DELETE' });
   }
- 
+
   /** Détail d'un espace avec ses fichiers (pour l'admin). */
   async getSpaceById(id: string): Promise<SpaceData & { files: SpaceFile[] }> {
     const res = await this.request<{ success: boolean; data: SpaceData & { files: SpaceFile[] } }>(
@@ -833,34 +875,34 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
     );
     return res.data;
   }
- 
+
   /** Supprime un fichier d'un espace (admin). */
   async deleteSpaceFile(spaceId: string, fileId: string): Promise<void> {
     await this.request<void>(`/api/spaces/${spaceId}/files/${fileId}`, {
       method: 'DELETE',
     });
   }
- 
+
   // ============================================================
   // ESPACES DE PARTAGE (visiteur)
   // ============================================================
- 
+
   /**
    * Authentifie un visiteur sur un espace.
    * Retourne un JWT scopé à stocker en sessionStorage (pas localStorage).
    */
   async accessSpace(spaceId: string, password: string): Promise<SpaceAccessResponse> {
     const res = await fetch(`${API_BASE_URL}/api/spaces/access`, {
-      method  : 'POST',
-      headers : { 'Content-Type': 'application/json' },
-      body    : JSON.stringify({ spaceId, password }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ spaceId, password }),
     });
- 
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Identifiant ou mot de passe incorrect');
     return data;
   }
- 
+
   /**
    * Récupère les fichiers d'un espace (visiteur authentifié).
    * @param spaceId   - ex: "SPACE-A3K9X"
@@ -870,7 +912,7 @@ async verifyToken(): Promise<{ valid: boolean; role?: string }> {
     const res = await fetch(`${API_BASE_URL}/api/spaces/${spaceId}/files`, {
       headers: { Authorization: `Bearer ${spaceToken}` },
     });
- 
+
     const data = await res.json();
     if (!res.ok) {
       if (res.status === 401) throw new Error('__EXPIRED__');

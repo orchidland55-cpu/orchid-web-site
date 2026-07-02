@@ -3,7 +3,7 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    id: 2,
+    id: 1,
     name: "Ahmed Benali",
     role: "Real Estate Investor",
     location: "Casablanca",
@@ -12,7 +12,7 @@ const testimonials = [
     featured: true,
   },
   {
-    id: 1,
+    id: 2,
     name: "Mohamed Malainine",
     role: "Locak Guide",
     location: "Rabat", 
@@ -106,11 +106,11 @@ const Testimonials = () => {
                 </div>
                 
                 <div className="border-t border-border pt-6">
-                  <h4 className={`font-playfair font-semibold mb-1 ${
+                  <p className={`font-playfair font-semibold mb-1 ${
                     testimonial.featured ? 'text-charcoal' : 'text-ivory-white'
                   }`}>
                     {testimonial.name}
-                  </h4>
+                  </p>
                   <p className={`font-lora text-sm ${
                     testimonial.featured ? 'text-muted-foreground' : 'text-ivory-white/70'
                   }`}>

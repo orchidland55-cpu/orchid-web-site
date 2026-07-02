@@ -87,8 +87,8 @@ const CinematicGallery = ({
     if (images.length <= 1) return;
     const timer = setInterval(() => {
       next();
-   }, 8000);
-   return () => clearInterval(timer);
+    }, 8000);
+    return () => clearInterval(timer);
   }, [current, transitioning]);
 
   return (
@@ -118,8 +118,8 @@ const CinematicGallery = ({
               priority={i === 0}
               onClick={() => setLightbox(src)}
               onError={(e) => {
-               e.currentTarget.src =
-                 "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
+                e.currentTarget.src =
+                  "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
               }}
             />
           </div>
@@ -264,6 +264,7 @@ const PropertyDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [viewStartTime] = useState(Date.now());
 
   const fixImgSrc = (html: string): string => {
     return html
@@ -295,12 +296,50 @@ const PropertyDetail = () => {
 
   useEffect(() => {
     if (!id) { setError("ID de propriété manquant"); setLoading(false); return; }
-    const fetch = async () => {
+    const fetchProperty = async () => {
       try {
         setLoading(true);
         const data = await apiService.getPropertyById(id);
         if (!data) setError("Propriété introuvable");
         else setProperty(data);
+        // Track property view
+        try {
+          let visitorId = localStorage.getItem("visitorId");
+
+          if (!visitorId) {
+            visitorId =
+              "visitor_" +
+              Math.random().toString(36).substring(2) +
+              Date.now();
+
+            localStorage.setItem("visitorId", visitorId);
+          }
+
+          const location = JSON.parse(
+            localStorage.getItem("visitorLocation") || "{}"
+          );
+
+          await fetch(
+            "https://orchid-web-site-production.up.railway.app/lead-activity/view-property",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                propertyId: data._id,
+                visitorId,
+                country: location.country || "",
+                city: location.city || "",
+                latitude: location.latitude || null,
+                longitude: location.longitude || null,
+                locationSource: location.locationSource || "unknown",
+              }),
+            }
+          );
+        } catch (err) {
+          console.error("Property tracking failed:", err);
+        }
       } catch (err) {
         console.error("Erreur chargement:", err);
         setError("Impossible de charger la propriété");
@@ -308,8 +347,69 @@ const PropertyDetail = () => {
         setLoading(false);
       }
     };
-    fetch();
+    fetchProperty();
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      const visitorId = localStorage.getItem("visitorId");
+
+      if (!visitorId || !property?._id) return;
+
+      const timeSpentSeconds = Math.floor(
+        (Date.now() - viewStartTime) / 1000
+      );
+
+      fetch(
+        "https://orchid-web-site-production.up.railway.app/lead-activity/property-time",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            visitorId,
+            propertyId: property._id,
+            timeSpentSeconds,
+          }),
+        }
+      ).catch(console.error);
+    };
+  }, [property, viewStartTime]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const visitorId = localStorage.getItem("visitorId");
+
+      if (!visitorId || !property?._id) return;
+
+      const timeSpentSeconds = Math.floor(
+        (Date.now() - viewStartTime) / 1000
+      );
+
+      navigator.sendBeacon(
+        "https://orchid-web-site-production.up.railway.app/lead-activity/property-time",
+        new Blob(
+          [
+            JSON.stringify({
+              visitorId,
+              propertyId: property._id,
+              timeSpentSeconds,
+            }),
+          ],
+          {
+            type: "application/json",
+          }
+        )
+      );
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [property, viewStartTime]);
 
   if (loading) {
     return (
@@ -336,37 +436,37 @@ const PropertyDetail = () => {
 
   /* ── JSON-LD ── */
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": ["Offer", "WebPage"],
-  "@id": `${SITE_URL}/property/${property.slug || property._id}#offer`,
-  "url": `${SITE_URL}/property/${property.slug || property._id}`,
-  "isPartOf": WEBSITE_REF,
-  "price": property.price,
-  "priceCurrency": property.currency || "MAD",
-  "itemOffered": {
-    "@type": "Residence",
-    "@id": `${SITE_URL}/property/${property.slug || property._id}#property`,
-    "name": property.title,
-    "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
-    "image": property.mainImage,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": property.city,
-      "addressRegion": property.location,
-      "addressCountry": "MA",
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": ["Offer", "WebPage"],
+    "@id": `${SITE_URL}/property/${property.slug || property._id}#offer`,
+    "url": `${SITE_URL}/property/${property.slug || property._id}`,
+    "isPartOf": WEBSITE_REF,
+    "price": property.price,
+    "priceCurrency": property.currency || "MAD",
+    "itemOffered": {
+      "@type": "Residence",
+      "@id": `${SITE_URL}/property/${property.slug || property._id}#property`,
+      "name": property.title,
+      "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
+      "image": property.mainImage,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": property.city,
+        "addressRegion": property.location,
+        "addressCountry": "MA",
+      },
+      "amenityFeature": property.amenities?.map(a => ({
+        "@type": "LocationFeatureSpecification",
+        "name": a,
+        "value": true
+      }))
     },
-    "amenityFeature": property.amenities?.map(a => ({
-      "@type": "LocationFeatureSpecification",
-      "name": a,
-      "value": true
-    }))
-  },
-  "seller": ORGANIZATION_REF,
-  "mainEntityOfPage": {
-    "@id": `${SITE_URL}/property/${property.slug || property._id}#webpage`
-  }
-};
+    "seller": ORGANIZATION_REF,
+    "mainEntityOfPage": {
+      "@id": `${SITE_URL}/property/${property.slug || property._id}#webpage`
+    }
+  };
 
   /* ── Construire la liste d'images ── */
   const imagesToShow: string[] = [];
@@ -423,8 +523,8 @@ const jsonLd = {
 
   const videos: string[] = Array.isArray(property.videos)
     ? property.videos.filter(
-        (v): v is string => typeof v === "string" && v.trim().length > 0
-      )
+      (v): v is string => typeof v === "string" && v.trim().length > 0
+    )
     : [];
 
   /* ── Formatage prix ── */
@@ -449,19 +549,19 @@ const jsonLd = {
   // ] || property.status;
 
   const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "available":
-      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">Available</Badge>;
-    case "sold":
-      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">Sold</Badge>;
-    case "pending":
-      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">Pending</Badge>;
-    case "draft":
-      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200">Draft</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-};
+    switch (status) {
+      case "available":
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">Available</Badge>;
+      case "sold":
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">Sold</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">Pending</Badge>;
+      case "draft":
+        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200">Draft</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -505,58 +605,57 @@ const jsonLd = {
           </div>
         </section>
         {videos.length > 0 && (
-  <section className="py-8 sm:py-10 bg-muted/30 border-y">
-    <div className="container mx-auto px-4 sm:px-6">
+          <section className="py-8 sm:py-10 bg-muted/30 border-y">
+            <div className="container mx-auto px-4 sm:px-6">
 
-      {/* Header section */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-          </svg>
-        </div>
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Virtual Tour</h2>
-          {videos.length > 1 && (
-            <p className="text-xs text-muted-foreground mt-0.5">{videos.length} videos available</p>
-          )}
-        </div>
-      </div>
+              {/* Header section */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold tracking-tight">Virtual Tour</h2>
+                  {videos.length > 1 && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{videos.length} videos available</p>
+                  )}
+                </div>
+              </div>
 
-      {/* Vidéo active */}
-      <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
-        <video
-          key={videos[currentVideoIndex]}
-          className="w-full h-full object-contain"
-          controls
-          preload="metadata"
-          playsInline
-        >
-          <source src={videos[currentVideoIndex]} type="video/mp4" />
-        </video>
-      </div>
+              {/* Vidéo active */}
+              <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
+                <video
+                  key={videos[currentVideoIndex]}
+                  className="w-full h-full object-contain"
+                  controls
+                  preload="metadata"
+                  playsInline
+                >
+                  <source src={videos[currentVideoIndex]} type="video/mp4" />
+                </video>
+              </div>
 
-      {/* Carrousel dots + miniatures si plusieurs */}
-      {videos.length > 1 && (
-        <div className="max-w-4xl mx-auto mt-4 flex items-center justify-center gap-3">
-          {videos.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentVideoIndex(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentVideoIndex
-                  ? "w-6 h-2.5 bg-primary"
-                  : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-              }`}
-              aria-label={`Video ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+              {/* Carrousel dots + miniatures si plusieurs */}
+              {videos.length > 1 && (
+                <div className="max-w-4xl mx-auto mt-4 flex items-center justify-center gap-3">
+                  {videos.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentVideoIndex(index)}
+                      className={`transition-all duration-300 rounded-full ${index === currentVideoIndex
+                        ? "w-6 h-2.5 bg-primary"
+                        : "w-2.5 h-2.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                        }`}
+                      aria-label={`Video ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
 
-    </div>
-  </section>
-)}
+            </div>
+          </section>
+        )}
 
         {/* ── Details ── */}
         <section className="py-8 sm:py-12 bg-background">
@@ -569,7 +668,7 @@ const jsonLd = {
                 {/* Titre + prix */}
                 <div>
                   <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    {getStatusBadge(property.status)} 
+                    {getStatusBadge(property.status)}
                   </div>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 leading-tight">
                     {property.title}
@@ -673,44 +772,44 @@ const jsonLd = {
                         property.pool ||
                         property.security ||
                         property.furnished) && (
-                        <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
-                          <h4 className="font-semibold text-sm text-muted-foreground mb-3">
-                            Options
-                          </h4>
-                          <div className="space-y-2">
-                            {property.garden && (
-                              <div className="flex items-center space-x-2">
-                                <Leaf className="w-4 h-4 text-green-500 shrink-0" />
-                                <span className="text-sm">Jardin</span>
-                              </div>
-                            )}
-                            {property.pool && (
-                              <div className="flex items-center space-x-2">
-                                <Waves className="w-4 h-4 text-blue-500 shrink-0" />
-                                <span className="text-sm">Piscine</span>
-                              </div>
-                            )}
-                            {property.security && (
-                              <div className="flex items-center space-x-2">
-                                <Shield className="w-4 h-4 text-gray-600 shrink-0" />
-                                <span className="text-sm">Sécurité 24/7</span>
-                              </div>
-                            )}
-                            {property.furnished && (
-                              <div className="flex items-center space-x-2">
-                                <Sofa className="w-4 h-4 text-purple-500 shrink-0" />
-                                <span className="text-sm">Meublé</span>
-                              </div>
-                            )}
+                          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
+                            <h4 className="font-semibold text-sm text-muted-foreground mb-3">
+                              Options
+                            </h4>
+                            <div className="space-y-2">
+                              {property.garden && (
+                                <div className="flex items-center space-x-2">
+                                  <Leaf className="w-4 h-4 text-green-500 shrink-0" />
+                                  <span className="text-sm">Jardin</span>
+                                </div>
+                              )}
+                              {property.pool && (
+                                <div className="flex items-center space-x-2">
+                                  <Waves className="w-4 h-4 text-blue-500 shrink-0" />
+                                  <span className="text-sm">Piscine</span>
+                                </div>
+                              )}
+                              {property.security && (
+                                <div className="flex items-center space-x-2">
+                                  <Shield className="w-4 h-4 text-gray-600 shrink-0" />
+                                  <span className="text-sm">Sécurité 24/7</span>
+                                </div>
+                              )}
+                              {property.furnished && (
+                                <div className="flex items-center space-x-2">
+                                  <Sofa className="w-4 h-4 text-purple-500 shrink-0" />
+                                  <span className="text-sm">Meublé</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   </CardContent>
                 </Card>
-                <PropertyContactForm 
-                  propertyTitle={property.title} 
-                  propertyId={property._id || property.slug || id || ''} 
+                <PropertyContactForm
+                  propertyTitle={property.title}
+                  propertyId={property._id || property.slug || id || ''}
                 />
               </div>
             </div>

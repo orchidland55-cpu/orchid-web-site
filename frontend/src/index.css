@@ -12,30 +12,44 @@ All colors MUST be HSL.
     scroll-behavior: smooth;
   }
 
-p {
-  font-family: 'Lora', serif;
-}
-star {
-  font-family: 'Lora', serif;
-}
-span {
-  font-family: 'Lora', serif;
-}
+  p {
+    font-family: 'Lora', serif;
+  }
+
+  star {
+    font-family: 'Lora', serif;
+  }
+
+  span {
+    font-family: 'Lora', serif;
+  }
+
   :root {
     /* Orchid Island Brand Colors */
-    --luxury-gold: 45 72% 51%;        /* #ccac36 */
-    --ivory-white: 60 100% 97%;       /* #fffff0 */
-    --deep-blue: 210 75% 18%;         /* #082648 */
-    --charcoal: 0 0% 11%;             /* #1C1C1C */
-    --slate-gray: 0 0% 29%;           /* #4A4A4A */
-    --light-gray: 0 0% 85%;           /* #D9D9D9 */
-    --warm-brown: 30 40% 51%;         /* #A97442 */
-    --cream: 35 35% 85%;              /* #E5DCC3 */
-    --sage-green: 75 11% 58%;         /* #7A8264 */
+    --luxury-gold: 45 72% 51%;
+    /* #ccac36 */
+    --ivory-white: 60 100% 97%;
+    /* #fffff0 */
+    --deep-blue: 210 75% 18%;
+    /* #082648 */
+    --charcoal: 0 0% 11%;
+    /* #1C1C1C */
+    --slate-gray: 0 0% 29%;
+    /* #4A4A4A */
+    --light-gray: 0 0% 85%;
+    /* #D9D9D9 */
+    --warm-brown: 30 40% 51%;
+    /* #A97442 */
+    --cream: 35 35% 85%;
+    /* #E5DCC3 */
+    --sage-green: 75 11% 58%;
+    /* #7A8264 */
 
     /* Base Design System */
-    --background: 60 100% 97%;        /* ivory-white */
-    --foreground: 210 75% 18%;        /* deep-blue */
+    --background: 60 100% 97%;
+    /* ivory-white */
+    --foreground: 210 75% 18%;
+    /* deep-blue */
 
     --card: 60 100% 97%;
     --card-foreground: 210 75% 18%;
@@ -43,24 +57,31 @@ span {
     --popover: 60 100% 97%;
     --popover-foreground: 210 75% 18%;
 
-    --primary: 45 72% 51%;            /* luxury-gold */
+    --primary: 45 72% 51%;
+    /* luxury-gold */
     --primary-foreground: 60 100% 97%;
 
-    --secondary: 35 35% 85%;          /* cream */
+    --secondary: 35 35% 85%;
+    /* cream */
     --secondary-foreground: 210 75% 18%;
 
-    --muted: 0 0% 85%;               /* light-gray */
-    --muted-foreground: 0 0% 29%;    /* slate-gray */
+    --muted: 0 0% 85%;
+    /* light-gray */
+    --muted-foreground: 0 0% 29%;
+    /* slate-gray */
 
-    --accent: 75 11% 58%;            /* sage-green */
+    --accent: 75 11% 58%;
+    /* sage-green */
     --accent-foreground: 60 100% 97%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 60 100% 97%;
 
-    --border: 0 0% 85%;              /* light-gray */
+    --border: 0 0% 85%;
+    /* light-gray */
     --input: 0 0% 85%;
-    --ring: 45 72% 51%;              /* luxury-gold */
+    --ring: 45 72% 51%;
+    /* luxury-gold */
 
     --radius: 0.75rem;
 
@@ -68,7 +89,7 @@ span {
     --gradient-gold: linear-gradient(135deg, hsl(var(--luxury-gold)), hsl(45 85% 65%));
     --gradient-elegant: linear-gradient(180deg, hsl(var(--ivory-white)), hsl(35 35% 90%));
     --gradient-deep: linear-gradient(135deg, hsl(var(--deep-blue)), hsl(210 65% 25%));
-    
+
     /* Luxury Shadows */
     --shadow-luxury: 0 25px 50px -12px hsl(var(--luxury-gold) / 0.25);
     --shadow-elegant: 0 20px 25px -5px hsl(210 75% 18% / 0.1), 0 10px 10px -5px hsl(210 75% 18% / 0.04);
@@ -96,8 +117,10 @@ span {
   }
 
   .dark {
-    --background: 0 0% 11%;           /* charcoal */
-    --foreground: 60 100% 97%;        /* ivory-white */
+    --background: 0 0% 11%;
+    /* charcoal */
+    --foreground: 60 100% 97%;
+    /* ivory-white */
 
     --card: 0 0% 11%;
     --card-foreground: 60 100% 97%;
@@ -105,7 +128,8 @@ span {
     --popover: 0 0% 11%;
     --popover-foreground: 60 100% 97%;
 
-    --primary: 45 72% 51%;            /* luxury-gold */
+    --primary: 45 72% 51%;
+    /* luxury-gold */
     --primary-foreground: 0 0% 11%;
 
     --secondary: 0 0% 15%;
@@ -114,7 +138,8 @@ span {
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 30 40% 51%;             /* warm-brown */
+    --accent: 30 40% 51%;
+    /* warm-brown */
     --accent-foreground: 60 100% 97%;
 
     --destructive: 0 62.8% 30.6%;
@@ -122,7 +147,8 @@ span {
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 45 72% 51%;               /* luxury-gold */
+    --ring: 45 72% 51%;
+    /* luxury-gold */
   }
 }
 
@@ -199,14 +225,27 @@ body {
 }
 
 /* Force hide Google Translate bar */
-.goog-te-banner-frame { display: none !important; }
-.skiptranslate { display: none !important; }
+.goog-te-banner-frame {
+  display: none !important;
+}
 
-body { top: 0 !important; position: static !important; }
+.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
 
 /* Hide the injected iframe */
-iframe.goog-te-banner-frame { display: none !important; }
-iframe.skiptranslate { display: none !important; }
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+
+iframe.skiptranslate {
+  display: none !important;
+}
 
 /* ✅ Classe pour texte accessible mais caché visuellement */
 .sr-only {

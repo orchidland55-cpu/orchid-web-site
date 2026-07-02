@@ -9,28 +9,35 @@ import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import OurPartners from "@/components/Ourpartners";
 import PropertyCategories from "@/components/PropertyCategories";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import HeroSearchBar, { HeroFilters } from "@/components/HeroSearchBar";
 
 const Index = () => {
-  
   const [heroFilters, setHeroFilters] = useState<HeroFilters>({
-      type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
-    });
+    type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
+  });
 
+  const propertiesRef = useRef<HTMLDivElement>(null);
+
+  const handleHeroSearch = (filters: HeroFilters) => {
+    setHeroFilters(filters);
+    propertiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen">
       <Header />
       <main>
         <Hero />
-        {/* <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
+        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
           <div className="max-w-5xl mx-auto">
-            <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
+            <HeroSearchBar onSearch={handleHeroSearch} />
           </div>
-        </div> */}
-        <Properties filters={heroFilters} />
-        <PropertyCategories/>
+        </div>
+        <div ref={propertiesRef}>
+          <Properties filters={heroFilters} />
+        </div>
+        <PropertyCategories />
         <Introduction />
         <News />
         <OurPartners />

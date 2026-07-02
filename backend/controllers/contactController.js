@@ -713,7 +713,21 @@ const testEmail = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const scheduleVisit = async (req, res) => {
   try {
-    const { name, email, phone, meetingType, date, timeSlot, message, visitorId } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      meetingType,
+      date,
+      timeSlot,
+      message,
+      visitorId,
+      country,
+      city,
+      latitude,
+      longitude
+    } = req.body;
+
     console.log("\n========== SCHEDULE VISIT ==========");
     console.log("visitorId:", visitorId);
     console.log("name:", name);

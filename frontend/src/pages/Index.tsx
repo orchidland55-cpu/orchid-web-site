@@ -13,7 +13,7 @@ import { useState } from "react";
 import HeroSearchBar, { HeroFilters } from "@/components/HeroSearchBar";
 
 const Index = () => {
-  
+
   const [heroFilters, setHeroFilters] = useState<HeroFilters>({
       type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
     });
@@ -23,17 +23,23 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-        <Hero />
-        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
-          <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
+        <div className="relative">
+          <Hero />
+          {/* Desktop uniquement : la search bar n'existe pas sur mobile */}
+          <div className="hidden md:flex absolute bottom-12 left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
+          </div>
         </div>
-        <Properties filters={heroFilters} />
-        <PropertyCategories/>
-        <Introduction />
-        <News />
-        <OurPartners />
-        <Testimonials />
-        <FAQ />
+
+        <div className="pt-16 md:pt-20">
+          <Properties filters={heroFilters} />
+          <PropertyCategories/>
+          <Introduction />
+          <News />
+          <OurPartners />
+          <Testimonials />
+          <FAQ />
+        </div>
       </main>
       <Footer />
       <CookieConsent />

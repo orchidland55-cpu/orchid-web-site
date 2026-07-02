@@ -130,10 +130,28 @@ const addContact = async (req, res) => {
           activityType: "VIEW_PROPERTY"
         }).select("propertyId timeSpentSeconds");
 
+        console.log(
+          "VIEW_PROPERTY:",
+          viewedActivities.map(v => ({
+            propertyId: v.propertyId,
+            country: v.country,
+            city: v.city
+          }))
+        );
+
         const serviceViews = await LeadActivity.find({
           visitorId,
           activityType: "SERVICE_VIEW"
         });
+
+        console.log(
+          "SERVICE_VIEW:",
+          serviceViews.map(v => ({
+            service: v.details,
+            country: v.country,
+            city: v.city
+          }))
+        );
 
         const serviceTimes = await LeadActivity.find({
           visitorId,
@@ -696,6 +714,14 @@ const testEmail = async (req, res) => {
 const scheduleVisit = async (req, res) => {
   try {
     const { name, email, phone, meetingType, date, timeSlot, message, visitorId } = req.body;
+    console.log("\n========== SCHEDULE VISIT ==========");
+    console.log("visitorId:", visitorId);
+    console.log("name:", name);
+    console.log("email:", email);
+    console.log("country (frontend):", country);
+    console.log("city (frontend):", city);
+    console.log("latitude (frontend):", latitude);
+    console.log("longitude (frontend):", longitude);
     const visitDetails = `
 Date: ${date}
 Time: ${timeSlot}
@@ -717,6 +743,17 @@ Message: ${message || "No message"}
 
     // Find lead associated with visitor
     let lead = await Lead.findOne({ visitorId });
+
+    console.log("Lead found:", lead ? lead._id : "NO LEAD");
+
+    if (lead) {
+      console.log({
+        leadCountry: lead.country,
+        leadCity: lead.city,
+        leadLatitude: lead.latitude,
+        leadLongitude: lead.longitude
+      });
+    }
 
     const leadAlreadyExists = !!lead;
 
@@ -1208,6 +1245,20 @@ ${service}
       });
 
       console.log("✅ Visit request sent to Odoo");
+
+      console.log("\n========== EMAIL DATA ==========");
+      console.log({
+        visitorId,
+        propertyViews,
+        whatsappClicks,
+        scheduleVisits,
+        propertyList,
+        servicesList,
+        country,
+        city,
+        latitude,
+        longitude
+      });
 
       await sendVisitRequestEmail({
 

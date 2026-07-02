@@ -57,7 +57,7 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white/95 backdrop-blur-md border border-white/60 rounded-2xl shadow-2xl px-2 py-2 flex flex-col md:flex-row md:items-center gap-1">
+    <div className="w-full max-w-4xl mx-auto bg-white/95 backdrop-blur-md border border-white/60 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] px-2 py-2 flex flex-col md:flex-row md:items-center gap-1">
 
       {/* Location */}
       <div className="flex items-center gap-3 flex-1 min-w-0 px-4 py-2.5">

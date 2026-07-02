@@ -85,7 +85,7 @@ const Hero = () => {
             </p>
 
             {/* Key Features */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-10 text-ivory-white/80 font-lora">
+             {/* <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-10 text-ivory-white/80 font-lora">
               {["Exclusive property sales", "Custom acquisition", "High-end rental"].map(
                 (feature) => (
                   <div key={feature} className="flex items-center space-x-2">
@@ -94,10 +94,10 @@ const Hero = () => {
                   </div>
                 )
               )}
-            </div>
+            </div> */}
 
             {/* CTA */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
+            {/* <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
               <Link to="/properties">
                 <Button
                   size="lg"
@@ -107,7 +107,7 @@ const Hero = () => {
                   <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>

@@ -28,21 +28,23 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-        <Hero />
-        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
-          <div className="max-w-5xl mx-auto">
-            <HeroSearchBar onSearch={handleHeroSearch} />
+        <div className="relative">
+          <Hero />
+          {/* Desktop uniquement : la search bar n'existe pas sur mobile */}
+          <div className="hidden md:flex absolute bottom-[80px] left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
           </div>
         </div>
-        <div ref={propertiesRef}>
+
+        <div className="pt-4 md:pt-6">
           <Properties filters={heroFilters} />
+          <PropertyCategories/>
+          <Introduction />
+          <News />
+          <OurPartners />
+          <Testimonials />
+          <FAQ />
         </div>
-        <PropertyCategories />
-        <Introduction />
-        <News />
-        <OurPartners />
-        <Testimonials />
-        <FAQ />
       </main>
       <Footer />
       <CookieConsent />

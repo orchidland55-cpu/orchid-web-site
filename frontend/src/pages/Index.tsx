@@ -26,12 +26,12 @@ const Index = () => {
         <div className="relative">
           <Hero />
           {/* Desktop uniquement : la search bar n'existe pas sur mobile */}
-          <div className="hidden md:flex absolute bottom-12 left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <div className="hidden md:flex absolute bottom-[80px] left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
           </div>
         </div>
 
-        <div className="pt-16 md:pt-20">
+        <div className="pt-4 md:pt-6">
           <Properties filters={heroFilters} />
           <PropertyCategories/>
           <Introduction />

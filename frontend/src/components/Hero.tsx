@@ -85,7 +85,7 @@ const Hero = () => {
             </p>
 
             {/* Key Features */}
-             <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-10 text-ivory-white/80 font-lora">
+             {/* <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-10 text-ivory-white/80 font-lora">
               {["Exclusive property sales", "Custom acquisition", "High-end rental"].map(
                 (feature) => (
                   <div key={feature} className="flex items-center space-x-2">
@@ -94,7 +94,7 @@ const Hero = () => {
                   </div>
                 )
               )}
-            </div>
+            </div> */}
 
             {/* CTA */}
             {/* <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">

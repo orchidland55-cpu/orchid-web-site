@@ -1,11 +1,31 @@
 import React from "react";
 
 const WhatsAppButton: React.FC = () => {
-  const phoneNumber = "212661868888"; 
+  const phoneNumber = "212661868888";
   const message = "Bonjour ! Je suis intéressé par vos services immobiliers. Pouvez-vous m'aider ?";
+
+  const handleWhatsAppClick = async () => {
+    try {
+      await fetch(
+        "https://orchid-web-site-production.up.railway.app/lead-activity/whatsapp-click",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            visitorId: localStorage.getItem("visitorId"),
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("WhatsApp tracking failed:", err);
+    }
+  };
 
   return (
     <a
+      onClick={handleWhatsAppClick}
       href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`}
       target="_blank"
       rel="noopener noreferrer"

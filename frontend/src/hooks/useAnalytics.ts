@@ -6,6 +6,7 @@ export const useAnalytics = () => {
   const location = useLocation();
 
   useEffect(() => {
+    const startTime = Date.now();
     // Tracker la vue de page lors du changement de route
     const trackPageView = async () => {
       try {
@@ -16,6 +17,36 @@ export const useAnalytics = () => {
     };
 
     trackPageView();
+    return () => {
+
+      const visitorId = localStorage.getItem("visitorId");
+
+      if (!visitorId) return;
+
+      const servicePages: Record<string, string> = {
+        "/healthcare": "Healthcare",
+        "/services/hospitality": "Hospitality",
+        "/services/retail": "Retail",
+        "/services/logistics": "Logistics",
+        "/services/industrial-offices": "Industrial & Offices",
+        "/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform":
+          "Data Centers"
+      };
+
+      const serviceName = servicePages[location.pathname];
+
+      if (!serviceName) return;
+
+      const timeSpentSeconds =
+        Math.floor((Date.now() - startTime) / 1000);
+
+      apiService.trackServiceTime(
+        visitorId,
+        serviceName,
+        timeSpentSeconds
+      );
+
+    };
   }, [location.pathname]);
 
   // Fonction pour tracker des événements personnalisés

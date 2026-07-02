@@ -29,7 +29,7 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <div className="absolute bottom-[80px] left-0 right-0 translate-y-1/2 px-4 z-20">
+        <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
           <div className="max-w-5xl mx-auto">
             <HeroSearchBar onSearch={handleHeroSearch} />
           </div>

@@ -73,7 +73,7 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
 
   if (loading) {
     return (
-      <section className="py-20 bg-background">
+      <section className="pt-28 sm:pt-32 md:pt-28 pb-20 bg-background">
         <div className="container mx-auto px-6 text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="font-lora text-lg">Loading properties...</p>
@@ -84,7 +84,7 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
 
   if (error) {
     return (
-      <section className="py-20 bg-background">
+      <section className="pt-28 sm:pt-32 md:pt-28 pb-20 bg-background">
         <div className="container mx-auto px-6 text-center">
           <p className="font-lora text-red-500">{error}</p>
         </div>
@@ -93,7 +93,7 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
   }
 
   return (
-    <section className="py-20 bg-background">
+    <section className="pt-28 sm:pt-32 md:pt-28 pb-20 bg-background">
       <div className="container mx-auto px-6">
 
         {/* ── Section Header ── */}

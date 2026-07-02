@@ -97,7 +97,7 @@ const Hero = () => {
             </div>
 
             {/* CTA */}
-            {/* <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
               <Link to="/properties">
                 <Button
                   size="lg"
@@ -107,7 +107,7 @@ const Hero = () => {
                   <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-            </div> */}
+            </div>
           </div>
         </div>
       </section>

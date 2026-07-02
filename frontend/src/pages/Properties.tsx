@@ -20,7 +20,7 @@ const PropertiesPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 18;
+  const itemsPerPage = 19;
   const [searchParams] = useSearchParams();
   const [filterType, setFilterType] = useState<string>(
     searchParams.get("type") ?? "all"

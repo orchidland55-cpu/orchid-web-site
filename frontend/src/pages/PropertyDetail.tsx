@@ -21,6 +21,7 @@ import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF } from "@/config/schema";
 import { OptimizedImage, LazyImage } from "@/components/OptimizedImage";
 
 
+
 interface CinematicGalleryProps {
   images: string[];
   thumbnails: string[];
@@ -563,10 +564,15 @@ const PropertyDetail = () => {
     }
   };
 
+  const baseUrl = `https://orchidisland.immo/property/${property.slug || property._id}`;
+
+
   return (
     <div className="min-h-screen">
       <Helmet>
         <title>{property.title} | Orchid Immobilier</title>
+        <link rel="canonical" href={baseUrl} />
+
         <meta
           name="description"
           content={property.description

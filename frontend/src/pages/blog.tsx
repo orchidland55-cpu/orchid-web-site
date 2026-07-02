@@ -19,6 +19,7 @@ import { Helmet } from 'react-helmet-async';
 import { SITE_URL, ORGANIZATION_REF } from "@/config/schema";
 import { PriorityImage,LazyImage } from '@/components/OptimizedImage';
 
+
 // ---------------------------------------------------------------------------
 // Helper : slug si disponible, sinon _id (rétrocompatibilité)
 // ---------------------------------------------------------------------------
@@ -251,6 +252,7 @@ const blogJsonLd = {
     <div className="min-h-screen">
     <Helmet>
       <title>Real Estate Blog | Orchid Island - Luxury Real Estate Insights</title>
+
       <meta 
         name="description" 
         content="Expert insights and market analysis on Marrakech luxury real estate. Stay informed with the latest trends, property guides, and investment tips." 

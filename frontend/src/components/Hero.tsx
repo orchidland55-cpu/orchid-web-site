@@ -83,31 +83,6 @@ const Hero = () => {
             <p className="font-lora text-xl md:text-2xl text-ivory-white/90 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
               The Address You'll Always Remember
             </p>
-
-            {/* Key Features */}
-             {/* <div className="flex flex-wrap justify-center lg:justify-start gap-6 mb-10 text-ivory-white/80 font-lora">
-              {["Exclusive property sales", "Custom acquisition", "High-end rental"].map(
-                (feature) => (
-                  <div key={feature} className="flex items-center space-x-2">
-                    <div className="w-1 h-1 luxury-gradient rounded-full" />
-                    <span>{feature}</span>
-                  </div>
-                )
-              )}
-            </div> */}
-
-            {/* CTA */}
-            {/* <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
-              <Link to="/properties">
-                <Button
-                  size="lg"
-                  className="bg-[#F5F2EB] hover:bg-white text-[#1a1a1a] border-none font-playfair font-semibold px-8 py-6 h-auto tracking-wide shadow-none"
-                >
-                  View Luxury Properties
-                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </div> */}
           </div>
         </div>
       </section>

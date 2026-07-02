@@ -193,13 +193,7 @@ const PropertyFilterBar = ({
           </select>
         </div>
 
-        {/* Search button */}
-        <div className="pl-1 shrink-0">
-          <button className="flex items-center gap-2 bg-foreground text-background font-lora text-sm font-medium px-4 py-2.5 rounded-full hover:opacity-90 active:scale-95 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50">
-            <Search className="w-3.5 h-3.5" />
-            <span>Search</span>
-          </button>
-        </div>
+      
       </div>
 
       {/* ── Mobile : layout vertical en deux lignes ── */}

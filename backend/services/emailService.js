@@ -1,9 +1,18 @@
 require('dotenv').config();
 const { Resend } = require('resend');
+const nodemailer = require("nodemailer");
 
 // ── Client Resend ─────────────────────────────────────────────────────────────
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const gmailTransporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
 
 // En dev, on log les emails au lieu de les envoyer si pas de clé configurée
 const isDev = process.env.NODE_ENV !== 'production';
@@ -110,4 +119,281 @@ async function sendSetPasswordEmail(to, name, token) {
   });
 }
 
-module.exports = { sendSetPasswordEmail };
+async function sendLeadNotificationEmail({
+  name,
+  email,
+  phone,
+  subject,
+  message,
+  leadScore,
+  country,
+  city,
+  servicesList,
+  propertyList,
+  propertyViews,
+  whatsappClicks,
+  scheduleVisits,
+  latitude,
+  longitude
+}) {
+
+  const html = `
+<!DOCTYPE html>
+<html>
+
+<body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:30px;">
+
+<div style="max-width:700px;background:white;margin:auto;border-radius:10px;padding:30px;">
+
+<h1 style="color:#0d2340;text-align:center;">
+🏝 Orchid Island
+</h1>
+
+<h2 style="color:#b8972e;text-align:center;">
+New Lead Received
+</h2>
+
+<hr>
+
+<h3>👤 Customer</h3>
+
+<p><strong>Name:</strong> ${name}</p>
+
+<p><strong>Email:</strong> ${email}</p>
+
+<p><strong>Phone:</strong> ${phone || "N/A"}</p>
+
+<p><strong>Lead Score:</strong> ${leadScore}</p>
+
+<p><strong>Subject:</strong> ${subject || "N/A"}</p>
+
+<p style="margin-bottom:6px;">
+<strong>Message:</strong>
+</p>
+
+<div style="
+background:#f7f7f7;
+padding:12px;
+border-radius:6px;
+border-left:4px solid #b8972e;
+white-space:pre-wrap;
+line-height:1.5;
+">
+
+${message || "No message provided."}
+
+</div>
+
+<hr>
+
+<h3>📍 Location</h3>
+
+<p>${city}, ${country}</p>
+
+${latitude && longitude ? `
+<p>
+<a href="https://maps.google.com/?q=${latitude},${longitude}">
+Open Google Maps
+</a>
+</p>
+` : ""}
+
+<hr>
+
+<h3>🏢 Services Viewed</h3>
+
+<pre>${servicesList || "None"}</pre>
+
+<hr>
+
+<h3>🏠 Properties Viewed</h3>
+
+<pre>${propertyList || "None"}</pre>
+
+<hr>
+
+<h3>📊 Engagement</h3>
+
+<p>Property Views: ${propertyViews}</p>
+
+<p>WhatsApp Clicks: ${whatsappClicks}</p>
+
+<p>Scheduled Visits: ${scheduleVisits}</p>
+
+<hr>
+
+<p style="text-align:center;color:gray;">
+
+Generated automatically by Orchid Island CRM
+
+</p>
+
+</div>
+
+</body>
+
+</html>
+`;
+
+  await gmailTransporter.sendMail({
+
+    from: `"Orchid Notifications" <${process.env.GMAIL_USER}>`,
+
+    to: process.env.GMAIL_USER,
+
+    subject: `🏝 New Lead - ${name}`,
+
+    html
+
+  });
+
+  console.log("✅ Lead email notification sent");
+}
+
+
+async function sendVisitRequestEmail({
+  name,
+  email,
+  phone,
+  message,
+
+  meetingType,
+  date,
+  timeSlot,
+
+  country,
+  city,
+
+  latitude,
+  longitude,
+
+  propertyViews,
+  whatsappClicks,
+  scheduleVisits,
+
+  servicesList,
+  propertyList
+}) {
+
+  const html = `
+<!DOCTYPE html>
+<html>
+
+<body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:30px;">
+
+<div style="max-width:700px;background:white;margin:auto;border-radius:10px;padding:30px;">
+
+<h1 style="color:#0d2340;text-align:center;">
+🏝 Orchid Island
+</h1>
+
+<h2 style="color:#b8972e;text-align:center;">
+📅 New Visit Request
+</h2>
+
+<hr>
+
+<h3>👤 Customer</h3>
+
+<p><strong>Name:</strong> ${name}</p>
+
+<p><strong>Email:</strong> ${email}</p>
+
+<p><strong>Phone:</strong> ${phone || "N/A"}</p>
+
+<p style="margin-bottom:6px;">
+<strong>Message:</strong>
+</p>
+
+<div style="
+background:#f7f7f7;
+padding:12px;
+border-radius:6px;
+border-left:4px solid #b8972e;
+white-space:pre-wrap;
+line-height:1.5;
+">
+
+${message || "No message provided"}
+
+</div>
+
+<hr>
+
+<h3>📅 Visit Details</h3>
+
+<p><strong>Meeting Type:</strong> ${meetingType}</p>
+
+<p><strong>Requested Date:</strong> ${date}</p>
+
+<p><strong>Requested Time:</strong> ${timeSlot}</p>
+
+<hr>
+
+<h3>📍 Location</h3>
+
+<p>${city}, ${country}</p>
+
+<p>
+
+<a href="https://maps.google.com/?q=${latitude},${longitude}">
+Open Google Maps
+</a>
+
+</p>
+
+<hr>
+
+<h3>🏢 Services Viewed</h3>
+
+<pre>${servicesList || "None"}</pre>
+
+<hr>
+
+<h3>🏠 Properties Viewed</h3>
+
+<pre>${propertyList || "None"}</pre>
+
+<hr>
+
+<h3>📊 Current Engagement</h3>
+
+<p>Property Views: ${propertyViews}</p>
+
+<p>WhatsApp Clicks: ${whatsappClicks}</p>
+
+<p>Scheduled Visits: ${scheduleVisits}</p>
+
+<hr>
+
+<p style="text-align:center;color:gray;">
+Generated automatically by Orchid Island CRM
+</p>
+
+</div>
+
+</body>
+
+</html>
+`;
+
+  await gmailTransporter.sendMail({
+
+    from: `"Orchid Notifications" <${process.env.GMAIL_USER}>`,
+
+    to: process.env.GMAIL_USER,
+
+    subject: `📅 New Visit Request - ${name}`,
+
+    html
+
+  });
+
+  console.log("✅ Visit request email notification sent");
+}
+
+module.exports = {
+  sendSetPasswordEmail,
+  sendLeadNotificationEmail,
+  sendVisitRequestEmail
+};

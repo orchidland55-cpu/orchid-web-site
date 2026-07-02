@@ -53,7 +53,7 @@ const PropertiesPage = () => {
     link.href = getCloudinaryUrl("hero_tweegz.webp", 1600, 900, "auto", {
       format: "auto",
       crop: "fill",
-     gravity: "auto",
+      gravity: "auto",
     });
     document.head.appendChild(link); // ← ne pas return cette ligne
 
@@ -161,11 +161,10 @@ const PropertiesPage = () => {
               <button
                 key={p}
                 onClick={() => handlePageChange(p as number)}
-                className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                  currentPage === p
+                className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${currentPage === p
                     ? "bg-foreground text-background"
                     : "border border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
+                  }`}
               >
                 {p}
               </button>
@@ -190,50 +189,50 @@ const PropertiesPage = () => {
 
   return (
     <div className="min-h-screen">
-    <Header />
+      <Header />
       <main>
         {/* ── Hero ── purely visual now: no search bar overlay.
             Filters live with the results below, where they belong. */}
-      <section
-        className="relative h-[420px] md:h-[520px] flex items-center"
-        style={{
-         backgroundImage: `url('${getCloudinaryUrl(
-           "hero_tweegz.webp",
-           1600, 900, "auto",
-           { format: "auto", crop: "fill", gravity: "auto" }
-         )}')`,
-         backgroundSize: "cover",
-         backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute inset-0 bg-black/45" />
-        <div className="relative z-10 container mx-auto px-6 w-full">
-          <div className="max-w-xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-playfair font-bold text-white leading-tight mb-4">
-              Our Exceptional <br /> Properties
-            </h1>
-            <p className="text-white/80 text-lg leading-relaxed">
-              Discover our exclusive selection of luxury properties in Morocco
-            </p>
+        <section
+          className="relative h-[420px] md:h-[520px] flex items-center"
+          style={{
+            backgroundImage: `url('${getCloudinaryUrl(
+              "hero_tweegz.webp",
+              1600, 900, "auto",
+              { format: "auto", crop: "fill", gravity: "auto" }
+            )}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="relative z-10 container mx-auto px-6 w-full">
+            <div className="max-w-xl mx-auto text-center">
+              <h1 className="text-4xl md:text-6xl font-playfair font-bold text-white leading-tight mb-4">
+                Our Exceptional <br /> Properties
+              </h1>
+              <p className="text-white/80 text-lg leading-relaxed">
+                Discover our exclusive selection of luxury properties in Morocco
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Filter bar — sticky, hors du hero ── */}
+        <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 shadow-sm">
+          <div className="container mx-auto px-6 py-3">
+            <PropertyFilterBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filterType={filterType}
+              onFilterTypeChange={setFilterType}
+              propertyTypes={propertyTypes}
+              filterCity={filterCity}
+              onFilterCityChange={setFilterCity}
+              propertyCities={propertyCities}
+            />
           </div>
         </div>
-      </section>
-
-      {/* ── Filter bar — sticky, hors du hero ── */}
-      <div className="sticky top-20 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 shadow-sm">
-        <div className="container mx-auto px-6 py-3">
-          <PropertyFilterBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filterType={filterType}
-            onFilterTypeChange={setFilterType}
-            propertyTypes={propertyTypes}
-            filterCity={filterCity}
-            onFilterCityChange={setFilterCity}
-            propertyCities={propertyCities}
-          />
-        </div>
-      </div>
 
         {/* ── Results ── */}
         {isLoading ? (
@@ -253,32 +252,32 @@ const PropertiesPage = () => {
             <div className="container mx-auto px-6">
               <div className="mb-8">
 
-              {filteredProperties.length > 0 && (
-                <p className="text-sm text-muted-foreground mb-8">
-                  {filteredProperties.length} propriété
-                  {filteredProperties.length > 1 ? "s" : ""}
-                  {filterCity !== "all" ? ` à ${filterCity}` : ""}
-                  {filterType !== "all" ? ` · ${filterType}` : ""}
-                </p>
-              )}
-
-              {currentProperties.length > 0 ? (
-                <>
-                  {heroProperty && <PropertyHero property={heroProperty} />}
-                  <MasonryGrid properties={gridProperties} />
-                  {renderPagination()}
-                </>
-              ) : (
-                <div className="text-center py-24">
-                  <Building className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    No properties found
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Try adjusting your search criteria
+                {filteredProperties.length > 0 && (
+                  <p className="text-sm text-muted-foreground mb-8">
+                    {filteredProperties.length} propriété
+                    {filteredProperties.length > 1 ? "s" : ""}
+                    {filterCity !== "all" ? ` à ${filterCity}` : ""}
+                    {filterType !== "all" ? ` · ${filterType}` : ""}
                   </p>
-                </div>
-              )}
+                )}
+
+                {currentProperties.length > 0 ? (
+                  <>
+                    {heroProperty && <PropertyHero property={heroProperty} />}
+                    <MasonryGrid properties={gridProperties} />
+                    {renderPagination()}
+                  </>
+                ) : (
+                  <div className="text-center py-24">
+                    <Building className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      No properties found
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Try adjusting your search criteria
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </section>

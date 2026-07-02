@@ -14,6 +14,7 @@ import '@fontsource/inter/600.css';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+//import './i18n';
 import { HelmetProvider } from 'react-helmet-async';
 import { loadGTM } from '@/utils/gtm';
 

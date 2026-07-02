@@ -14,10 +14,10 @@ const CountryView = require('./models/CountryView');
 const User = require('./models/User');
 const { verifyJWT, requireAdmin, requireAdminOrEditor } = require('./middleware/authMiddleware');
 const {
-     login, verifyToken, getAdmins,
-     getUsers, createUser, updateUser, deleteUser,
-     setPassword, resendInvite,
-   } = require('./controllers/authController');
+  login, verifyToken, getAdmins,
+  getUsers, createUser, updateUser, deleteUser,
+  setPassword, resendInvite,
+} = require('./controllers/authController');
 
 // Controllers
 const propertyController = require('./controllers/propertyController');
@@ -27,6 +27,22 @@ const dashboardController = require('./controllers/dashboardController');
 const { sendPostulation } = require('./controllers/postulationController');
 const { sendInvestmentEmail } = require('./controllers/investController');
 const { sendMessageToChatbot } = require('./controllers/chatbotController');
+const { testOdooConnection } = require("./services/odooService");
+const axios = require("axios");
+const Lead = require("./models/Lead");
+const LeadActivity = require("./models/LeadActivity");
+
+const {
+  trackPropertyView,
+  trackWhatsAppClick,
+  trackPropertyTime,
+  trackServiceTime,
+  syncLeadToOdoo
+} = require("./controllers/leadActivityController");
+
+const leadAnalyticsController =
+  require("./controllers/leadAnalyticsController");
+
 
 const rateLimit = require('express-rate-limit');
 const {
@@ -119,18 +135,84 @@ async function getCountryFromIP(ip) {
   }
 }
 
+async function getLocationFromIP(ip) {
+
+  try {
+
+    const response = await axios.get(
+      `http://ip-api.com/json/${ip}`
+    );
+
+    return {
+      country: response.data.country || "Unknown",
+      city: response.data.city || "Unknown"
+    };
+
+  } catch (error) {
+
+    console.error("Location lookup failed:", error.message);
+
+    return {
+      country: "Unknown",
+      city: "Unknown"
+    };
+  }
+}
+
+async function getLocationFromCoordinates(latitude, longitude) {
+
+  try {
+
+    const response = await axios.get(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=en`,
+      {
+        headers: {
+          "User-Agent": "OrchidIsland/1.0"
+        }
+      }
+    );
+
+    const address = response.data.address;
+
+    return {
+      country:
+        address.country || "Unknown",
+
+      city:
+        address.city ||
+        address.town ||
+        address.village ||
+        address.municipality ||
+        address.county ||
+        "Unknown"
+    };
+
+  } catch (error) {
+
+    console.error(
+      "GPS reverse geocoding failed:",
+      error.message
+    );
+
+    return {
+      country: "Unknown",
+      city: "Unknown"
+    };
+  }
+}
+
 // Middleware d'analytics pour tracker les vues de pages
 async function analyticsMiddleware(req, res, next) {
   if (req.path.startsWith('/admin') ||
-      req.path.startsWith('/api') ||
-      req.path === '/properties' ||
-      req.path === '/articles' ||
-      req.path === '/contacts' ||
-      req.path === '/postulation' ||
-      req.path === '/invest' ||
-      req.path === '/chatbot' ||
-      req.path === '/dashboard' ||
-      req.method !== 'GET') {
+    req.path.startsWith('/api') ||
+    req.path === '/properties' ||
+    req.path === '/articles' ||
+    req.path === '/contacts' ||
+    req.path === '/postulation' ||
+    req.path === '/invest' ||
+    req.path === '/chatbot' ||
+    req.path === '/dashboard' ||
+    req.method !== 'GET') {
     return next();
   }
 
@@ -140,14 +222,14 @@ async function analyticsMiddleware(req, res, next) {
   const jour = day.toString().padStart(2, '0');
 
   const clientIP = req.ip ||
-                   req.connection.remoteAddress ||
-                   req.socket.remoteAddress ||
-                   (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-                   '127.0.0.1';
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+    '127.0.0.1';
 
   const cleanIP = clientIP.replace(/^::ffff:/, '');
 
-  
+
   const country = await getCountryFromIP(cleanIP);
 
   // Fire and forget
@@ -184,11 +266,11 @@ async function analyticsMiddleware(req, res, next) {
 
 // Limite les tentatives de connexion aux espaces : 5 essais / 15 min / IP
 const spaceAccessLimiter = rateLimit({
-  windowMs        : 15 * 60 * 1000,   // 15 minutes
-  max             : 5,
-  standardHeaders : true,
-  legacyHeaders   : false,
-  message         : {
+  windowMs: 15 * 60 * 1000,   // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
     message: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
   },
   // En production, ajouter : keyGenerator: (req) => req.ip
@@ -226,7 +308,7 @@ const formLimiter = rateLimit({
 app.use(analyticsMiddleware);
 
 // Routes d'authentification (PUBLIQUES)
-app.post('/api/auth/login',loginLimiter, login);
+app.post('/api/auth/login', loginLimiter, login);
 app.get('/api/auth/verify', verifyJWT, verifyToken);
 
 // ===== Connect to MongoDB =====
@@ -235,12 +317,26 @@ mongoose.connect(process.env.MONGO_URI)
 //     useNewUrlParser: true,
 //     useUnifiedTopology: true
 // })
-.then(() => console.log("MongoDB connected"))
-.catch(err => console.log("MongoDB connection error:", err));
+//.then(() => console.log("MongoDB connected"))
+//.catch(err => console.log("MongoDB connection error:", err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+
+    testOdooConnection()
+      .then(uid => {
+        console.log("✅ Odoo Connected. UID:", uid);
+      })
+      .catch(err => {
+        console.log("❌ Odoo Authentication Failed");
+      });
+
+  })
+  .catch(err => console.log("MongoDB connection error:", err));
 
 // ===== Test simple route =====
 app.get('/', (req, res) => {
-    res.send('Hello World from Node.js backend!');
+  res.send('Hello World from Node.js backend!');
 });
 
 // ===== CRUD routes for properties =====
@@ -289,7 +385,30 @@ app.get('/contacts', verifyJWT, requireAdmin, contactController.getAllContacts);
 app.put('/contacts/:id/status', verifyJWT, requireAdmin, contactController.updateContactStatus);
 app.delete('/contacts/:id', verifyJWT, requireAdmin, contactController.deleteContact);
 app.post('/schedule-visit', contactController.scheduleVisit);
+app.get(
+  "/lead-analytics",
+  leadAnalyticsController.getLeadAnalytics
+);
 
+app.post(
+  "/lead-activity/view-property",
+  trackPropertyView
+);
+
+app.post(
+  "/lead-activity/whatsapp-click",
+  trackWhatsAppClick
+);
+
+app.post(
+  "/lead-activity/property-time",
+  trackPropertyTime
+);
+
+app.post(
+  "/lead-activity/service-time",
+  trackServiceTime
+);
 // ===== Dashboard routes =====
 app.get('/dashboard/stats', verifyJWT, requireAdminOrEditor, dashboardController.getDashboardStats);
 app.get('/dashboard/details/:type', verifyJWT, requireAdminOrEditor, dashboardController.getDetailedStats);
@@ -335,13 +454,13 @@ app.get('/api/auth/admins', verifyJWT, requireAdmin, getAdmins);
 
 // Route publique — définir le mot de passe via token email
 app.post('/api/auth/set-password', setPassword);
- 
+
 // Gestion des utilisateurs (admin uniquement)
-app.get('/api/users',                      verifyJWT, requireAdmin, getUsers);
-app.post('/api/users',                     verifyJWT, requireAdmin, createUser);
-app.put('/api/users/:id',                  verifyJWT, requireAdmin, updateUser);
-app.delete('/api/users/:id',               verifyJWT, requireAdmin, deleteUser);
-app.post('/api/users/:id/resend-invite',   verifyJWT, requireAdmin, resendInvite);
+app.get('/api/users', verifyJWT, requireAdmin, getUsers);
+app.post('/api/users', verifyJWT, requireAdmin, createUser);
+app.put('/api/users/:id', verifyJWT, requireAdmin, updateUser);
+app.delete('/api/users/:id', verifyJWT, requireAdmin, deleteUser);
+app.post('/api/users/:id/resend-invite', verifyJWT, requireAdmin, resendInvite);
 
 
 // Importer les contrôleurs
@@ -361,20 +480,64 @@ app.post('/api/analytics/add-view', verifyJWT, requireAdmin, addViewToCountry);
 // Route pour tracker les vues de pages depuis le frontend
 app.post('/api/analytics/track-page', async (req, res) => {
   try {
-    const { page } = req.body;
-    // Validation
+    const {
+      page,
+      visitorId,
+      latitude,
+      longitude,
+      locationSource
+    } = req.body;
+
     if (!page || typeof page !== 'string' || page.length > 200) {
       return res.status(400).json({ error: 'Page invalide' });
     }
-    const safePage = page.replace(/[^a-zA-Z0-9\-_\/]/g, '');
-    const clientIP = req.ip ||
-                     req.connection.remoteAddress ||
-                     req.socket.remoteAddress ||
-                     (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-                     '127.0.0.1';
 
-    const cleanIP = clientIP.replace(/^::ffff:/, '');
-    const country = await getCountryFromIP(cleanIP);
+    console.log("REQUEST BODY:");
+    console.log(req.body);
+
+    console.log("LATITUDE:", latitude);
+    console.log("LONGITUDE:", longitude);
+    console.log("SOURCE:", locationSource);
+    const clientIP = req.ip ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+      '127.0.0.1';
+
+    let cleanIP = clientIP.replace(/^::ffff:/, '');
+
+    if (cleanIP === "::1" || cleanIP === "127.0.0.1") {
+
+      const response = await axios.get(
+        "https://api.ipify.org?format=json"
+      );
+
+      cleanIP = response.data.ip;
+    }
+    const ipLocation = await getLocationFromIP(cleanIP);
+
+    let country;
+    let city;
+
+    if (latitude && longitude) {
+
+      const gpsLocation = await getLocationFromCoordinates(
+        latitude,
+        longitude
+      );
+
+      country = gpsLocation.country;
+      city = gpsLocation.city;
+
+    } else {
+
+      country = ipLocation.country;
+      city = ipLocation.city;
+
+    }
+
+    console.log("IP LOCATION:", ipLocation);
+    console.log("REAL CLIENT IP:", cleanIP);
 
     // Tracker la vue annuelle
     const now = new Date();
@@ -412,6 +575,48 @@ app.post('/api/analytics/track-page', async (req, res) => {
     ]);
 
     console.log(`📊 Page trackée: ${page} depuis ${country} (${cleanIP})`);
+    const servicePages = {
+      "/services/hospitality": "Hospitality",
+      "/healthcare": "Healthcare",
+      "/services/data-center-investment-in-morocco-sovereign-ai-infrastructure-platform": "Data Centers",
+      "/services/retail": "Retail",
+      "/services/industrial-offices": "Industrial & Offices",
+      "/services/logistics": "Logistics",
+      "/services/individuals": "Individuals"
+    };
+
+    if (visitorId && servicePages[page]) {
+
+      const lead = await Lead.findOne({ visitorId });
+
+      await LeadActivity.create({
+        leadId: lead?._id || null,
+        visitorId,
+
+        country,
+        city,
+
+        latitude,
+        longitude,
+        locationSource,
+
+        activityType: "SERVICE_VIEW",
+        details: servicePages[page]
+      });
+
+      console.log(
+        `🏢 Service viewed: ${servicePages[page]}`
+      );
+
+      if (lead) {
+
+        await syncLeadToOdoo(visitorId);
+
+        console.log(
+          `🔄 Odoo synced for service page: ${servicePages[page]}`
+        );
+      }
+    }
 
     res.json({ success: true });
   } catch (error) {
@@ -422,14 +627,14 @@ app.post('/api/analytics/track-page', async (req, res) => {
 
 // Auth visiteur (publique — protégée par rate limit)
 app.post('/api/spaces/access', spaceAccessLimiter, accessSpace);
- 
+
 // Fichiers (visiteurs authentifiés — JWT d'espace)
 app.get(
   '/api/spaces/:spaceId/files',
   verifySpaceJWT,
   getSpaceFiles
 );
- 
+
 const { verifyAdminOrSpaceJWT, checkUploadAllowedOrAdmin } = require('./middleware/authMiddleware');
 
 app.post(
@@ -439,7 +644,7 @@ app.post(
   uploadSingle,
   uploadFile
 );
- 
+
 // Suppression de fichier — accessible aussi par l'admin avec son JWT standard
 // On accepte soit un JWT d'espace (admin de l'espace) soit un JWT admin global
 app.delete(
@@ -453,23 +658,31 @@ app.get('/api/users/assignable', verifyJWT, requireAdminOrEditor, async (req, re
   const users = await User.find({}, 'name');
   res.json({ success: true, data: users });
 });
- 
+
 // CRUD espaces (admin uniquement)
-app.get    ('/api/spaces',     verifyJWT, requireAdmin, getSpaces);
-app.post   ('/api/spaces',     verifyJWT, requireAdmin, createSpace);
-app.get    ('/api/spaces/:id', verifyJWT, requireAdmin, getSpaceById);
-app.put    ('/api/spaces/:id', verifyJWT, requireAdmin, updateSpace);
-app.delete ('/api/spaces/:id', verifyJWT, requireAdmin, deleteSpace);
+app.get('/api/spaces', verifyJWT, requireAdmin, getSpaces);
+app.post('/api/spaces', verifyJWT, requireAdmin, createSpace);
+app.get('/api/spaces/:id', verifyJWT, requireAdmin, getSpaceById);
+app.put('/api/spaces/:id', verifyJWT, requireAdmin, updateSpace);
+app.delete('/api/spaces/:id', verifyJWT, requireAdmin, deleteSpace);
 
 // Route de test
 app.get('/', (req, res) => {
   res.send('✅ Backend Analytics API is running!');
 });
 
+app.get("/test-ip", (req, res) => {
 
+  res.json({
+    ip: req.ip,
+    forwarded: req.headers["x-forwarded-for"],
+    remote: req.connection.remoteAddress
+  });
+
+});
 // ===== Start server =====
 app.listen(PORT, () => {
-    console.log(`Server running on port :${PORT}`);
+  console.log(`Server running on port :${PORT}`);
 });
 
 // Ping toutes les 5 minutes pour éviter le cold start Railway

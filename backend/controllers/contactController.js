@@ -1,6 +1,22 @@
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
+const Lead = require('../models/Lead');
+const Contact = require("../models/Contact");
+const LeadActivity = require("../models/LeadActivity");
+const Property = require("../models/Property");
+
+const { createOdooLead } = require("../services/odooService");
+
+const {
+  sendTelegramNotification
+} = require("../services/telegramService");
+
+const {
+  sendLeadNotificationEmail,
+  sendVisitRequestEmail
+} = require("../services/emailService");
+
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -9,7 +25,18 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // ─────────────────────────────────────────────────────────────────────────────
 const addContact = async (req, res) => {
   try {
-    const { name, email, phone, subject, message, propertyType } = req.body;
+    const {
+      name,
+      email,
+      phone,
+      subject,
+      propertyType,
+      visitorId,
+      meetingType,
+      date,
+      timeSlot,
+      message
+    } = req.body;
 
     // 1️⃣ Enregistrer le contact dans MongoDB
     const contact = await mongoose.connection.db.collection('contacts').insertOne({
@@ -17,6 +44,367 @@ const addContact = async (req, res) => {
       status: "new",
       date: new Date()
     });
+
+    // Lead Scoring Logic
+    let score = 0;
+
+    if (phone && phone.trim() !== "") score += 20;
+    if (propertyType && propertyType.trim() !== "") score += 15;
+    if (subject && subject.trim() !== "") score += 10;
+    if (message && message.length > 30) score += 10;
+
+    // Determine category
+    let category = "Cold";
+
+    if (score >= 40) {
+      category = "Warm";
+    }
+
+    if (score >= 70) {
+      category = "Hot";
+    }
+
+    console.log("=== LEAD DEBUG ===");
+    console.log("Contact ID:", contact.insertedId);
+    console.log("Score:", score);
+    console.log("Category:", category);
+
+    try {
+
+      const latestActivity = await LeadActivity
+        .findOne({
+          visitorId,
+          latitude: { $exists: true, $ne: null },
+          longitude: { $exists: true, $ne: null }
+        })
+        .sort({ createdAt: -1 });
+
+      console.log("LATEST ACTIVITY:", latestActivity);
+
+      console.log("LOCATION FOUND:", {
+        country: latestActivity?.country,
+        city: latestActivity?.city,
+        latitude: latestActivity?.latitude,
+        longitude: latestActivity?.longitude
+      });
+
+      console.log("LATEST ACTIVITY:", latestActivity);
+      console.log("LOCATION FOUND:", {
+        country: latestActivity?.country,
+        city: latestActivity?.city,
+        latitude: latestActivity?.latitude,
+        longitude: latestActivity?.longitude
+      });
+      const lead = await Lead.create({
+        contactId: contact.insertedId,
+        visitorId,
+
+        country: latestActivity?.country || "",
+        city: latestActivity?.city || "",
+        latitude: latestActivity?.latitude || null,
+        longitude: latestActivity?.longitude || null,
+
+        leadScore: score,
+        leadCategory: category
+      });
+
+      await LeadActivity.create({
+        leadId: lead._id,
+        visitorId,
+        activityType: "CONTACT_FORM",
+        details: "Lead created through contact form"
+      });
+
+      console.log("=== LEAD CREATED ===");
+      console.log(lead);
+
+
+      try {
+
+        const propertyViews = await LeadActivity.countDocuments({
+          visitorId,
+          activityType: "VIEW_PROPERTY"
+        });
+
+        const viewedActivities = await LeadActivity.find({
+          visitorId,
+          activityType: "VIEW_PROPERTY"
+        }).select("propertyId timeSpentSeconds");
+
+        const serviceViews = await LeadActivity.find({
+          visitorId,
+          activityType: "SERVICE_VIEW"
+        });
+
+        const serviceTimes = await LeadActivity.find({
+          visitorId,
+          activityType: "SERVICE_TIME"
+        });
+
+        const serviceViewCounts = {};
+        const serviceTimeTotals = {};
+
+        serviceViews.forEach(activity => {
+
+          const serviceName = activity.details;
+
+          serviceViewCounts[serviceName] =
+            (serviceViewCounts[serviceName] || 0) + 1;
+
+        });
+
+        serviceTimes.forEach(activity => {
+
+          const serviceName = activity.details;
+
+          serviceTimeTotals[serviceName] =
+            (serviceTimeTotals[serviceName] || 0) +
+            (activity.timeSpentSeconds || 0);
+
+        });
+
+        const servicesList = Object.keys(serviceViewCounts)
+          .map(service => {
+
+            const views =
+              serviceViewCounts[service] || 0;
+
+            const totalSeconds =
+              serviceTimeTotals[service] || 0;
+
+            const minutes =
+              Math.floor(totalSeconds / 60);
+
+            const seconds =
+              totalSeconds % 60;
+
+            return `
+${service}
+
+• Viewed ${views} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+          })
+          .join("\n\n");
+
+        console.log("SERVICES LIST:");
+        console.log(servicesList);
+
+        console.log("SERVICES LIST:");
+        console.log(servicesList);
+
+        const propertyTimeActivities = await LeadActivity.find({
+          visitorId,
+          activityType: "PROPERTY_TIME"
+        }).select("propertyId timeSpentSeconds");
+
+        const propertyIds = viewedActivities.map(
+          activity => activity.propertyId
+        );
+
+        const properties = await Property.find({
+          _id: { $in: propertyIds }
+        }).select("title");
+
+        const whatsappPropertyList = properties
+          .map(p => `• ${p.title}`)
+          .join(" ; ");
+
+        const propertyViewCounts = {};
+        const propertyTimeTotals = {};
+
+        viewedActivities.forEach(activity => {
+
+          if (!activity.propertyId) return;
+
+          const id = activity.propertyId.toString();
+
+          propertyViewCounts[id] =
+            (propertyViewCounts[id] || 0) + 1;
+
+          propertyTimeTotals[id] =
+            (propertyTimeTotals[id] || 0) +
+            (activity.timeSpentSeconds || 0);
+        });
+
+        propertyTimeActivities.forEach(activity => {
+          const id = activity.propertyId.toString();
+
+          propertyTimeTotals[id] =
+            (propertyTimeTotals[id] || 0) +
+            (activity.timeSpentSeconds || 0);
+        });
+
+        const odooPropertyList = properties
+          .map(property => {
+
+            const id = property._id.toString();
+
+            const count =
+              propertyViewCounts[id] || 0;
+
+            const totalSeconds =
+              propertyTimeTotals[id] || 0;
+
+            const minutes =
+              Math.floor(totalSeconds / 60);
+
+            const seconds =
+              totalSeconds % 60;
+
+            return `
+${property.title}
+
+• Viewed ${count} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+          })
+          .join("\n\n");
+
+        const scheduleVisits = await LeadActivity.countDocuments({
+          visitorId,
+          activityType: "SCHEDULE_VISIT"
+        });
+
+        const whatsappClicks = await LeadActivity.countDocuments({
+          visitorId,
+          activityType: "WHATSAPP_CLICK"
+        });
+
+        score += Math.min(propertyViews * 5, 25);
+        score += whatsappClicks * 10;
+        score += scheduleVisits * 25;
+
+        category = "Cold";
+
+        if (score >= 40) {
+          category = "Warm";
+        }
+
+        if (score >= 80) {
+          category = "Hot";
+        }
+
+        await Lead.findByIdAndUpdate(lead._id, {
+          leadScore: score,
+          leadCategory: category
+        });
+
+        await createOdooLead({
+          name,
+          email,
+          phone,
+          subject,
+          message,
+
+          country: latestActivity?.country || "",
+          city: latestActivity?.city || "",
+          latitude: latestActivity?.latitude || null,
+          longitude: latestActivity?.longitude || null,
+
+          leadScore: score,
+          visitorId,
+          propertyViews,
+          scheduleVisits,
+          whatsappClicks,
+          propertyList: odooPropertyList,
+          servicesList
+        });
+
+        console.log("✅ Lead sent to Odoo");
+        await sendTelegramNotification(`
+🏝 <b>ORCHID ISLAND</b>
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔔 <b>NEW LEAD RECEIVED</b>
+
+👤 <b>Customer</b>
+
+• Name: ${name}
+• Email: ${email}
+• Phone: ${phone || "N/A"}
+
+• Lead Score: ${score}
+
+• Subject: ${subject || "N/A"}
+
+• Message:
+${message || "No message provided"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📍 <b>Location</b>
+
+• Country: ${latestActivity?.country || "Unknown"}
+• City: ${latestActivity?.city || "Unknown"}
+
+📌 <a href="https://maps.google.com/?q=${latestActivity?.latitude},${latestActivity?.longitude}">Open in Google Maps</a>
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏢 <b>Services Viewed</b>
+
+${servicesList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 <b>Properties Viewed</b>
+
+${odooPropertyList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+💬 <b>Engagement</b>
+
+• WhatsApp Clicks: ${whatsappClicks}
+• Property Views: ${propertyViews}
+• Scheduled Visits: ${scheduleVisits}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>Generated</b>
+
+${new Date().toLocaleString()}
+`);
+
+        await sendLeadNotificationEmail({
+
+          name,
+          email,
+          phone,
+
+          subject,
+          message,
+
+          leadScore: score,
+
+          country: latestActivity?.country,
+          city: latestActivity?.city,
+
+          latitude: latestActivity?.latitude,
+          longitude: latestActivity?.longitude,
+
+          servicesList,
+
+          propertyList: odooPropertyList,
+
+          propertyViews,
+
+          whatsappClicks,
+
+          scheduleVisits
+
+        });
+
+      } catch (odooError) {
+        console.error("❌ Odoo sync failed:", odooError.message);
+      }
+
+    } catch (err) {
+      console.log("=== LEAD ERROR ===");
+      console.error(err);
+    }
 
     // 2️⃣ Envoyer l'email de notification via Resend
     const receivedAt = new Date();
@@ -308,71 +696,721 @@ const testEmail = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const scheduleVisit = async (req, res) => {
   try {
-    const { name, email, phone, meetingType, date, timeSlot, message } = req.body;
+    const { name, email, phone, meetingType, date, timeSlot, message, visitorId } = req.body;
+    const visitDetails = `
+Date: ${date}
+Time: ${timeSlot}
+Type: ${meetingType}
+Name: ${name}
+Phone: ${phone}
+Email: ${email}
+Message: ${message || "No message"}
+`;
 
+    console.log('📅 Nouvelle demande de planification de visite:', {
+      name,
+      email,
+      meetingType,
+      date,
+      timeSlot,
+      message
+    });
+
+    // Find lead associated with visitor
+    let lead = await Lead.findOne({ visitorId });
+
+    const leadAlreadyExists = !!lead;
+
+    console.log("=== SCHEDULE DEBUG ===");
+    console.log("visitorId received:", visitorId);
+    console.log("lead found:", lead ? lead._id : "NOT FOUND");
+
+
+    if (lead) {
+
+      // Create activity
+      await LeadActivity.create({
+        leadId: lead._id,
+        visitorId,
+        activityType: "SCHEDULE_VISIT",
+        details: `Visit requested for ${date} at ${timeSlot}`
+      });
+      const propertyViews = await LeadActivity.countDocuments({
+        visitorId,
+        activityType: "VIEW_PROPERTY"
+      });
+
+      const whatsappClicks = await LeadActivity.countDocuments({
+        visitorId,
+        activityType: "WHATSAPP_CLICK"
+      });
+
+      const viewedActivities = await LeadActivity.find({
+        visitorId,
+        activityType: "VIEW_PROPERTY"
+      }).select("propertyId timeSpentSeconds");
+
+      const propertyTimeActivities = await LeadActivity.find({
+        visitorId,
+        activityType: "PROPERTY_TIME"
+      }).select("propertyId timeSpentSeconds");
+
+      const propertyViewCounts = {};
+      const propertyTimeTotals = {};
+
+      viewedActivities.forEach(activity => {
+
+        if (!activity.propertyId) return;
+
+        const id = activity.propertyId.toString();
+
+        propertyViewCounts[id] =
+          (propertyViewCounts[id] || 0) + 1;
+
+      });
+
+      propertyTimeActivities.forEach(activity => {
+
+        if (!activity.propertyId) return;
+
+        const id = activity.propertyId.toString();
+
+        propertyTimeTotals[id] =
+          (propertyTimeTotals[id] || 0) +
+          (activity.timeSpentSeconds || 0);
+      });
+
+      propertyTimeActivities.forEach(activity => {
+        const id = activity.propertyId.toString();
+
+        propertyTimeTotals[id] =
+          (propertyTimeTotals[id] || 0) +
+          (activity.timeSpentSeconds || 0);
+      });
+
+      const propertyIds = viewedActivities.map(
+        activity => activity.propertyId
+      );
+
+      const properties = await Property.find({
+        _id: { $in: propertyIds }
+      }).select("title");
+
+      const propertyList = properties
+        .map(property => {
+
+          const id = property._id.toString();
+
+          const count =
+            propertyViewCounts[id] || 0;
+
+          const totalSeconds =
+            propertyTimeTotals[id] || 0;
+
+          const minutes =
+            Math.floor(totalSeconds / 60);
+
+          const seconds =
+            totalSeconds % 60;
+
+          return `
+${property.title}
+
+• Viewed ${count} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+        })
+        .join("\n\n");
+
+      const scheduleVisits = await LeadActivity.countDocuments({
+        visitorId,
+        activityType: "SCHEDULE_VISIT"
+      });
+      // Increase score
+      if (leadAlreadyExists) {
+        lead.leadScore += 40;
+      }
+
+      if (lead.leadScore >= 70) {
+        lead.leadCategory = "Hot";
+      } else if (lead.leadScore >= 40) {
+        lead.leadCategory = "Warm";
+      }
+
+      await lead.save();
+
+      console.log("SCHEDULE ODOO LOCATION:", {
+        country: lead.country,
+        city: lead.city,
+        latitude: lead.latitude,
+        longitude: lead.longitude
+      });
+
+      const contactRecord = await mongoose.connection.db
+        .collection("contacts")
+        .findOne({
+          _id: lead.contactId
+        });
+      const serviceViews = await LeadActivity.find({
+        visitorId,
+        activityType: "SERVICE_VIEW"
+      });
+
+      const serviceTimes = await LeadActivity.find({
+        visitorId,
+        activityType: "SERVICE_TIME"
+      });
+
+      const serviceViewCounts = {};
+      const serviceTimeTotals = {};
+
+      serviceViews.forEach(activity => {
+        const serviceName = activity.details;
+
+        serviceViewCounts[serviceName] =
+          (serviceViewCounts[serviceName] || 0) + 1;
+      });
+
+      serviceTimes.forEach(activity => {
+        const serviceName = activity.details;
+
+        serviceTimeTotals[serviceName] =
+          (serviceTimeTotals[serviceName] || 0) +
+          (activity.timeSpentSeconds || 0);
+      });
+
+      const servicesList = Object.keys(serviceViewCounts)
+        .map(service => {
+
+          const views =
+            serviceViewCounts[service] || 0;
+
+          const totalSeconds =
+            serviceTimeTotals[service] || 0;
+
+          const minutes =
+            Math.floor(totalSeconds / 60);
+
+          const seconds =
+            totalSeconds % 60;
+
+          return `
+${service}
+
+• Viewed ${views} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+        })
+        .join("\n\n");
+
+      await createOdooLead({
+        name,
+        email,
+        phone,
+        subject: contactRecord?.subject || "Visit Request",
+        message,
+
+        country: lead.country,
+        city: lead.city,
+        latitude: lead.latitude,
+        longitude: lead.longitude,
+
+        leadScore: lead.leadScore,
+        visitorId,
+        propertyViews,
+        whatsappClicks,
+        propertyList,
+        servicesList,
+        scheduleVisits,
+        visitDetails
+      });
+
+      console.log("📈 Lead score updated:", lead.leadScore);
+      await sendVisitRequestEmail({
+
+        name,
+        email,
+        phone,
+        message,
+
+        meetingType,
+        date,
+        timeSlot,
+
+        country: lead.country,
+        city: lead.city,
+
+        latitude: lead.latitude,
+        longitude: lead.longitude,
+
+        propertyViews,
+        whatsappClicks,
+        scheduleVisits,
+
+        servicesList,
+        propertyList
+      });
+      await sendTelegramNotification(`
+🏝 <b>ORCHID ISLAND</b>
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>NEW VISIT REQUEST</b>
+
+👤 <b>Customer</b>
+
+• Name: ${name}
+• Email: ${email}
+• Phone: ${phone || "N/A"}
+
+• Message:
+${message || "No message provided"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>Visit Details</b>
+
+• Meeting Type: ${meetingType}
+• Requested Date: ${date}
+• Requested Time: ${timeSlot}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📍 <b>Location</b>
+
+• Country: ${lead.country || "Unknown"}
+• City: ${lead.city || "Unknown"}
+
+📌 <a href="https://maps.google.com/?q=${lead.latitude},${lead.longitude}">Open in Google Maps</a>
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏢 <b>Services Viewed</b>
+
+${servicesList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 <b>Properties Viewed</b>
+
+${propertyList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📊 <b>Current Engagement</b>
+
+• Property Views: ${propertyViews}
+• WhatsApp Clicks: ${whatsappClicks}
+• Scheduled Visits: ${scheduleVisits}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>Generated</b>
+
+${new Date().toLocaleString()}
+`);
+    }
+
+    else {
+
+      console.log("No lead found. Creating visit directly in Odoo...");
+
+      const propertyViews = await LeadActivity.countDocuments({
+        visitorId,
+        activityType: "VIEW_PROPERTY"
+      });
+
+      const whatsappClicks = await LeadActivity.countDocuments({
+        visitorId,
+        activityType: "WHATSAPP_CLICK"
+      });
+
+      const scheduleVisits = 1;
+
+      const viewedActivities = await LeadActivity.find({
+        visitorId,
+        activityType: "VIEW_PROPERTY"
+      }).select("propertyId timeSpentSeconds");
+
+      const propertyTimeActivities = await LeadActivity.find({
+        visitorId,
+        activityType: "PROPERTY_TIME"
+      }).select("propertyId timeSpentSeconds");
+
+      const propertyViewCounts = {};
+      const propertyTimeTotals = {};
+
+      viewedActivities.forEach(activity => {
+
+        if (!activity.propertyId) return;
+
+        const id = activity.propertyId.toString();
+
+        propertyViewCounts[id] =
+          (propertyViewCounts[id] || 0) + 1;
+
+      });
+
+      propertyTimeActivities.forEach(activity => {
+
+        if (!activity.propertyId) return;
+
+        const id = activity.propertyId.toString();
+
+        propertyTimeTotals[id] =
+          (propertyTimeTotals[id] || 0) +
+          (activity.timeSpentSeconds || 0);
+
+      });
+
+      const propertyIds = viewedActivities.map(
+        activity => activity.propertyId
+      );
+
+      const properties = await Property.find({
+        _id: { $in: propertyIds }
+      }).select("title");
+
+      const propertyList = properties
+        .map(property => {
+
+          const id = property._id.toString();
+
+          const count =
+            propertyViewCounts[id] || 0;
+
+          const totalSeconds =
+            propertyTimeTotals[id] || 0;
+
+          const minutes =
+            Math.floor(totalSeconds / 60);
+
+          const seconds =
+            totalSeconds % 60;
+
+          return `
+${property.title}
+
+• Viewed ${count} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+
+        })
+        .join("\n\n");
+
+      const serviceViews = await LeadActivity.find({
+        visitorId,
+        activityType: "SERVICE_VIEW"
+      });
+
+      const serviceTimes = await LeadActivity.find({
+        visitorId,
+        activityType: "SERVICE_TIME"
+      });
+
+      const serviceViewCounts = {};
+      const serviceTimeTotals = {};
+
+      serviceViews.forEach(activity => {
+
+        const serviceName = activity.details;
+
+        serviceViewCounts[serviceName] =
+          (serviceViewCounts[serviceName] || 0) + 1;
+
+      });
+
+      serviceTimes.forEach(activity => {
+
+        const serviceName = activity.details;
+
+        serviceTimeTotals[serviceName] =
+          (serviceTimeTotals[serviceName] || 0) +
+          (activity.timeSpentSeconds || 0);
+
+      });
+
+      const servicesList = Object.keys(serviceViewCounts)
+        .map(service => {
+
+          const views =
+            serviceViewCounts[service] || 0;
+
+          const totalSeconds =
+            serviceTimeTotals[service] || 0;
+
+          const minutes =
+            Math.floor(totalSeconds / 60);
+
+          const seconds =
+            totalSeconds % 60;
+
+          return `
+${service}
+
+• Viewed ${views} times
+• Time spent: ${minutes}m ${seconds}s
+`;
+
+        })
+        .join("\n\n");
+
+      const latestActivity = await LeadActivity.findOne({
+
+        visitorId,
+
+        latitude: { $ne: null }
+
+      }).sort({ createdAt: -1 });
+
+      console.log("LATEST ACTIVITY FOUND:", latestActivity);
+
+      const country = latestActivity?.country || "";
+      const city = latestActivity?.city || "";
+      const latitude = latestActivity?.latitude || null;
+      const longitude = latestActivity?.longitude || null;
+
+      console.log("Visit location:", {
+        country,
+        city,
+        latitude,
+        longitude
+      });
+
+      await createOdooLead({
+
+        name,
+        email,
+        phone,
+
+        subject: `Visit Request - ${meetingType}`,
+
+        message,
+
+        visitorId,
+
+        country,
+        city,
+        latitude,
+        longitude,
+
+        leadScore: 40,
+
+        propertyViews,
+        whatsappClicks,
+
+        propertyList,
+        servicesList,
+
+        scheduleVisits,
+
+        visitDetails
+
+      });
+
+      console.log("✅ Visit request sent to Odoo");
+
+      await sendVisitRequestEmail({
+
+        name,
+        email,
+        phone,
+        message,
+
+        meetingType,
+        date,
+        timeSlot,
+
+        country,
+        city,
+
+        latitude,
+        longitude,
+
+        propertyViews,
+        whatsappClicks,
+        scheduleVisits,
+
+        servicesList,
+        propertyList
+
+      });
+
+      await sendTelegramNotification(`
+🏝 <b>ORCHID ISLAND</b>
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>NEW VISIT REQUEST</b>
+
+👤 <b>Customer</b>
+
+• Name: ${name}
+• Email: ${email}
+• Phone: ${phone || "N/A"}
+
+• Message:
+${message || "No message provided"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>Visit Details</b>
+
+• Meeting Type: ${meetingType}
+• Requested Date: ${date}
+• Requested Time: ${timeSlot}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📍 <b>Location</b>
+
+• Country: ${country || "Unknown"}
+• City: ${city || "Unknown"}
+
+${latitude && longitude
+          ? `📌 <a href="https://maps.google.com/?q=${latitude},${longitude}">Open in Google Maps</a>`
+          : ""}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏢 <b>Services Viewed</b>
+
+${servicesList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 <b>Properties Viewed</b>
+
+${propertyList || "None"}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📊 <b>Current Engagement</b>
+
+• Property Views: ${propertyViews}
+• WhatsApp Clicks: ${whatsappClicks}
+• Scheduled Visits: ${scheduleVisits}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 <b>Generated</b>
+
+${new Date().toLocaleString()}
+`);
+
+      console.log("✅ Visit request notifications sent");
+
+    }
+
+    // Configurer Nodemailer - Mailtrap (Gmail temporairement bloqué)
+    /*const transporter = nodemailer.createTransport({
+      host: "sandbox.smtp.mailtrap.io", 
+      port: 2525,
+      auth: {
+        user: process.env.MAILTRAP_USER || "91be55e01c3ccf",
+        pass: process.env.MAILTRAP_PASS || "123456789orchidorchid"
+      },
+    });*/
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD
       },
-      tls: { rejectUnauthorized: false }
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
+
+    // Contenu de l'email pour la planification de visite
     const mailOptions = {
       from: '"Orchid Real Estate" <noreply@orchid-realestate.com>',
       to: process.env.ADMIN_EMAIL || "orchido651@gmail.com",
-      subject: `📅 Nouvelle demande de visite : ${meetingType || "Consultation"}`,
+      subject: `📅 Nouvelle demande de visite: ${meetingType || "Consultation"}`,
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <h2 style="color:#4F46E5;border-bottom:2px solid #4F46E5;padding-bottom:10px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4F46E5; border-bottom: 2px solid #4F46E5; padding-bottom: 10px;">
             📅 Nouvelle demande de planification de visite
           </h2>
-          <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
-            <h3 style="color:#333;margin-top:0;">👤 Informations du client</h3>
-            <p><strong>Nom :</strong> ${name}</p>
-            <p><strong>Email :</strong> <a href="mailto:${email}">${email}</a></p>
-            <p><strong>Téléphone :</strong> ${phone || "Non précisé"}</p>
+
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">👤 Informations du client</h3>
+            <p><strong>Nom:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Téléphone:</strong> ${phone || "Non précisé"}</p>
           </div>
-          <div style="background:#e3f2fd;padding:20px;border-radius:8px;margin:20px 0;">
-            <h3 style="color:#333;margin-top:0;">📅 Détails du rendez-vous</h3>
-            <p><strong>Type :</strong> ${meetingType || "Non précisé"}</p>
-            <p><strong>Date souhaitée :</strong> ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}</p>
-            <p><strong>Heure souhaitée :</strong> ${timeSlot || "Non précisée"}</p>
+
+          <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">📅 Détails du rendez-vous</h3>
+            <p><strong>Type de rendez-vous:</strong> ${meetingType || "Non précisé"}</p>
+            <p><strong>Date souhaitée:</strong> ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}</p>
+            <p><strong>Heure souhaitée:</strong> ${timeSlot || "Non précisée"}</p>
           </div>
+
           ${message ? `
-          <div style="background:#fff3e0;padding:20px;border-radius:8px;margin:20px 0;">
-            <h3 style="color:#333;margin-top:0;">💬 Message</h3>
-            <p style="white-space:pre-wrap;">${message}</p>
-          </div>` : ''}
-          <p style="color:#666;font-size:12px;text-align:center;">
-            📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
-          </p>
+          <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">💬 Message</h3>
+            <p style="white-space: pre-wrap;">${message}</p>
+          </div>
+          ` : ''}
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px;">
+              📅 Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+            </p>
+            <p style="color: #4F46E5; font-weight: bold;">
+              ⚡ Action requise: Confirmer le rendez-vous avec le client
+            </p>
+          </div>
         </div>
       `,
       text: `
-Demande de visite\n\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone || "Non précisé"}\nType : ${meetingType || "Non précisé"}\nDate : ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}\nHeure : ${timeSlot || "Non précisée"}${message ? `\n\nMessage :\n${message}` : ''}
-      `.trim(),
+Nouvelle demande de planification de visite
+
+Informations du client:
+Nom: ${name}
+Email: ${email}
+Téléphone: ${phone || "Non précisé"}
+
+Détails du rendez-vous:
+Type: ${meetingType || "Non précisé"}
+Date: ${date ? new Date(date).toLocaleDateString('fr-FR') : "Non précisée"}
+Heure: ${timeSlot || "Non précisée"}
+
+${message ? `Message:\n${message}\n` : ''}
+
+Reçu le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}
+
+Action requise: Confirmer le rendez-vous avec le client
+      `,
     };
 
+    // Envoyer l'email
+    console.log('📤 Envoi de l\'email de planification...');
     try {
       const info = await transporter.sendMail(mailOptions);
+      console.log('✅ Email de planification envoyé:', info.messageId);
+
       res.status(200).json({
         success: true,
-        message: "Demande de visite envoyée avec succès !",
+        message: "Demande de visite envoyée avec succès ! Nous vous confirmerons par email.",
         emailId: info.messageId
       });
     } catch (emailError) {
-      console.error('⚠️ Email de planification non envoyé :', emailError.message);
+      console.log('⚠️ Email de planification non envoyé (temporaire):', emailError.message);
+
+      // Succès partiel : demande reçue, email en attente
       res.status(200).json({
         success: true,
-        message: "Demande de visite reçue ! Nous vous confirmerons bientôt.",
-        emailStatus: "pending"
+        message: "Demande de visite reçue ! Nous vous confirmerons par email dès que possible.",
+        emailStatus: "pending",
+        note: "Votre demande de visite a été enregistrée. Nous vous contacterons bientôt."
       });
     }
 
   } catch (error) {
-    console.error('❌ Erreur dans scheduleVisit :', error);
+    console.error('❌ Erreur dans scheduleVisit:', error);
     res.status(500).json({
       success: false,
       error: "Erreur lors du traitement de la demande de visite",
@@ -381,6 +1419,7 @@ Demande de visite\n\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone || "
   }
 };
 
+// Export des fonctions
 module.exports = {
   addContact,
   getAllContacts,

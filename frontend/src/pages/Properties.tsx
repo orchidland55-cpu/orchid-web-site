@@ -252,14 +252,14 @@ const PropertiesPage = () => {
             <div className="container mx-auto px-6">
               <div className="mb-8">
 
-                {filteredProperties.length > 0 && (
+                {/* {filteredProperties.length > 0 && (
                   <p className="text-sm text-muted-foreground mb-8">
                     {filteredProperties.length} propriété
                     {filteredProperties.length > 1 ? "s" : ""}
                     {filterCity !== "all" ? ` à ${filterCity}` : ""}
                     {filterType !== "all" ? ` · ${filterType}` : ""}
                   </p>
-                )}
+                )} */}
 
                 {currentProperties.length > 0 ? (
                   <>

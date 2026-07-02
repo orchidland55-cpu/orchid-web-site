@@ -23,7 +23,6 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-<<<<<<< HEAD
         <div className="relative">
           <Hero />
           {/* Desktop uniquement : la search bar n'existe pas sur mobile */}
@@ -41,21 +40,6 @@ const Index = () => {
           <Testimonials />
           <FAQ />
         </div>
-=======
-        <Hero />
-        {/* <div className="absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 z-20">
-          <div className="max-w-5xl mx-auto">
-            <HeroSearchBar onSearch={(filters) => setHeroFilters(filters)} />
-          </div>
-        </div> */}
-        <Properties filters={heroFilters} />
-        <PropertyCategories/>
-        <Introduction />
-        <News />
-        <OurPartners />
-        <Testimonials />
-        <FAQ />
->>>>>>> b862036e3e4e402f40a6c4a209e28c3d5e0da6a6
       </main>
       <Footer />
       <CookieConsent />

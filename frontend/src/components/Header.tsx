@@ -74,7 +74,11 @@ const Header = () => {
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
-                <Link to="/" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link
+                  to="/"
+                  className="font-playfair text-foreground hover:text-primary transition-smooth"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   Home
                 </Link>
                 <Link to="/about-us" className="font-playfair text-foreground hover:text-primary transition-smooth">

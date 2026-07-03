@@ -56,19 +56,28 @@ const PropertyHero = ({ property }: { property: Property }) => {
         </div>
 
         <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
-          <span className="flex items-center gap-1.5">
-            <Bed className="w-4 h-4" />
-            {property.bedrooms}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Bath className="w-4 h-4" />
-            {property.bathrooms}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Square className="w-4 h-4" />
-            {property.area} m²
-          </span>
+          {!!property.bedrooms && (
+            <span className="flex items-center gap-1.5">
+              <Bed className="w-4 h-4" />
+              {property.bedrooms}
+            </span>
+          )}
+
+          {!!property.bathrooms && (
+            <span className="flex items-center gap-1.5">
+              <Bath className="w-4 h-4" />
+              {property.bathrooms}
+            </span>
+          )}
+
+          {!!property.area && (
+            <span className="flex items-center gap-1.5">
+              <Square className="w-4 h-4" />
+              {property.area} m²
+            </span>
+          )}
         </div>
+
 
         <div className="flex items-center justify-between mt-auto">
           <span

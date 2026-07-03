@@ -175,12 +175,15 @@ const ArticleDetail = () => {
     : `Marrakech, Luxury Real Estate, ${article.category}`
 };
 
+  const baseUrl = `https://orchidisland.immo/${article.slug || article._id}`;
+
+
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>{article.title} | Orchid Island Real Estate</title>
         <meta name="description" content={article.excerpt?.substring(0, 160)} />
-        <link rel="canonical" href={`https://orchidisland.immo/${article.slug || article._id}`} />
+        <link rel="canonical" href={baseUrl} />
         <link 
           rel="preload" 
           as="image" 

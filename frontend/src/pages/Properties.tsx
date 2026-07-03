@@ -8,6 +8,7 @@ import PropertyHero from "@/components/Properties/PropertyHero";
 import PropertyFilterBar from "@/components/Properties/PropertyFilterBar";
 import MasonryGrid from "@/components/Properties/MasonryGrid";
 import { getCloudinaryUrl } from "@/services/cloudinary";
+import { Helmet } from 'react-helmet-async';
 
 
 const PropertiesPage = () => {
@@ -139,6 +140,14 @@ const PropertiesPage = () => {
 
     return (
       <div className="flex flex-col items-center gap-3 mt-14">
+      <Helmet>
+        <title>Properties | Orchid Island - Luxury Real Estate</title>
+        <meta 
+          name="description" 
+          content="Explore our collection of luxury properties in Marrakech. Find your dream home with Orchid Island." 
+        />
+        <link rel="canonical" href="https://orchidisland.immo/properties" />
+      </Helmet>
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <button
             onClick={() => handlePageChange(currentPage - 1)}

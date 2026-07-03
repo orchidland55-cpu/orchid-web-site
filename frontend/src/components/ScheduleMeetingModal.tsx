@@ -26,13 +26,13 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-const recaptchaRef = useRef<ReCAPTCHA | null>(null);
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
-const handleRecaptchaChange = (token: string | null) => {
-  setRecaptchaToken(token);
-};
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+  };
 
   const timeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -57,14 +57,25 @@ const handleRecaptchaChange = (token: string | null) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    const locationData = JSON.parse(
+      localStorage.getItem("visitorLocation") || "{}"
+    );
+
     const meetingData = {
       ...formData,
-      date: selectedDate?.toISOString().split('T')[0],
-      timestamp: new Date().toISOString()
+      date: selectedDate?.toISOString().split("T")[0],
+      timestamp: new Date().toISOString(),
+
+      visitorId: localStorage.getItem("visitorId"),
+
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+      locationSource: locationData.locationSource
     };
 
-    console.log("📤 Envoi au backend:", meetingData);
+    console.log("📤 Envoi au backend:");
+    console.log(meetingData);
     setIsSubmitting(true);
 
     try {
@@ -132,7 +143,7 @@ const handleRecaptchaChange = (token: string | null) => {
                   className="rounded-md"
                 />
               </div>
-              
+
               {selectedDate && (
                 <div className="space-y-3">
                   <h4 className="font-medium flex items-center space-x-2">
@@ -237,8 +248,8 @@ const handleRecaptchaChange = (token: string | null) => {
                 {/* reCAPTCHA placeholder */}
                 <div className="mb-4">
                   <ReCAPTCHA
-                   sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
-                   onChange={handleRecaptchaChange}
+                    sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
+                    onChange={handleRecaptchaChange}
                   />
                 </div>
               </div>
@@ -262,16 +273,16 @@ const handleRecaptchaChange = (token: string | null) => {
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               variant="luxury"
-              disabled={ !recaptchaToken ||
-                isSubmitting || 
-                !selectedDate || 
-                !formData.timeSlot || 
-                !formData.name || 
-                !formData.email || 
-                !formData.phone || 
+              disabled={!recaptchaToken ||
+                isSubmitting ||
+                !selectedDate ||
+                !formData.timeSlot ||
+                !formData.name ||
+                !formData.email ||
+                !formData.phone ||
                 !formData.meetingType ||
                 !formData.message  // ✅ Validation du champ message
               }

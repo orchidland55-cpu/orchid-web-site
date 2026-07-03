@@ -11,6 +11,7 @@ import OurPartners from "@/components/Ourpartners";
 import PropertyCategories from "@/components/PropertyCategories";
 import { useRef, useState } from "react";
 import HeroSearchBar, { HeroFilters } from "@/components/HeroSearchBar";
+import AnimatedSection from "@/components/AnimatedSection";
 
 const Index = () => {
   const [heroFilters, setHeroFilters] = useState<HeroFilters>({
@@ -28,19 +29,45 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-        <Hero />
-        <div className="hidden md:flex absolute bottom-0 left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+        <div className="relative">
+          <Hero />
+          {/* Desktop uniquement : la search bar n'existe pas sur mobile */}
+          <div className="hidden md:flex absolute bottom-[50px] left-0 right-0 translate-y-1/2 px-4 sm:px-6 z-20 justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <HeroSearchBar onSearch={handleHeroSearch} />
-        </div> 
-        <div ref={propertiesRef}>
-          <Properties filters={heroFilters} />
+          </div>
         </div>
-        <PropertyCategories />
-        <Introduction />
-        <News />
-        <OurPartners />
-        <Testimonials />
-        <FAQ />
+
+        <div className="pt-4 md:pt-6">
+          <AnimatedSection variant="fade-up">
+            <div ref={propertiesRef}>
+              <Properties filters={heroFilters} />
+            </div>
+          </AnimatedSection>
+
+          <AnimatedSection variant="zoom-in" duration={800}>
+            <PropertyCategories/>
+          </AnimatedSection>
+
+          <AnimatedSection variant="fade-right">
+            <Introduction />
+          </AnimatedSection>
+
+          <AnimatedSection variant="fade-left">
+            <News />
+          </AnimatedSection>
+
+          <AnimatedSection variant="fade-up">
+            <OurPartners />
+          </AnimatedSection>
+
+          <AnimatedSection variant="fade-up" duration={800}>
+            <Testimonials />
+          </AnimatedSection>
+
+          <AnimatedSection variant="fade">
+            <FAQ />
+          </AnimatedSection>
+        </div>
       </main>
       <Footer />
       <CookieConsent />

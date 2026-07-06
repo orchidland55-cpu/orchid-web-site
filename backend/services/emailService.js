@@ -155,6 +155,30 @@ New Lead Received
 
 <p><strong>Email:</strong> ${email}</p>
 
+<table cellpadding="0" cellspacing="0" style="margin:20px auto;">
+  <tr>
+    <td
+      style="
+        background:#0d2340;
+        border-radius:6px;
+        padding:14px 28px;
+      "
+    >
+      <a
+        href="mailto:${email}"
+        style="
+          color:#b8972e;
+          text-decoration:none;
+          font-size:15px;
+          font-weight:bold;
+        "
+      >
+        📧 Reply to Customer
+      </a>
+    </td>
+  </tr>
+</table>
+
 <p><strong>Phone:</strong> ${phone || "N/A"}</p>
 
 <p><strong>Lead Score:</strong> ${leadScore}</p>
@@ -287,6 +311,30 @@ async function sendVisitRequestEmail({
 <p><strong>Name:</strong> ${name}</p>
 
 <p><strong>Email:</strong> ${email}</p>
+
+<table cellpadding="0" cellspacing="0" style="margin:20px auto;">
+  <tr>
+    <td
+      style="
+        background:#0d2340;
+        border-radius:6px;
+        padding:14px 28px;
+      "
+    >
+      <a
+        href="mailto:${email}"
+        style="
+          color:#b8972e;
+          text-decoration:none;
+          font-size:15px;
+          font-weight:bold;
+        "
+      >
+        📧 Reply to Customer
+      </a>
+    </td>
+  </tr>
+</table>
 
 <p><strong>Phone:</strong> ${phone || "N/A"}</p>
 

@@ -424,7 +424,7 @@ ${new Date().toLocaleString()}
     }
 
     // 2️⃣ Envoyer l'email de notification via Resend
-    const receivedAt = new Date();
+    /*const receivedAt = new Date();
     const dateStr = receivedAt.toLocaleDateString('fr-FR');
     const timeStr = receivedAt.toLocaleTimeString('fr-FR');
 
@@ -577,7 +577,7 @@ Reçu le ${dateStr} à ${timeStr}
         emailStatus: "pending",
         note: "Votre message a été reçu et sauvegardé. Nous vous répondrons bientôt."
       });
-    }
+    }*/
 
   } catch (error) {
     console.error('❌ Erreur dans addContact :', error);

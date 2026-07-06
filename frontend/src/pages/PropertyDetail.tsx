@@ -715,36 +715,47 @@ const PropertyDetail = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                   {[
                     {
+                      key: "bedrooms",
                       icon: <Bed className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.bedrooms,
                       label: "Chambres",
+                      show: property.bedrooms !== 0,
                     },
                     {
+                      key: "bathrooms",
                       icon: <Bath className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.bathrooms,
                       label: "Salles de bain",
+                      show: property.bathrooms !== 0,
                     },
                     {
+                      key: "area",
                       icon: <Square className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.area,
                       label: "m²",
+                      show: property.area !== 0,
                     },
                     {
+                      key: "yearBuilt",
                       icon: <Building className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.yearBuilt,
                       label: "Année",
+                      show: property.yearBuilt !== 0 && property.yearBuilt !== undefined,
                     },
-                  ].map(({ icon, value, label }) => (
-                    <div
-                      key={label}
-                      className="text-center p-3 sm:p-4 bg-card rounded-lg border"
-                    >
-                      {icon}
-                      <div className="text-xl sm:text-2xl font-bold">{value}</div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
-                    </div>
-                  ))}
+                  ]
+                    .filter((item) => item.show)
+                    .map(({ icon, value, label, key }) => (
+                      <div
+                        key={key}
+                        className="text-center p-3 sm:p-4 bg-card rounded-lg border"
+                      >
+                        {icon}
+                        <div className="text-xl sm:text-2xl font-bold">{value}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
+                      </div>
+                    ))}
                 </div>
+
 
                 {/* Description */}
                 <div>
@@ -786,9 +797,18 @@ const PropertyDetail = () => {
                     <div className="space-y-3 text-sm sm:text-base">
                       {[
                         { label: "Type", value: property.type },
-                        { label: "Surface", value: `${property.area} m²` },
-                        { label: "Chambres", value: property.bedrooms },
-                        { label: "Salles de bain", value: property.bathrooms },
+                        {
+                          label: "Surface",
+                          value: property.area !== 0 ? `${property.area} m²` : "",
+                        },
+                        {
+                          label: "Chambres",
+                          value: property.bedrooms !== 0 ? property.bedrooms : "",
+                        },
+                        {
+                          label: "Salles de bain",
+                          value: property.bathrooms !== 0 ? property.bathrooms : "",
+                        },
                         { label: "Année", value: property.yearBuilt },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between gap-4">
@@ -796,6 +816,7 @@ const PropertyDetail = () => {
                           <span className="font-medium text-right">{value}</span>
                         </div>
                       ))}
+
 
                       {(property.garden ||
                         property.pool ||

@@ -39,7 +39,7 @@ const Index = () => {
 
         <div className="pt-4 md:pt-6">
           <AnimatedSection variant="fade-up">
-            <div ref={propertiesRef}>
+            <div ref={propertiesRef} className="scroll-mt-[120px]">
               <Properties filters={heroFilters} />
             </div>
           </AnimatedSection>

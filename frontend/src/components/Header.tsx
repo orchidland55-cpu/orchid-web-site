@@ -74,10 +74,18 @@ const Header = () => {
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-8">
-                <Link to="/" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link
+                  to="/"
+                  className="font-playfair text-foreground hover:text-primary transition-smooth"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   Home
                 </Link>
-                <Link to="/about-us" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link
+                  to="/about-us"
+                  className="font-playfair text-foreground hover:text-primary transition-smooth"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   About us
                 </Link>
 
@@ -90,6 +98,7 @@ const Header = () => {
                   <Link
                     to="/services"
                     className="font-playfair flex items-center gap-1 text-foreground hover:text-primary transition-smooth"
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                   >
                     Services
                     <ChevronDown
@@ -123,10 +132,18 @@ const Header = () => {
                   )}
                 </div>
 
-                <Link to="/properties" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link
+                  to="/properties"
+                  className="font-playfair text-foreground hover:text-primary transition-smooth"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   Properties
                 </Link>
-                <Link to="/real-estate-guide-orchid-island-marrakech" className="font-playfair text-foreground hover:text-primary transition-smooth">
+                <Link
+                  to="/real-estate-guide-orchid-island-marrakech"
+                  className="font-playfair text-foreground hover:text-primary transition-smooth"
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
                   Blog
                 </Link>
               </nav>

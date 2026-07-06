@@ -424,7 +424,7 @@ ${new Date().toLocaleString()}
     }
 
     // 2️⃣ Envoyer l'email de notification via Resend
-    const receivedAt = new Date();
+    /*const receivedAt = new Date();
     const dateStr = receivedAt.toLocaleDateString('fr-FR');
     const timeStr = receivedAt.toLocaleTimeString('fr-FR');
 
@@ -577,7 +577,7 @@ Reçu le ${dateStr} à ${timeStr}
         emailStatus: "pending",
         note: "Votre message a été reçu et sauvegardé. Nous vous répondrons bientôt."
       });
-    }
+    }*/
 
   } catch (error) {
     console.error('❌ Erreur dans addContact :', error);
@@ -728,14 +728,6 @@ const scheduleVisit = async (req, res) => {
       longitude
     } = req.body;
 
-    console.log("\n========== SCHEDULE VISIT ==========");
-    console.log("visitorId:", visitorId);
-    console.log("name:", name);
-    console.log("email:", email);
-    console.log("country (frontend):", country);
-    console.log("city (frontend):", city);
-    console.log("latitude (frontend):", latitude);
-    console.log("longitude (frontend):", longitude);
     const visitDetails = `
 Date: ${date}
 Time: ${timeSlot}
@@ -758,22 +750,6 @@ Message: ${message || "No message"}
     // Find lead associated with visitor
     let lead = await Lead.findOne({ visitorId });
 
-    console.log("Lead found:", lead ? lead._id : "NO LEAD");
-
-    if (lead) {
-      console.log({
-        leadCountry: lead.country,
-        leadCity: lead.city,
-        leadLatitude: lead.latitude,
-        leadLongitude: lead.longitude
-      });
-    }
-
-    const leadAlreadyExists = !!lead;
-
-    console.log("=== SCHEDULE DEBUG ===");
-    console.log("visitorId received:", visitorId);
-    console.log("lead found:", lead ? lead._id : "NOT FOUND");
 
 
     if (lead) {
@@ -888,13 +864,6 @@ ${property.title}
       }
 
       await lead.save();
-
-      console.log("SCHEDULE ODOO LOCATION:", {
-        country: lead.country,
-        city: lead.city,
-        latitude: lead.latitude,
-        longitude: lead.longitude
-      });
 
       const contactRecord = await mongoose.connection.db
         .collection("contacts")
@@ -1213,19 +1182,10 @@ ${service}
 
       }).sort({ createdAt: -1 });
 
-      console.log("LATEST ACTIVITY FOUND:", latestActivity);
-
       const country = latestActivity?.country || "";
       const city = latestActivity?.city || "";
       const latitude = latestActivity?.latitude || null;
       const longitude = latestActivity?.longitude || null;
-
-      console.log("Visit location:", {
-        country,
-        city,
-        latitude,
-        longitude
-      });
 
       await createOdooLead({
 
@@ -1259,20 +1219,6 @@ ${service}
       });
 
       console.log("✅ Visit request sent to Odoo");
-
-      console.log("\n========== EMAIL DATA ==========");
-      console.log({
-        visitorId,
-        propertyViews,
-        whatsappClicks,
-        scheduleVisits,
-        propertyList,
-        servicesList,
-        country,
-        city,
-        latitude,
-        longitude
-      });
 
       await sendVisitRequestEmail({
 

@@ -13,6 +13,7 @@ import {
   Building,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
 import { Helmet } from 'react-helmet-async';
@@ -25,6 +26,20 @@ import { PriorityImage,LazyImage } from '@/components/OptimizedImage';
 // ---------------------------------------------------------------------------
 const articlePath = (id: string, slug?: string) =>
   `/${slug || id}`;
+
+// ---------------------------------------------------------------------------
+// Helper : temps de lecture "stable" (basé sur l'id, pas Math.random() direct
+// pour éviter que le chiffre change à chaque re-render)
+// ---------------------------------------------------------------------------
+const getReadingTime = (id: string, min = 3, max = 8) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const range = max - min + 1;
+  return (Math.abs(hash) % range) + min;
+};
 
 const Blog = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -68,7 +83,8 @@ const Blog = () => {
     comments: article.comments || 0,
     category: article.category,
     image: article.image || "/api/placeholder/800/400",
-    featured: article.featured || false
+    featured: article.featured || false,
+    readingTime: getReadingTime(article._id),
   }));
 
   const dynamicCategories = Array.from(
@@ -350,6 +366,10 @@ const blogJsonLd = {
                         <Calendar className="w-4 h-4" />
                         <span>{post.date}</span>
                       </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{post.readingTime} min read</span>
+                      </div>
                     </div>
                     {/* ✅ Lien avec slug */}
                     <Link to={articlePath(post.id, post.slug)}>
@@ -405,6 +425,10 @@ const blogJsonLd = {
                         {post.excerpt}
                       </p>
                       <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{post.readingTime} min read</span>
+                        </div>
                         <ShareButton showText={false} />
                       </div>
                     </CardContent>

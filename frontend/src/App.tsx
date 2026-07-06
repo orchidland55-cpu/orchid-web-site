@@ -15,6 +15,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import { useGoogleTranslate } from '@/hooks/useGoogleTranslate';
 
+
 // ✅ Widgets en lazy loading
 const ChatbaseWidget = lazy(() => import("@/components/ChatbaseWidget"));
 const WhatsAppButton = lazy(() => import("@/components/WhatsAppButton"));

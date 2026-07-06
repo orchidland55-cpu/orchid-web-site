@@ -38,18 +38,34 @@ const CinematicGallery = ({
   onOpenTour,
 }: CinematicGalleryProps) => {
   const [current, setCurrent] = useState(0);
+  // ✅ On garde en mémoire l'index précédent le temps du fondu, pour ne
+  // jamais monter plus de 2 images à la fois (au lieu des 11 d'origine).
+  const [previous, setPrevious] = useState<number | null>(null);
   const [transitioning, setTransitioning] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
+  const fadeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const FADE_DURATION = 450; // doit matcher la transition CSS ci-dessous
 
   const go = (index: number) => {
     if (transitioning || index === current) return;
+
+    // On garde l'ancienne image montée le temps du fondu, puis on la retire.
+    setPrevious(current);
+    setCurrent(index);
     setTransitioning(true);
-    setTimeout(() => {
-      setCurrent(index);
+
+    clearTimeout(fadeTimeoutRef.current);
+    fadeTimeoutRef.current = setTimeout(() => {
       setTransitioning(false);
-    }, 350);
+      setPrevious(null); // ✅ démonte l'ancienne image : elle arrête de consommer des ressources
+    }, FADE_DURATION);
   };
+
+  useEffect(() => {
+    return () => clearTimeout(fadeTimeoutRef.current);
+  }, []);
 
   const prev = () => go(current === 0 ? images.length - 1 : current - 1);
   const next = () => go(current === images.length - 1 ? 0 : current + 1);
@@ -92,39 +108,51 @@ const CinematicGallery = ({
     return () => clearInterval(timer);
   }, [current, transitioning]);
 
+  // ✅ Seules l'image affichée (+ l'ancienne pendant les 450ms de fondu)
+  // sont réellement montées dans le DOM. Avant, les 11 photos d'une
+  // annonce étaient toutes montées en même temps (juste opacity:0),
+  // ce qui les faisait toutes charger — et consommer des crédits
+  // Cloudinary — dès l'arrivée sur la page.
+  const indicesToRender = new Set<number>([current]);
+  if (previous !== null) indicesToRender.add(previous);
+
   return (
     <>
       {/* ── Main cinematic frame ── */}
       <div className="relative w-full h-64 sm:h-80 md:h-[480px] lg:h-[580px] overflow-hidden rounded-xl sm:rounded-2xl select-none bg-zinc-600">
 
-        {/* Images en stack cross-fade */}
-        {images.map((src, i) => (
-          <div
-            key={i}
-            className="absolute inset-0"
-            style={{
-              opacity: i === current ? 1 : 0,
-              transition: "opacity 450ms ease-in-out",
-              zIndex: i === current ? 1 : 0,
-            }}
-          >
-            <OptimizedImage
-              src={src}
-              alt={`${title} — photo ${i + 1}`}
-              width={1200}
-              height={800}
-              className="w-full h-full object-contain cursor-zoom-in"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-              widths={[400, 800, 1200, 1600]}
-              priority={i === 0}
-              onClick={() => setLightbox(src)}
-              onError={(e) => {
-                e.currentTarget.src =
-                  "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
+        {/* Images en stack cross-fade — seulement current (+ previous pendant le fondu) sont montées */}
+        {images.map((src, i) => {
+          if (!indicesToRender.has(i)) return null;
+
+          return (
+            <div
+              key={i}
+              className="absolute inset-0"
+              style={{
+                opacity: i === current ? 1 : 0,
+                transition: `opacity ${FADE_DURATION}ms ease-in-out`,
+                zIndex: i === current ? 1 : 0,
               }}
-            />
-          </div>
-        ))}
+            >
+              <OptimizedImage
+                src={src}
+                alt={`${title} — photo ${i + 1}`}
+                width={1200}
+                height={800}
+                className="w-full h-full object-contain cursor-zoom-in"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                widths={[800, 1200]} // ✅ 2 tailles au lieu de [400, 800, 1200, 1600]
+                priority={i === 0}
+                onClick={() => setLightbox(src)}
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://placehold.co/1200x800/f3f4f6/374151?text=Image+indisponible";
+                }}
+              />
+            </div>
+          );
+        })}
 
         {/* Gradient overlay bas — porte le strip et les infos */}
         <div
@@ -196,7 +224,7 @@ const CinematicGallery = ({
                     height={80}
                     className="w-full h-full object-cover"
                     sizes="80px"
-                    widths={[40, 80, 120]}
+                    widths={[80]} // ✅ 1 seule taille au lieu de [40, 80, 120] — affichée à 40px max
                     crop="thumb"
                     quality={30}
                     onError={(e) => {
@@ -543,11 +571,6 @@ const PropertyDetail = () => {
       ? `${formatted} MAD`
       : `${symbolMap[currency]}${formatted}`;
   };
-
-  // const statusLabel =
-  //   { available: "Available", sold: "Sold", pending: "Pending", draft: "Draft" }[
-  //     property.status
-  // ] || property.status;
 
   const getStatusBadge = (status: string) => {
     switch (status) {

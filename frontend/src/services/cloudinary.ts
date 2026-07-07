@@ -53,9 +53,18 @@ export const getCloudinaryUrl = (
       `/upload/${transforms}/$1`
     );
   }
+  
 
   // Cas 2 : publicId seul → on reconstruit l'URL complète
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${urlOrPublicId}`;
+};
+
+export const getCloudinaryVideoUrl = (url: string, maxWidth = 1280) => {
+  if (!url.includes("/upload/")) return url; // sécurité si l'URL n'est pas Cloudinary
+  return url.replace(
+    "/upload/",
+    `/upload/q_auto,f_auto,w_${maxWidth},c_limit,vc_auto/`
+  );
 };
 
 // ─── NOUVEAU : Génération de srcSet automatique ────────────────────────────

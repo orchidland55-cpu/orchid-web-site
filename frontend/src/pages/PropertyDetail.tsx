@@ -649,7 +649,7 @@ const PropertyDetail = () => {
                   aria-label="Lancer la vidéo"
                 >
                   <img
-                   src={optimizedImages[1]}
+                   src={optimizedImages[1]?? optimizedImages[0]}
                    alt="Aperçu vidéo"
                    className="w-full h-full object-contain"
                   />

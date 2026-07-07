@@ -71,6 +71,11 @@ async function createOdooLead({
         longitude
     });
 
+    // Prevent updating the wrong Odoo lead
+    if (!visitorId) {
+        console.warn("⚠️ No visitorId received. A new Odoo lead will be created.");
+    }
+
     const mapUrl =
         latitude && longitude
             ? `https://www.google.com/maps?q=${latitude},${longitude}`

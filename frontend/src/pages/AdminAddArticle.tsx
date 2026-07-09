@@ -45,7 +45,7 @@ import {
 import PageTransition from "@/components/PageTransition";
 import { showToast } from "@/components/ToastContainer";
 import { apiService, ArticleFormData, Admin } from "@/services/api";
-import { uploadToCloudinary } from "@/services/cloudinary";
+import { uploadToCloudinary, uploadRawToCloudinary } from "@/services/cloudinary";
 import RichTextEditor from "@/components/RichTextEditor";
 import SEOAnalyzer from "@/components/Seoanalyzer";
 
@@ -61,6 +61,7 @@ const AdminAddArticle = () => {
     tags: "",
     status: "draft",
     image: "",
+    pdfUrl: "",
     person: "",
     // SEO Fields
     seoTitle: "",
@@ -79,6 +80,53 @@ const AdminAddArticle = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+
+  // PDF Upload States
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadProgress, setPdfUploadProgress] = useState(0);
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      showToast({
+        type: "error",
+        title: "Invalid File",
+        message: "Please select a valid PDF file.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    setPdfFile(file);
+    setIsUploadingPdf(true);
+    setPdfUploadProgress(0);
+    try {
+      const result = await uploadRawToCloudinary(file, "orchid/docs", (percent) => setPdfUploadProgress(percent));
+      
+      setFormData((prev) => ({ ...prev, pdfUrl: result.url }));
+      
+      showToast({
+        type: "success",
+        title: "PDF Uploaded",
+        message: "The PDF document has been uploaded to Cloudinary successfully!",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("PDF Upload error:", error);
+      showToast({
+        type: "error",
+        title: "Upload Error",
+        message: "Failed to upload PDF. Please try again.",
+        duration: 3000,
+      });
+    } finally {
+      setIsUploadingPdf(false);
+      setPdfUploadProgress(0);
+    }
+  };
 
   // ✅ État pour les admins dynamiques
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -214,6 +262,17 @@ const AdminAddArticle = () => {
         featured: true,
         image: formData.image || "",
         tags: formData.tags || "",
+        pdfUrl: formData.pdfUrl || "",
+        // ── SEO ──────────────────────────────────────
+        slug: formData.slug,
+        seoTitle: formData.seoTitle,
+        focusKeyword: formData.focusKeyword,
+        imageAlt: formData.imageAlt,
+        canonicalUrl: formData.canonicalUrl,
+        ogTitle: formData.ogTitle,
+        ogDescription: formData.ogDescription,
+        twitterTitle: formData.twitterTitle,
+        twitterDescription: formData.twitterDescription,
       };
 
       await apiService.createArticle(articleData);
@@ -253,6 +312,17 @@ const AdminAddArticle = () => {
         featured: false,
         image: formData.image || "",
         tags: formData.tags || "",
+        pdfUrl: formData.pdfUrl || "",
+        // ── SEO ──────────────────────────────────────
+        slug: formData.slug,
+        seoTitle: formData.seoTitle,
+        focusKeyword: formData.focusKeyword,
+        imageAlt: formData.imageAlt,
+        canonicalUrl: formData.canonicalUrl,
+        ogTitle: formData.ogTitle,
+        ogDescription: formData.ogDescription,
+        twitterTitle: formData.twitterTitle,
+        twitterDescription: formData.twitterDescription,
       };
 
       await apiService.createArticleDraft(articleData);
@@ -501,6 +571,67 @@ const AdminAddArticle = () => {
                       />
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* PDF Document */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5" />
+                    <span>Document PDF (Facultatif)</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Sélectionnez un fichier PDF depuis votre ordinateur</label>
+                      <div className="flex items-center space-x-4">
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handlePdfUpload}
+                          className="hidden"
+                          id="pdf-upload"
+                          disabled={isUploadingPdf}
+                        />
+                        <label htmlFor="pdf-upload" className="cursor-pointer inline-flex items-center px-4 py-2 border border-border rounded-md bg-background hover:bg-muted/50 transition-colors">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Choisir un PDF
+                        </label>
+                        {pdfFile && <span className="text-sm text-muted-foreground">{pdfFile.name}</span>}
+                        {isUploadingPdf && (
+                          <div className="w-full mt-2">
+                            <div className="bg-gray-200 rounded-full h-2">
+                              <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: `${pdfUploadProgress}%` }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Téléversement du PDF... {pdfUploadProgress}%</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Format accepté : PDF uniquement</p>
+                    </div>
+                    <div className="border-t pt-4">
+                      <label className="block text-sm font-medium text-foreground mb-2">Ou utilisez l'URL d'un PDF externe</label>
+                      <Input
+                        name="pdfUrl"
+                        value={formData.pdfUrl || ""}
+                        onChange={handleInputChange}
+                        placeholder="https://res.cloudinary.com/.../document.pdf"
+                      />
+                    </div>
+                    {formData.pdfUrl && (
+                      <div className="flex items-center space-x-2 bg-primary/5 p-3 rounded-lg border border-primary/20">
+                        <FileText className="w-5 h-5 text-primary" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold truncate">Lien du PDF configuré :</p>
+                          <a href={formData.pdfUrl} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline truncate block">
+                            {formData.pdfUrl}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
               <div className="flex items-center space-x-2">

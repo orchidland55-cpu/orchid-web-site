@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { apiService, Article } from "@/services/api";
-import { Calendar, Clock, ArrowLeft, FileText, ChevronRight } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, FileText, ChevronRight, BookOpen } from "lucide-react";
 import ShareButton from '@/components/ShareButton';
 import { Helmet } from 'react-helmet-async';
 import Header from "@/components/Header";
@@ -19,6 +19,42 @@ import { PriorityImage, LazyImage } from '@/components/OptimizedImage';
 // ---------------------------------------------------------------------------
 const articlePath = (a: Article) => `/${a.slug || a._id}`;
 
+// ---------------------------------------------------------------------------
+// Helper : Page Renderer for PDF using Canvas (100% Inline scrolling)
+// ---------------------------------------------------------------------------
+const PdfPageRenderer = ({ page }: { page: any }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    // Use a reasonable scale (1.5) for crisp rendering on high-DPI screens
+    const viewport = page.getViewport({ scale: 1.5 });
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport,
+    };
+
+    const renderTask = page.render(renderContext);
+
+    return () => {
+      renderTask.cancel();
+    };
+  }, [page]);
+
+  return (
+    <div className="w-full flex justify-center mb-6 shadow-xl border border-border rounded-lg overflow-hidden bg-card">
+      <canvas ref={canvasRef} className="w-full h-auto" />
+    </div>
+  );
+};
+
 const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [article, setArticle] = useState<Article | null>(null);
@@ -26,6 +62,9 @@ const ArticleDetail = () => {
   const [recentArticles, setRecentArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pdfPages, setPdfPages] = useState<any[]>([]);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   function fixImgSrc(html: string): string {
     const cleanStyle = (_: string, pre: string, style: string) => {
@@ -105,6 +144,66 @@ const ArticleDetail = () => {
 
     fetchArticleAndRelated();
   }, [id]);
+
+  useEffect(() => {
+    if (!article || !article.pdfUrl) return;
+
+    let active = true;
+    setPdfLoading(true);
+    setPdfError(null);
+
+    const loadPdf = async () => {
+      try {
+        // Ensure PDF.js script is loaded
+        if (!(window as any).pdfjsLib) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load PDF.js library"));
+            document.head.appendChild(script);
+          });
+        }
+
+        const pdfjsLib = (window as any).pdfjsLib;
+        // Point to standard worker Src to avoid warning/error
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+        // Load PDF document
+        const loadingTask = pdfjsLib.getDocument({
+          url: article.pdfUrl,
+          cMapUrl: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/cmaps/",
+          cMapPacked: true,
+        });
+
+        const pdf = await loadingTask.promise;
+        if (!active) return;
+
+        const pagesArray: any[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          pagesArray.push(page);
+        }
+
+        if (active) {
+          setPdfPages(pagesArray);
+          setPdfLoading(false);
+        }
+      } catch (err: any) {
+        console.error("Error loading PDF: ", err);
+        if (active) {
+          setPdfError("Impossible de charger le document PDF directement.");
+          setPdfLoading(false);
+        }
+      }
+    };
+
+    loadPdf();
+
+    return () => {
+      active = false;
+    };
+  }, [article]);
 
   if (loading) {
     return (
@@ -290,6 +389,7 @@ const ArticleDetail = () => {
               <div className="font-lora flex items-center justify-center mb-6 sm:mb-8">
                 <ShareButton />
               </div>
+
             </div>
           </div>
         </section>
@@ -302,7 +402,6 @@ const ArticleDetail = () => {
 
                 {/* ── Article Content ── */}
                 <div className="flex-1 min-w-0">
-
                   {/* Hero Image */}
                   <div className="mb-8 sm:mb-12">
                     <PriorityImage
@@ -324,6 +423,43 @@ const ArticleDetail = () => {
                                prose-img:rounded-lg prose-img:w-full"
                     dangerouslySetInnerHTML={{ __html: processContent(article.content) }}
                   />
+
+                  {/* Document PDF intégré directement */}
+                  {article.pdfUrl && (
+                    <div className="mt-12 space-y-6 border-t border-border pt-8 animate-fade-in">
+
+                      {pdfLoading && (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-3 bg-muted/10 rounded-lg border border-dashed border-border">
+                          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-sm text-muted-foreground font-lora">Chargement des pages du document...</p>
+                        </div>
+                      )}
+
+                      {pdfError && (
+                        <div className="p-6 bg-destructive/5 border border-destructive/10 rounded-lg text-sm text-destructive font-lora text-center">
+                          <p>{pdfError}</p>
+                          <div className="mt-4">
+                            <a
+                              href={article.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center px-4 py-2 border border-primary/30 text-primary rounded-lg text-xs font-semibold hover:bg-primary/5 transition-colors"
+                            >
+                              Ouvrir le document dans un nouvel onglet
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {!pdfLoading && !pdfError && pdfPages.length > 0 && (
+                        <div className="space-y-6">
+                          {pdfPages.map((page, index) => (
+                            <PdfPageRenderer key={index} page={page} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Right Sidebar ── */}

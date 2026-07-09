@@ -11,6 +11,7 @@ const articleSchema = new mongoose.Schema({
   status: { type: String, enum: ['draft', 'published'], default: 'draft' },
   featured: { type: Boolean, default: false },
   image: String,
+  pdfUrl: String,
   views: { type: Number, default: 0 },
   comments: { type: Number, default: 0 },
 

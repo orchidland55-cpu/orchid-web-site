@@ -51,7 +51,7 @@ const Contact = () => {
       );
 
       const response = await fetch(
-        "https://orchid-web-site-production.up.railway.app/contact",
+        "https://orchid-web-site-production-1f73.up.railway.app/contact",
         {
           method: "POST",
           headers: {

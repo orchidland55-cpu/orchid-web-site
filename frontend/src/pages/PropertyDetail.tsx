@@ -354,7 +354,7 @@ const PropertyDetail = () => {
           );
 
           await fetch(
-            "https://orchid-web-site-production.up.railway.app/lead-activity/view-property",
+            "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/view-property",
             {
               method: "POST",
               headers: {
@@ -395,7 +395,7 @@ const PropertyDetail = () => {
       );
 
       fetch(
-        "https://orchid-web-site-production.up.railway.app/lead-activity/property-time",
+        "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/property-time",
         {
           method: "POST",
           headers: {
@@ -422,7 +422,7 @@ const PropertyDetail = () => {
       );
 
       navigator.sendBeacon(
-        "https://orchid-web-site-production.up.railway.app/lead-activity/property-time",
+        "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/property-time",
         new Blob(
           [
             JSON.stringify({

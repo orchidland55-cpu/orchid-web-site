@@ -56,7 +56,7 @@ const PropertyContactForm = ({ propertyTitle, propertyId }: PropertyContactFormP
         propertyType: "Property Inquiry" // Champ caché
       };
 
-      const response = await fetch('https://orchid-web-site-production.up.railway.app/contact', {
+      const response = await fetch('https://orchid-web-site-production-1f73.up.railway.app/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

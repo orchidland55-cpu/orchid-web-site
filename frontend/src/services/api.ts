@@ -1,6 +1,8 @@
 // API service pour la communication avec le backend
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+
+
 export interface PropertyFormData {
   title: string;
   description: string;

@@ -55,10 +55,6 @@ export const getCloudinaryUrl = (
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${urlOrPublicId}`;
 };
 
-<<<<<<< HEAD
-// ─── Génération de srcSet automatique ────────────────────────────
-// ✅ FIX: options (format/crop/gravity/dpr) transmises à getCloudinaryUrl
-=======
 export const getCloudinaryVideoUrl = (url: string, maxWidth = 1280) => {
   if (!url.includes("/upload/")) return url; // sécurité si l'URL n'est pas Cloudinary
   return url.replace(
@@ -67,8 +63,8 @@ export const getCloudinaryVideoUrl = (url: string, maxWidth = 1280) => {
   );
 };
 
-// ─── NOUVEAU : Génération de srcSet automatique ────────────────────────────
->>>>>>> 584c28b9747acf0db4845cebac374c6b0c356012
+// ─── Génération de srcSet automatique ────────────────────────────
+// ✅ FIX: options (format/crop/gravity/dpr) transmises à getCloudinaryUrl
 export const getSrcSet = (
   urlOrPublicId: string,
   widths: number[] = [400, 600, 800, 1200],

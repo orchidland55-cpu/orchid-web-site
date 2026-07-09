@@ -7,7 +7,7 @@ const WhatsAppButton: React.FC = () => {
   const handleWhatsAppClick = async () => {
     try {
       await fetch(
-        "https://orchid-web-site-production.up.railway.app/lead-activity/whatsapp-click",
+        "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/whatsapp-click",
         {
           method: "POST",
           headers: {

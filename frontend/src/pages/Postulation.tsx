@@ -72,7 +72,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (formData.coverLetter) formDataObj.append('coverLetter', formData.coverLetter);
 
   try {
-    const response = await fetch('https://orchid-web-site-production.up.railway.app/postulation', {
+    const response = await fetch('https://orchid-web-site-production-1f73.up.railway.app/postulation', {
       method: 'POST',
       body: formDataObj,
     });

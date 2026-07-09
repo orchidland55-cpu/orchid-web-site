@@ -79,7 +79,7 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://orchid-web-site-production.up.railway.app/schedule-visit', {
+      const response = await fetch('https://orchid-web-site-production-1f73.up.railway.app/schedule-visit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

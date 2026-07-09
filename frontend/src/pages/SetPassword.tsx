@@ -50,7 +50,7 @@ const SetPassword = () => {
     setError("");
 
     try {
-      const res = await fetch("https://orchid-web-site-production.up.railway.app/api/auth/set-password", {
+      const res = await fetch("https://orchid-web-site-production-1f73.up.railway.app/api/auth/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),

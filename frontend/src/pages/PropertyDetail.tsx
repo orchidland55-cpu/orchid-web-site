@@ -12,7 +12,7 @@ import {
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
 import { Helmet } from "react-helmet-async";
-import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
+import { getCloudinaryUrl, getCloudinaryVideoUrl, optimizeHtmlImages } from "@/services/cloudinary";
 // import ImmersiveTourButton from "@/components/ImmersiveTourButton";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import SimilarProperties from "@/components/SimilarProperties";
@@ -242,7 +242,7 @@ const CinematicGallery = ({
           )}
 
           {/* Bouton Virtual Tour */}
-          {hasVirtualTour && (
+          {/* {hasVirtualTour && (
             <button
               onClick={onOpenTour}
               className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-white text-xs sm:text-sm font-medium transition-colors"
@@ -257,7 +257,7 @@ const CinematicGallery = ({
               <span className="hidden sm:inline">Virtual Tour</span>
               <span className="sm:hidden">Tour</span>
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -298,6 +298,7 @@ const PropertyDetail = () => {
   const [tourOpen, setTourOpen] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [viewStartTime] = useState(Date.now());
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   const fixImgSrc = (html: string): string => {
     return html
@@ -658,15 +659,32 @@ const PropertyDetail = () => {
 
               {/* Vidéo active */}
               <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
+                {videoLoaded ? (
                 <video
                   key={videos[currentVideoIndex]}
                   className="w-full h-full object-contain"
                   controls
-                  preload="metadata"
+                  autoPlay
                   playsInline
                 >
-                  <source src={videos[currentVideoIndex]} type="video/mp4" />
+                  <source src={getCloudinaryVideoUrl(videos[currentVideoIndex])} />
                 </video>
+                ) : (
+                <button
+                 onClick={() => setVideoLoaded(true)}
+                  className="relative w-full h-full"
+                  aria-label="Lancer la vidéo"
+                >
+                  <img
+                   src={optimizedImages[1]?? optimizedImages[0]}
+                   alt="Aperçu vidéo"
+                   className="w-full h-full object-contain"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                   <Play className="w-16 h-16 text-white fill-white/90" />
+                  </div>
+                </button>
+                )}
               </div>
 
               {/* Carrousel dots + miniatures si plusieurs */}

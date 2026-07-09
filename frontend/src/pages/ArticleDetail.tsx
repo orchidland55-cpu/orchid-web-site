@@ -166,8 +166,12 @@ const ArticleDetail = () => {
         }
 
         const pdfjsLib = (window as any).pdfjsLib;
-        // Point to standard worker Src to avoid warning/error
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+        // Load worker via same-origin Blob to avoid cross-origin restrictions on web worker constructors
+        const workerUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+        const blobCode = `importScripts(${JSON.stringify(workerUrl)});`;
+        const blob = new Blob([blobCode], { type: "application/javascript" });
+        const blobUrl = URL.createObjectURL(blob);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = blobUrl;
 
         // Load PDF document
         const loadingTask = pdfjsLib.getDocument({

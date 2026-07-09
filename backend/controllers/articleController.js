@@ -15,16 +15,16 @@ function generateSlug(title) {
   const [firstPart] = title.split(cutPattern);
 
   const accentMap = {
-    à:'a',â:'a',ä:'a',á:'a',ã:'a',
-    è:'e',é:'e',ê:'e',ë:'e',
-    î:'i',ï:'i',í:'i',ì:'i',
-    ô:'o',ö:'o',ó:'o',ò:'o',õ:'o',
-    û:'u',ü:'u',ú:'u',ù:'u',
-    ç:'c',ñ:'n',
-    À:'a',Â:'a',Ä:'a',Á:'a',
-    È:'e',É:'e',Ê:'e',Ë:'e',
-    Î:'i',Ï:'i',Ô:'o',Ö:'o',
-    Û:'u',Ü:'u',Ç:'c',Ñ:'n',
+    à: 'a', â: 'a', ä: 'a', á: 'a', ã: 'a',
+    è: 'e', é: 'e', ê: 'e', ë: 'e',
+    î: 'i', ï: 'i', í: 'i', ì: 'i',
+    ô: 'o', ö: 'o', ó: 'o', ò: 'o', õ: 'o',
+    û: 'u', ü: 'u', ú: 'u', ù: 'u',
+    ç: 'c', ñ: 'n',
+    À: 'a', Â: 'a', Ä: 'a', Á: 'a',
+    È: 'e', É: 'e', Ê: 'e', Ë: 'e',
+    Î: 'i', Ï: 'i', Ô: 'o', Ö: 'o',
+    Û: 'u', Ü: 'u', Ç: 'c', Ñ: 'n',
   };
 
   return firstPart
@@ -41,7 +41,7 @@ function generateSlug(title) {
 // Garantit l'unicité du slug en ajoutant un suffixe numérique si nécessaire
 // ---------------------------------------------------------------------------
 async function ensureUniqueSlug(baseSlug, excludeId = null) {
-  let slug    = baseSlug;
+  let slug = baseSlug;
   let counter = 1;
 
   while (true) {
@@ -138,10 +138,10 @@ exports.addArticle = async (req, res) => {
     // Générer le slug
     // Priorité : slug manuel (champ SEO) → sinon depuis le titre
     const rawSlug = (processedData.slug && processedData.slug.trim())
-    ? generateSlug(processedData.slug)
-    : processedData.title
-    ? generateSlug(processedData.title)
-    : `draft-${Date.now()}`;  // ← fallback si title vide
+      ? generateSlug(processedData.slug)
+      : processedData.title
+        ? generateSlug(processedData.title)
+        : `draft-${Date.now()}`;  // ← fallback si title vide
 
     processedData.slug = await ensureUniqueSlug(rawSlug);
     console.log('🔗 Slug article généré:', processedData.slug);
@@ -186,7 +186,7 @@ exports.updateArticle = async (req, res) => {
 
     // Gestion du slug
     const titleChanged = processedData.title && processedData.title !== existing.title;
-    const manualSlug   = processedData.slug && processedData.slug.trim();
+    const manualSlug = processedData.slug && processedData.slug.trim();
 
     if (manualSlug && processedData.slug !== existing.slug) {
       // Slug fourni manuellement par l'admin
@@ -265,10 +265,10 @@ exports.incrementArticleViews = async (req, res) => {
 
     try {
       const clientIP = req.ip ||
-                       req.connection.remoteAddress ||
-                       req.socket.remoteAddress ||
-                       (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-                       '127.0.0.1';
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
+        '127.0.0.1';
 
       const cleanIP = clientIP.replace(/^::ffff:/, '');
       const country = await getCountryFromIP(cleanIP);

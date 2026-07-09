@@ -335,6 +335,45 @@ export const uploadVideoToCloudinary = (
   });
 };
 
+export const uploadRawToCloudinary = (
+  file: File,
+  folder: string = "orchid/docs",
+  onProgress?: (percent: number) => void
+): Promise<{ url: string; publicId: string }> => {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+    formData.append("folder", folder);
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        resolve({
+          publicId: data.public_id,
+          url: data.secure_url,
+        });
+      } else {
+        reject(new Error(`PDF upload failed: ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("PDF upload failed"));
+
+    // Utilisation de auto pour accepter tous les types de fichiers (PDF compris)
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+    xhr.send(formData);
+  });
+};
+
 
 // ── Types space ────────────────────────────────────────────────────────────────────
 

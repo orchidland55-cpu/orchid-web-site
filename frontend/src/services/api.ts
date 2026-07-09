@@ -89,6 +89,7 @@ export interface ArticleFormData {
   featured: boolean;
   image: string;
   tags: string;
+  pdfUrl?: string;
   // ── SEO ──────────────────────────────────────
   slug?: string;
   seoTitle?: string;
@@ -112,6 +113,7 @@ export interface ArticleData {
   featured: boolean;
   image: string;
   tags: string[];
+  pdfUrl?: string;
   // ── SEO ──────────────────────────────────────
   slug?: string;
   seoTitle?: string;
@@ -634,6 +636,7 @@ class ApiService {
       status: formData.status,
       featured: formData.featured,
       image: formData.image,
+      pdfUrl: formData.pdfUrl || undefined,
       tags: formData.tags
         ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).slice(0, 10)
         : [],

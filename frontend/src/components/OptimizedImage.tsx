@@ -45,7 +45,6 @@ export const OptimizedImage = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [blurSrc, setBlurSrc] = useState<string | undefined>(undefined);
 
-  // Générer le placeholder blur-up
   useEffect(() => {
     if (blurPlaceholder && src) {
       setBlurSrc(getBlurPlaceholder(src));
@@ -58,16 +57,18 @@ export const OptimizedImage = ({
     gravity,
   });
 
-  const srcSet = getSrcSet(src, widths, height, quality);
+  // ✅ FIX 1 : options (format/crop/gravity) transmises à getSrcSet, pour que
+  // chaque entrée du srcset utilise le même crop que l'image affichée.
+  // ✅ FIX 2 : pas de srcset généré s'il n'y a qu'une seule largeur (vignettes).
+  const srcSet =
+    widths.length > 1
+      ? getSrcSet(src, widths, height, quality, { format, crop, gravity })
+      : undefined;
 
   const handleLoad = () => {
     setIsLoaded(true);
     onLoad?.();
   };
-
-  // const handleError = () => {
-  //   onError?.();
-  // };
 
   return (
     <img

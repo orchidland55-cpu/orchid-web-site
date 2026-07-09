@@ -1,6 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { Routes, Route } from "react-router-dom";
 import PageTransition from "./PageTransition";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -51,12 +50,9 @@ const AdminAnalytics = lazy(() => import("@/pages/AdminAnalytics"));
 const AdminContacts = lazy(() => import("@/pages/AdminContacts"));
 
 const AnimatedRoutes = () => {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        {/* ── Publiques ── */}
+    <Routes>
+      {/* ── Publiques ── */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/contact-us/careers/" element={<PageTransition><Postulation /></PageTransition>} />
         <Route path="/real-estate-guide-orchid-island-marrakech" element={<PageTransition><Blog /></PageTransition>} />
@@ -100,10 +96,9 @@ const AnimatedRoutes = () => {
         <Route path="/admin/contacts" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><PageTransition><AdminContacts /></PageTransition></ProtectedRoute>} />
         <Route path="/space-manager" element={<ProtectedRoute allowedRoles={['admin']}><PageTransition><SpaceManagerPage /></PageTransition></ProtectedRoute>} />
 
-        {/* ── 404 ── */}
+      {/* ── 404 ── */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
-    </AnimatePresence>
   );
 };
 

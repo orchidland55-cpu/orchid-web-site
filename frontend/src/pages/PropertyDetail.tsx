@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,15 @@ import { apiService, Property } from "@/services/api";
 import { Helmet } from "react-helmet-async";
 import { getCloudinaryUrl, optimizeHtmlImages } from "@/services/cloudinary";
 // import ImmersiveTourButton from "@/components/ImmersiveTourButton";
-import ImmersiveTourModal from "@/components/ImmersiveTourModal";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import SimilarProperties from "@/components/SimilarProperties";
 import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF } from "@/config/schema";
 import { OptimizedImage, LazyImage } from "@/components/OptimizedImage";
+
+// ✅ Lazy-load : GSAP (utilisé à l'intérieur de ce composant) ne se charge
+// désormais que si le visiteur clique réellement sur "Virtual Tour",
+// au lieu d'être téléchargé à chaque visite d'une fiche propriété.
+const ImmersiveTourModal = lazy(() => import("@/components/ImmersiveTourModal"));
 
 
 
@@ -715,47 +719,36 @@ const PropertyDetail = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                   {[
                     {
-                      key: "bedrooms",
                       icon: <Bed className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.bedrooms,
                       label: "Chambres",
-                      show: property.bedrooms !== 0,
                     },
                     {
-                      key: "bathrooms",
                       icon: <Bath className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.bathrooms,
                       label: "Salles de bain",
-                      show: property.bathrooms !== 0,
                     },
                     {
-                      key: "area",
                       icon: <Square className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.area,
                       label: "m²",
-                      show: property.area !== 0,
                     },
                     {
-                      key: "yearBuilt",
                       icon: <Building className="w-5 h-5 sm:w-6 sm:h-6 text-primary mx-auto mb-2" />,
                       value: property.yearBuilt,
                       label: "Année",
-                      show: property.yearBuilt !== 0 && property.yearBuilt !== undefined,
                     },
-                  ]
-                    .filter((item) => item.show)
-                    .map(({ icon, value, label, key }) => (
-                      <div
-                        key={key}
-                        className="text-center p-3 sm:p-4 bg-card rounded-lg border"
-                      >
-                        {icon}
-                        <div className="text-xl sm:text-2xl font-bold">{value}</div>
-                        <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
-                      </div>
-                    ))}
+                  ].map(({ icon, value, label }) => (
+                    <div
+                      key={label}
+                      className="text-center p-3 sm:p-4 bg-card rounded-lg border"
+                    >
+                      {icon}
+                      <div className="text-xl sm:text-2xl font-bold">{value}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">{label}</div>
+                    </div>
+                  ))}
                 </div>
-
 
                 {/* Description */}
                 <div>
@@ -797,18 +790,9 @@ const PropertyDetail = () => {
                     <div className="space-y-3 text-sm sm:text-base">
                       {[
                         { label: "Type", value: property.type },
-                        {
-                          label: "Surface",
-                          value: property.area !== 0 ? `${property.area} m²` : "",
-                        },
-                        {
-                          label: "Chambres",
-                          value: property.bedrooms !== 0 ? property.bedrooms : "",
-                        },
-                        {
-                          label: "Salles de bain",
-                          value: property.bathrooms !== 0 ? property.bathrooms : "",
-                        },
+                        { label: "Surface", value: `${property.area} m²` },
+                        { label: "Chambres", value: property.bedrooms },
+                        { label: "Salles de bain", value: property.bathrooms },
                         { label: "Année", value: property.yearBuilt },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between gap-4">
@@ -816,7 +800,6 @@ const PropertyDetail = () => {
                           <span className="font-medium text-right">{value}</span>
                         </div>
                       ))}
-
 
                       {(property.garden ||
                         property.pool ||
@@ -866,13 +849,17 @@ const PropertyDetail = () => {
           </div>
         </section>
 
-        <ImmersiveTourModal
-          videos={videos}
-          images={optimizedImages}
-          propertyTitle={property.title}
-          isOpen={tourOpen}
-          onClose={() => setTourOpen(false)}
-        />
+        {tourOpen && (
+          <Suspense fallback={null}>
+            <ImmersiveTourModal
+              videos={videos}
+              images={optimizedImages}
+              propertyTitle={property.title}
+              isOpen={tourOpen}
+              onClose={() => setTourOpen(false)}
+            />
+          </Suspense>
+        )}
         <SimilarProperties
           currentPropertyId={property._id}
           type={property.type}

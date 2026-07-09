@@ -1,46 +1,33 @@
-import { motion } from "framer-motion";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 interface PageTransitionProps {
   children: ReactNode;
 }
 
+// ✅ CSS pur — supprime framer-motion du bundle principal (~140 Kio)
 const PageTransition = ({ children }: PageTransitionProps) => {
-  const pageVariants = {
-    initial: {
-      opacity: 0,
-      y: 30,
-      scale: 0.98,
-    },
-    in: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-    },
-    out: {
-      opacity: 0,
-      y: -30,
-      scale: 1.02,
-    },
-  };
+  const ref = useRef<HTMLDivElement>(null);
 
-  const pageTransition = {
-    type: "tween",
-    ease: [0.25, 0.46, 0.45, 0.94], // Luxury easing curve
-    duration: 0.6,
-  };
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Force un reflow puis déclenche l'animation
+    el.style.opacity = "0";
+    el.style.transform = "translateY(20px)";
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = "opacity 0.45s cubic-bezier(0.25,0.46,0.45,0.94), transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94)";
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0)";
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
-    <motion.div
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-      className="w-full"
-    >
+    <div ref={ref} className="w-full" style={{ willChange: "opacity, transform" }}>
       {children}
-    </motion.div>
+    </div>
   );
 };
 

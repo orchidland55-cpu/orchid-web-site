@@ -1,7 +1,6 @@
 import { HelmetProvider } from "react-helmet-async";
 import GlobalSchema from "./components/GlobalSchema";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, useLocation } from "react-router-dom";
@@ -14,7 +13,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import { useGoogleTranslate } from '@/hooks/useGoogleTranslate';
-
 
 // ✅ Widgets en lazy loading
 const ChatbaseWidget = lazy(() => import("@/components/ChatbaseWidget"));
@@ -42,6 +40,53 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// ✅ Hook déplacé hors du composant App pour éviter la recréation à chaque render
+const useWidgets = () => {
+  const location = useLocation();
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldLoad(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isAdmin = location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/space-manager") ||
+    location.pathname.startsWith("/editor");
+
+  return { shouldLoad, isAdmin };
+};
+
+const trackPageView = async (path: string) => {
+  try {
+    const ReactGA = (await import('react-ga4')).default;
+    ReactGA.send({ hitType: 'pageview', page: path });
+  } catch {
+    // Ignorer les erreurs
+  }
+};
+
+const PublicWidgets = () => {
+  const location = useLocation();
+  const { shouldLoad, isAdmin } = useWidgets();
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
+
+  if (isAdmin) return null;
+  if (!shouldLoad) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <ChatbaseWidget />
+      <WhatsAppButton />
+    </Suspense>
+  );
+};
 
 function App() {
   startKeepAlive();
@@ -71,7 +116,6 @@ function App() {
         Date.now();
 
       localStorage.setItem("visitorId", visitorId);
-      console.log("Visitor ID created:", visitorId);
     }
 
     const locationStored = localStorage.getItem("visitorLocation");
@@ -83,12 +127,10 @@ function App() {
         return;
       }
 
-      // Si refusé précédemment, on retente.
       localStorage.removeItem("visitorLocation");
     }
 
-    console.log("Requesting GPS permission...");
-
+    // ✅ Timeout réduit à 5s, précision standard (meilleur pour mobile)
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const locationData = {
@@ -98,12 +140,8 @@ function App() {
         };
 
         localStorage.setItem("visitorLocation", JSON.stringify(locationData));
-        console.log("GPS location saved:", locationData);
       },
-      (error) => {
-        console.log("Location denied:", error.message);
-        console.log("Location error:", error);
-
+      () => {
         localStorage.setItem(
           "visitorLocation",
           JSON.stringify({
@@ -114,59 +152,12 @@ function App() {
         );
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        enableHighAccuracy: false, // ✅ false = plus rapide sur mobile
+        timeout: 5000,             // ✅ 5s au lieu de 10s
+        maximumAge: 60000,         // ✅ Accepter un cache de 1 minute
       }
     );
   }, []);
-
-  // ✅ Hook pour charger les widgets après 3 secondes
-  const useWidgets = () => {
-    const location = useLocation();
-    const [shouldLoad, setShouldLoad] = useState(false);
-
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setShouldLoad(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }, []);
-
-    const isAdmin = location.pathname.startsWith("/admin") ||
-      location.pathname.startsWith("/space-manager") ||
-      location.pathname.startsWith("/editor");
-
-    return { shouldLoad, isAdmin };
-  };
-
-  const trackPageView = async (path: string) => {
-    try {
-      const ReactGA = (await import('react-ga4')).default;
-      ReactGA.send({ hitType: 'pageview', page: path });
-    } catch (error) {
-      // Ignorer les erreurs
-    }
-  };
-
-  const PublicWidgets = () => {
-    const location = useLocation();
-    const { shouldLoad, isAdmin } = useWidgets();
-
-    useEffect(() => {
-      trackPageView(location.pathname + location.search);
-    }, [location]);
-
-    if (isAdmin) return null;
-    if (!shouldLoad) return null;
-
-    return (
-      <Suspense fallback={null}>
-        <ChatbaseWidget />
-        <WhatsAppButton />
-      </Suspense>
-    );
-  };
 
   return (
     <div key={languageKey}>
@@ -187,7 +178,6 @@ function App() {
 
                 <PublicWidgets />
                 <Toaster />
-                <Sonner />
                 <ToastContainer />
               </Router>
             </TooltipProvider>

@@ -3,7 +3,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 
-// ─── NOUVEAU : Interface pour les options d'optimisation ──────────────────
+// ─── Interface pour les options d'optimisation ──────────────────
 export interface CloudinaryOptimizeOptions {
   width?: number;
   height?: number;
@@ -15,7 +15,7 @@ export interface CloudinaryOptimizeOptions {
   dpr?: number; // Device Pixel Ratio pour retina
 }
 
-// ─── AMÉLIORATION : getCloudinaryUrl avec plus d'options ──────────────────
+// ─── getCloudinaryUrl avec plus d'options ──────────────────
 export const getCloudinaryUrl = (
   urlOrPublicId: string,
   width?: number,
@@ -32,7 +32,6 @@ export const getCloudinaryUrl = (
     dpr,
   } = options;
 
-  // Construction des transformations
   const transforms = [
     `f_${format}`,
     `q_${quality}`,
@@ -45,42 +44,42 @@ export const getCloudinaryUrl = (
     .filter(Boolean)
     .join(",");
 
-  // Cas 1 : URL complète Cloudinary
   if (urlOrPublicId.includes("res.cloudinary.com")) {
-    // Supprime les transformations existantes entre /upload/ et le versionning/path
     return urlOrPublicId.replace(
       /\/upload\/(?:[a-zA-Z0-9_,/:]+\/)*?(v\d+\/)/,
       `/upload/${transforms}/$1`
     );
   }
 
-  // Cas 2 : publicId seul → on reconstruit l'URL complète
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${urlOrPublicId}`;
 };
 
-// ─── NOUVEAU : Génération de srcSet automatique ────────────────────────────
+// ─── Génération de srcSet automatique ────────────────────────────
+// ✅ FIX: options (format/crop/gravity/dpr) transmises à getCloudinaryUrl
 export const getSrcSet = (
   urlOrPublicId: string,
   widths: number[] = [400, 600, 800, 1200],
   height?: number,
-  quality: number | 'auto' = 'auto'
+  quality: number | 'auto' = 'auto',
+  options: CloudinaryOptimizeOptions = {}
 ): string => {
   return widths
     .map((w) => {
-      const url = getCloudinaryUrl(urlOrPublicId, w, height, quality);
+      const url = getCloudinaryUrl(urlOrPublicId, w, height, quality, options);
       return `${url} ${w}w`;
     })
     .join(', ');
 };
 
-// ─── NOUVEAU : Génération de srcSet pour retina ────────────────────────────
+// ─── Génération de srcSet pour retina ────────────────────────────
+// ✅ FIX: même correctif — options transmises à getCloudinaryUrl
 export const getResponsiveSrcSet = (
   urlOrPublicId: string,
   baseWidths: number[] = [400, 600, 800, 1200],
   height?: number,
-  quality: number | 'auto' = 'auto'
+  quality: number | 'auto' = 'auto',
+  options: CloudinaryOptimizeOptions = {}
 ): { srcSet: string; sizes: string } => {
-  // Pour les écrans retina (2x), on double les largeurs
   const allWidths = [
     ...baseWidths,
     ...baseWidths.map(w => w * 2),
@@ -88,12 +87,11 @@ export const getResponsiveSrcSet = (
 
   const srcSet = allWidths
     .map((w) => {
-      const url = getCloudinaryUrl(urlOrPublicId, w, height, quality);
+      const url = getCloudinaryUrl(urlOrPublicId, w, height, quality, options);
       return `${url} ${w}w`;
     })
     .join(', ');
 
-  // Sizes adaptatives
   const sizes = baseWidths
     .map((w, i) => {
       const next = baseWidths[i + 1];
@@ -107,7 +105,7 @@ export const getResponsiveSrcSet = (
   return { srcSet, sizes };
 };
 
-// ─── AMÉLIORATION : optimizeHtmlImages avec plus d'options ────────────────
+// ─── optimizeHtmlImages avec plus d'options ────────────────────
 export const optimizeHtmlImages = (
   html: string,
   width?: number,
@@ -117,7 +115,6 @@ export const optimizeHtmlImages = (
 ): string => {
   if (!html) return html;
 
-  // Remplace chaque src="...cloudinary..." par sa version optimisée
   return html.replace(
     /(<img[^>]+src=")([^"]*res\.cloudinary\.com[^"]*)(")/gi,
     (_, before, url, after) => {
@@ -127,7 +124,7 @@ export const optimizeHtmlImages = (
   );
 };
 
-// ─── NOUVEAU : Optimisation des images avec lazy loading automatique ──────
+// ─── Optimisation des images avec lazy loading automatique ──────
 export const optimizeHtmlWithLazy = (
   html: string,
   width?: number,
@@ -139,11 +136,9 @@ export const optimizeHtmlWithLazy = (
 
   let optimized = optimizeHtmlImages(html, width, height, quality, options);
 
-  // Ajoute lazy loading et decoding async si non présents
   optimized = optimized.replace(
     /<img([^>]*?)>/gi,
     (match, attrs) => {
-      // Ne pas ajouter lazy si déjà présent ou si c'est une image critique
       if (attrs.includes('loading=') || attrs.includes('fetchpriority="high"')) {
         return match;
       }
@@ -154,7 +149,7 @@ export const optimizeHtmlWithLazy = (
   return optimized;
 };
 
-// ─── NOUVEAU : Image placeholder (blur-up) ────────────────────────────────
+// ─── Image placeholder (blur-up) ────────────────────────────────
 export const getBlurPlaceholder = (
   urlOrPublicId: string,
   size: number = 20
@@ -166,7 +161,7 @@ export const getBlurPlaceholder = (
   });
 };
 
-// ─── NOUVEAU : URL pour les vidéos optimisées ─────────────────────────────
+// ─── URL pour les vidéos optimisées ─────────────────────────────
 export const getOptimizedVideoUrl = (
   urlOrPublicId: string,
   width?: number,
@@ -199,7 +194,7 @@ export interface ImageDimensions {
   aspectRatio: number;
 }
 
-// ─── NOUVEAU : Calcule les dimensions optimales ────────────────────────────
+// ─── Calcule les dimensions optimales ────────────────────────────
 export const getOptimalDimensions = (
   containerWidth: number,
   containerHeight?: number,
@@ -213,7 +208,7 @@ export const getOptimalDimensions = (
   } else if (typeof aspectRatio === 'number') {
     ratio = aspectRatio;
   } else {
-    ratio = 16 / 9; // Default
+    ratio = 16 / 9;
   }
 
   let width = containerWidth;
@@ -232,22 +227,6 @@ export const getOptimalDimensions = (
 };
 
 // ─── Reste du fichier inchangé ─────────────────────────────────────────────
-
-export interface CloudinaryUploadResult {
-  publicId: string;
-  url: string;
-  width: number;
-  height: number;
-}
-
-export interface CloudinaryVideoUploadResult {
-  publicId: string;
-  url: string;
-  duration: number;
-  format: string;
-}
-
-// ... (le reste de votre code d'upload reste identique)
 
 export interface CloudinaryUploadResult {
   publicId: string;
@@ -306,7 +285,6 @@ export const uploadToCloudinary = (
 };
 
 // ── Upload vidéo ──────────────────────────────────────────────────────────────
-// Même logique que uploadToCloudinary mais pointe vers /video/upload
 
 export const uploadVideoToCloudinary = (
   file: File,
@@ -343,7 +321,6 @@ export const uploadVideoToCloudinary = (
 
     xhr.onerror = () => reject(new Error("Video upload failed"));
 
-    // ✅ /video/upload au lieu de /image/upload
     xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`);
     xhr.send(formData);
   });

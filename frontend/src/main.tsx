@@ -1,14 +1,11 @@
 // ── Polices auto-hébergées (remplace Google Fonts) ──
+// ✅ Réduit de 10 → 6 fichiers de polices pour accélérer le démarrage
 import '@fontsource/playfair-display/400.css';
-import '@fontsource/playfair-display/500.css';
-import '@fontsource/playfair-display/600.css';
 import '@fontsource/playfair-display/700.css';
 import '@fontsource/lora/400.css';
 import '@fontsource/lora/700.css';
-import '@fontsource/inter/300.css';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
 
 // ── App ──────────────────────────────────────────────
 import { createRoot } from 'react-dom/client';
@@ -33,7 +30,5 @@ setTimeout(loadGTM, 3000); // Charger après 3 secondes
 setTimeout(loadAnalytics, 2000);
 
 createRoot(document.getElementById("root")!).render(
-  <HelmetProvider>
-    <App />
-  </HelmetProvider>
+  <App />
 );

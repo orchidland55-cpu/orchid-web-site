@@ -73,10 +73,19 @@ const cacheMiddleware = (req, res, next) => {
 const app = express();
 app.set('trust proxy', 1); // pour obtenir l'IP réelle du client derrière un proxy (ex: Railway)
 app.use(compression());
+// Helmet config: disable helmet-managed CSP (frontend can be configured separately)
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }));
+
+// IMPORTANT: Do NOT set document-level CSP from within API endpoints.
+// CSP is enforced by the browser on the *page* origin, and adding restrictive
+// headers here can break admin login/verify fetch() calls.
+//
+// If you need CSP, configure it at the HTML/document layer (or remove it from
+// the API layer entirely).
+
 
 const PORT = process.env.PORT || 3000;
 

@@ -657,7 +657,7 @@ const AdminAddArticle = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <SEOAnalyzer
+                  {/*<SEOAnalyzer
                     seoTitle={formData.seoTitle}
                     metaDescription={formData.excerpt}
                     slug={formData.slug}
@@ -667,7 +667,7 @@ const AdminAddArticle = () => {
                     imageAlt={formData.imageAlt}
                     ogTitle={formData.ogTitle}
                     twitterTitle={formData.twitterTitle}
-                  />
+                  />*/}
                 </CardContent>
               </Card>
 

@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import PageTransition from "./PageTransition";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -51,8 +51,13 @@ const AdminAnalytics = lazy(() => import("@/pages/AdminAnalytics"));
 const AdminContacts = lazy(() => import("@/pages/AdminContacts"));
 
 const AnimatedRoutes = () => {
+  // ✅ location.pathname utilisé comme key sur <Routes> : force le remount
+  // (et donc le fade-in de PageTransition) même quand on navigue entre deux
+  // URLs qui matchent la même route dynamique (ex: /:id, /property/:id).
+  const location = useLocation();
+
   return (
-    <Routes>
+    <Routes location={location} key={location.pathname}>
       {/* ── Publiques ── */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/contact-us/careers/" element={<PageTransition><Postulation /></PageTransition>} />

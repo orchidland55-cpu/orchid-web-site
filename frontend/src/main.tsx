@@ -13,7 +13,7 @@ import App from './App.tsx';
 import './index.css';
 //import './i18n';
 import { HelmetProvider } from 'react-helmet-async';
-import { loadGTM } from '@/utils/gtm';
+
 
 // ✅ Charger Google Analytics après le rendu initial (2 secondes de délai)
 const loadAnalytics = async () => {
@@ -25,7 +25,7 @@ const loadAnalytics = async () => {
   }
 };
 
-setTimeout(loadGTM, 3000); // Charger après 3 secondes
+
 // Démarrer le chargement après 2 secondes pour ne pas bloquer le rendu
 setTimeout(loadAnalytics, 2000);
 

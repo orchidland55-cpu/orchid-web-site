@@ -10,6 +10,9 @@ python-dotenv
 redis[asyncio]
 pymongo
 
+# PostgreSQL
+psycopg2-binary
+
 # ChromaDB + embeddings
 chromadb
 openai

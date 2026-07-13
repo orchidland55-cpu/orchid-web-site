@@ -15,7 +15,9 @@ import AnimatedRoutes from "./components/AnimatedRoutes";
 import { useGoogleTranslate } from '@/hooks/useGoogleTranslate';
 
 // ✅ Widgets en lazy loading
-const ChatbaseWidget = lazy(() => import("@/components/ChatbaseWidget"));
+// ChatbaseWidget désactivé : remplacé par notre propre chatbot (Chatbot-AI).
+// Le fichier reste disponible (components/ChatbaseWidget.tsx) si besoin de revenir en arrière.
+const Chatbot = lazy(() => import("@/components/Chatbot"));
 const WhatsAppButton = lazy(() => import("@/components/WhatsAppButton"));
 
 // ── Fallback pendant le chargement ────────────────────────────────────────
@@ -82,7 +84,7 @@ const PublicWidgets = () => {
 
   return (
     <Suspense fallback={null}>
-      <ChatbaseWidget />
+      <Chatbot />
       <WhatsAppButton />
     </Suspense>
   );

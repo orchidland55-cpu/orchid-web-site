@@ -1,4 +1,4 @@
-const BASE_URL = 'https://orchid-web-site-production.up.railway.app'
+const BASE_URL = 'https://orchid-web-site-production-1f73.up.railway.app'
 
 interface Article {
   _id: string

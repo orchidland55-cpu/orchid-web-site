@@ -74,10 +74,19 @@ const cacheMiddleware = (req, res, next) => {
 const app = express();
 app.set('trust proxy', 1); // pour obtenir l'IP réelle du client derrière un proxy (ex: Railway)
 app.use(compression());
+// Helmet config: disable helmet-managed CSP (frontend can be configured separately)
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }));
+
+// IMPORTANT: Do NOT set document-level CSP from within API endpoints.
+// CSP is enforced by the browser on the *page* origin, and adding restrictive
+// headers here can break admin login/verify fetch() calls.
+//
+// If you need CSP, configure it at the HTML/document layer (or remove it from
+// the API layer entirely).
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -278,14 +287,22 @@ const spaceAccessLimiter = rateLimit({
 });
 
 // Limiter global
-const globalLimiter = rateLimit({
+const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
-  message: "Trop de requêtes, veuillez réessayer plus tard."
+  skip: (req) => {
+    return (
+      req.path === "/" ||
+      req.path.startsWith("/properties") ||
+      req.path.startsWith("/articles") ||
+      req.path.startsWith("/api/analytics/track-page")
+    );
+  }
 });
-app.use(globalLimiter);
+
+app.use("/api", apiLimiter);
 
 // Anti brute-force login
 const loginLimiter = rateLimit({

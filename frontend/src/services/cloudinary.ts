@@ -134,6 +134,12 @@ export const optimizeHtmlImages = (
 };
 
 // ─── Optimisation des images avec lazy loading automatique ──────
+// ✅ FIX PERFORMANCE : fixImgSrc (côté PropertyDetail) supprime width/height
+// des <img> de la description avant l'appel à cette fonction. On les
+// réinjecte donc ici (si absents) en plus de loading="lazy" decoding="async",
+// afin d'éviter :
+//   - l'alerte Lighthouse "images sans width/height explicites"
+//   - le CLS (layout shift) au chargement de la description
 export const optimizeHtmlWithLazy = (
   html: string,
   width?: number,
@@ -148,10 +154,20 @@ export const optimizeHtmlWithLazy = (
   optimized = optimized.replace(
     /<img([^>]*?)>/gi,
     (match, attrs) => {
-      if (attrs.includes('loading=') || attrs.includes('fetchpriority="high"')) {
-        return match;
+      let newAttrs = attrs;
+
+      // Réinjecte width/height seulement s'ils ne sont pas déjà présents
+      if (width && !/\swidth\s*=/i.test(newAttrs)) {
+        newAttrs += ` width="${width}"`;
       }
-      return `<img${attrs} loading="lazy" decoding="async">`;
+      if (height && !/\sheight\s*=/i.test(newAttrs)) {
+        newAttrs += ` height="${height}"`;
+      }
+
+      if (/\sloading\s*=/i.test(newAttrs) || newAttrs.includes('fetchpriority="high"')) {
+        return `<img${newAttrs}>`;
+      }
+      return `<img${newAttrs} loading="lazy" decoding="async">`;
     }
   );
 

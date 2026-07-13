@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import PageTransition from "./PageTransition";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -21,6 +21,7 @@ const SetPassword = lazy(() => import("@/pages/SetPassword"));
 const PrivacyPolicy = lazy(() => import("@/pages/Privacypolicy "));
 const TermsAndConditions = lazy(() => import("@/pages/Termsandconditions"));
 const LegalNotice = lazy(() => import("@/pages/Legalnotice"));
+const Disclaimer = lazy(() => import("@/pages/Disclaimer"));
 
 // ── Services ────────────────────────────────────────────────────────────
 const Services = lazy(() => import("@/pages/services/Services"));
@@ -50,8 +51,13 @@ const AdminAnalytics = lazy(() => import("@/pages/AdminAnalytics"));
 const AdminContacts = lazy(() => import("@/pages/AdminContacts"));
 
 const AnimatedRoutes = () => {
+  // ✅ location.pathname utilisé comme key sur <Routes> : force le remount
+  // (et donc le fade-in de PageTransition) même quand on navigue entre deux
+  // URLs qui matchent la même route dynamique (ex: /:id, /property/:id).
+  const location = useLocation();
+
   return (
-    <Routes>
+    <Routes location={location} key={location.pathname}>
       {/* ── Publiques ── */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/contact-us/careers/" element={<PageTransition><Postulation /></PageTransition>} />
@@ -67,6 +73,7 @@ const AnimatedRoutes = () => {
         <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms-and-conditions" element={<PageTransition><TermsAndConditions /></PageTransition>} />
         <Route path="/legal-notice" element={<PageTransition><LegalNotice /></PageTransition>} />
+        <Route path="/disclaimer" element={<PageTransition><Disclaimer /></PageTransition>} />
         <Route path="/set-password" element={<PageTransition><SetPassword /></PageTransition>} />
 
         {/* ── Services ── */}

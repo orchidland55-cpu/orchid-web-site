@@ -767,6 +767,29 @@ class ApiService {
   }
 
   // ============================================================
+  // CAREERS
+  // ============================================================
+  async getAllCareers(): Promise<any[]> {
+    return this.request<any[]>('/api/careers');
+  }
+
+  async getCareerById(id: string): Promise<any> {
+    return this.request<any>(`/api/careers/${id}`);
+  }
+
+  async createCareer(data: any): Promise<any> {
+    return this.request<any>('/api/careers', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateCareer(id: string, data: any): Promise<any> {
+    return this.request<any>(`/api/careers/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async deleteCareer(id: string): Promise<any> {
+    return this.request<any>(`/api/careers/${id}`, { method: 'DELETE' });
+  }
+
+  // ============================================================
   // ACTIVITÉS & ANALYTICS
   // ============================================================
 

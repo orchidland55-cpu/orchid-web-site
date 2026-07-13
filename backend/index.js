@@ -24,6 +24,7 @@ const propertyController = require('./controllers/propertyController');
 const articleController = require('./controllers/articleController');
 const contactController = require('./controllers/contactController');
 const dashboardController = require('./controllers/dashboardController');
+const careerController = require('./controllers/careerController');
 const { sendPostulation } = require('./controllers/postulationController');
 const { sendInvestmentEmail } = require('./controllers/investController');
 const { sendMessageToChatbot } = require('./controllers/chatbotController');
@@ -412,6 +413,13 @@ app.post(
 // ===== Dashboard routes =====
 app.get('/dashboard/stats', verifyJWT, requireAdminOrEditor, dashboardController.getDashboardStats);
 app.get('/dashboard/details/:type', verifyJWT, requireAdminOrEditor, dashboardController.getDetailedStats);
+
+// ===== Career routes =====
+app.get('/api/careers', verifyJWT, requireAdminOrEditor, careerController.getAllCareers);
+app.get('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.getCareerById);
+app.post('/api/careers', verifyJWT, requireAdminOrEditor, careerController.addCareer);
+app.put('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.updateCareer);
+app.delete('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.deleteCareer);
 
 // ===== Postulation route =====
 app.post('/postulation', formLimiter, sendPostulation);

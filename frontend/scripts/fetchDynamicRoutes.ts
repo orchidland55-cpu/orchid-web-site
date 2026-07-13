@@ -22,8 +22,8 @@ export async function fetchDynamicRoutes(): Promise<string[]> {
     const articlesData  = await articlesRes.json()  as Article[]  | { data: Article[] }
     const propertiesData = await propertiesRes.json() as Property[] | { data: Property[] }
 
-    const articles   = Array.isArray(articlesData)   ? articlesData   : articlesData.data
-    const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData.data
+    const articles   = Array.isArray(articlesData)   ? articlesData   : (articlesData && articlesData.data ? articlesData.data : [])
+    const properties = Array.isArray(propertiesData) ? propertiesData : (propertiesData && propertiesData.data ? propertiesData.data : [])
 
     // ✅ Slug en priorité, _id en fallback (rétrocompatibilité)
     const blogRoutes = articles

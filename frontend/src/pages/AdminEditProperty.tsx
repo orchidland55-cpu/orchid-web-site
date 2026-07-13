@@ -870,7 +870,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {/*<SEOAnalyzer
+                <SEOAnalyzer
                   seoTitle={formData.seoTitle}
                   metaDescription={formData.metaDescription}
                   slug={formData.slug}
@@ -880,7 +880,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                   imageAlt={formData.imageAlt}
                   ogTitle={formData.ogTitle}
                   twitterTitle={formData.twitterTitle}
-                />*/}
+                />
               </CardContent>
             </Card>
 

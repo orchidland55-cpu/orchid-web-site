@@ -89,7 +89,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
             if (id.includes('date-fns'))         return 'date-vendor';
             if (id.includes('framer-motion'))    return 'animation-vendor';
             if (id.includes('gsap'))             return 'animation-vendor';
-            if (id.includes('recharts'))         return 'charts-vendor';
+            
             if (id.includes('embla-carousel'))   return 'carousel-vendor';
             if (id.includes('axios'))            return 'http-vendor';
             if (id.includes('zod'))              return 'forms-vendor';

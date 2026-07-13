@@ -103,7 +103,7 @@ const Footer = () => {
             <div className="font-lora text-ivory-white/60 text-sm">
               © {year} Orchid Island. All rights reserved.
             </div>
-            <div className="flex space-x-6 font-lora text-sm">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 font-lora text-sm">
               <a href="/privacy-policy" className="text-ivory-white/60 hover:text-primary transition-smooth">
                 Privacy Policy
               </a>
@@ -112,6 +112,9 @@ const Footer = () => {
               </a>
               <a href="/legal-notice" className="text-ivory-white/60 hover:text-primary transition-smooth">
                 Legal Notice
+              </a>
+              <a href="/disclaimer" className="text-ivory-white/60 hover:text-primary transition-smooth">
+                Disclaimer
               </a>
               {/* <CookieSettings /> */}
             </div>

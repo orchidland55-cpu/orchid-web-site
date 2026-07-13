@@ -21,6 +21,7 @@ const SetPassword = lazy(() => import("@/pages/SetPassword"));
 const PrivacyPolicy = lazy(() => import("@/pages/Privacypolicy "));
 const TermsAndConditions = lazy(() => import("@/pages/Termsandconditions"));
 const LegalNotice = lazy(() => import("@/pages/Legalnotice"));
+const Disclaimer = lazy(() => import("@/pages/Disclaimer"));
 
 // ── Services ────────────────────────────────────────────────────────────
 const Services = lazy(() => import("@/pages/services/Services"));
@@ -67,6 +68,7 @@ const AnimatedRoutes = () => {
         <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms-and-conditions" element={<PageTransition><TermsAndConditions /></PageTransition>} />
         <Route path="/legal-notice" element={<PageTransition><LegalNotice /></PageTransition>} />
+        <Route path="/disclaimer" element={<PageTransition><Disclaimer /></PageTransition>} />
         <Route path="/set-password" element={<PageTransition><SetPassword /></PageTransition>} />
 
         {/* ── Services ── */}

@@ -1,0 +1,12 @@
+.git
+__pycache__
+.venv
+venv
+.env
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+pytest_cache
+alembic/versions/*.pyc
+chroma/

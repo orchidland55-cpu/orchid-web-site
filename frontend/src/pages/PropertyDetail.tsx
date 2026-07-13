@@ -12,7 +12,7 @@ import {
 import "../styles/slider.css";
 import { apiService, Property } from "@/services/api";
 import { Helmet } from "react-helmet-async";
-import { getCloudinaryUrl, getCloudinaryVideoUrl, optimizeHtmlImages } from "@/services/cloudinary";
+import { getCloudinaryUrl, getCloudinaryVideoUrl, optimizeHtmlWithLazy } from "@/services/cloudinary";
 // import ImmersiveTourButton from "@/components/ImmersiveTourButton";
 import PropertyContactForm from "@/components/PropertyContactForm";
 import SimilarProperties from "@/components/SimilarProperties";
@@ -24,7 +24,10 @@ import { OptimizedImage, LazyImage } from "@/components/OptimizedImage";
 // au lieu d'être téléchargé à chaque visite d'une fiche propriété.
 const ImmersiveTourModal = lazy(() => import("@/components/ImmersiveTourModal"));
 
-
+// ── Dimensions utilisées pour les images de la description (CMS) ──────────
+// Doivent matcher la largeur passée à optimizeHtmlWithLazy ci-dessous.
+const DESCRIPTION_IMG_WIDTH = 800;
+const DESCRIPTION_IMG_HEIGHT = 600;
 
 interface CinematicGalleryProps {
   images: string[];
@@ -323,9 +326,22 @@ const PropertyDetail = () => {
       .replace(/<figure([^>]*?)\s+width="[^"]*"/g, "<figure$1");
   };
 
+  // ✅ FIX PERFORMANCE : on utilise désormais optimizeHtmlWithLazy au lieu de
+  // optimizeHtmlImages. La fonction précédente supprimait width/height (via
+  // fixImgSrc) puis ne les remettait jamais, ce qui causait :
+  //   - l'alerte Lighthouse "images sans width/height explicites"
+  //   - une partie du "ajustement forcé de la mise en page" (CLS)
+  //   - toutes les images de la description chargées en même temps
+  //     (pas de loading="lazy")
+  // optimizeHtmlWithLazy réinjecte width/height + loading="lazy" decoding="async"
+  // sur chaque <img> Cloudinary de la description.
   const processDescription = (html: string): string => {
     const fixed = fixImgSrc(html);
-    return optimizeHtmlImages(fixed, 800);
+    return optimizeHtmlWithLazy(
+      fixed,
+      DESCRIPTION_IMG_WIDTH,
+      DESCRIPTION_IMG_HEIGHT
+    );
   };
 
   useEffect(() => {
@@ -675,9 +691,12 @@ const PropertyDetail = () => {
                   className="relative w-full h-full"
                   aria-label="Lancer la vidéo"
                 >
+                  {/* ✅ FIX PERFORMANCE : width/height ajoutés pour éviter le CLS */}
                   <img
-                   src={optimizedImages[1]?? optimizedImages[0]}
+                   src={optimizedImages[1] ?? optimizedImages[0]}
                    alt="Aperçu vidéo"
+                   width={1200}
+                   height={800}
                    className="w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">

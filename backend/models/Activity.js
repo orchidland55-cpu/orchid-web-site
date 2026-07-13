@@ -15,7 +15,7 @@ const activitySchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['property', 'blog', 'contact', 'user', 'postulation', 'unknown'],
+    enum: ['property', 'blog', 'contact', 'user', 'postulation', 'career', 'unknown'],
     default: 'unknown'
   },
   performedBy: {  // ✅ NOUVEAU CHAMP

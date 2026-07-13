@@ -11,6 +11,7 @@ import {
   FileText,
   TrendingUp,
   Eye,
+  MapPin,
   MessageCircle,
   Plus,
   Settings,
@@ -27,6 +28,7 @@ import {
   ClipboardCheck,
   GraduationCap,
   ScanSearch,
+  Briefcase,
 } from "lucide-react";
 import {
   LineChart,
@@ -54,6 +56,9 @@ const AdminContacts       = lazy(() => import("@/pages/AdminContacts"));
 const SpaceManagerPage   = lazy(() => import("@/pages/SpaceManagerPage"));
 const AdminEditProperty = lazy(() => import("@/pages/AdminEditProperty"));
 const AdminEditArticle = lazy(() => import("@/pages/AdminEditArticle"));
+const AdminAddCareer   = lazy(() => import("@/pages/AdminAddCareer"));
+const AdminCareers     = lazy(() => import("@/pages/AdminCareers"));
+const AdminEditCareer  = lazy(() => import("@/pages/AdminEditCareer"));
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ViewKey =
@@ -65,6 +70,9 @@ type ViewKey =
   | "articles-edit"
   | "articles"
   | "articles-add"
+  | "careers"
+  | "careers-add"
+  | "careers-edit"
   | "contacts"
   | "space-manager"
   | "due-diligence"
@@ -168,6 +176,9 @@ const AdminDashboard = () => {
     "properties-add": "Add Property",
     articles:        "Articles",
     "articles-add":  "New Article",
+    careers:         "Careers",
+    "careers-add":   "New Job Offer",
+    "careers-edit":  "Edit Job Offer",
     contacts:        "Contact Requests",
     "space-manager": "Data Room",
     "properties-edit": "Edit Property",
@@ -368,6 +379,7 @@ const AdminDashboard = () => {
           <div className="space-y-0.5">
             <NavItem icon={Building}      label="Properties"       viewKey="properties" active={activeView === "properties" || activeView === "properties-add" || activeView === "properties-edit"} collapsed={collapsed} onClick={() => goTo("properties")} />
             <NavItem icon={FileText}      label="Articles"         viewKey="articles"   active={activeView === "articles"   || activeView === "articles-add"   || activeView === "articles-edit"}   collapsed={collapsed} onClick={() => goTo("articles")}   />
+            <NavItem icon={Briefcase}     label="Careers"          viewKey="careers"    active={activeView === "careers"    || activeView === "careers-add"    || activeView === "careers-edit"}    collapsed={collapsed} onClick={() => goTo("careers")}    />
             {/* Contacts — cliquable seulement si admin (logique inchangée) */}
             {isAdmin ? (
               <NavItem icon={MessageCircle} label="Contact Requests" viewKey="contacts" active={activeView === "contacts"} collapsed={collapsed} onClick={() => goTo("contacts")} />
@@ -758,6 +770,27 @@ const AdminDashboard = () => {
             <AdminAddArticle />
           </Suspense>
         );
+      case "careers":
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminCareers onNavigate={(view, id) => {
+              if (view === "careers-add") goTo("careers-add");
+              if (view === "careers-edit") goTo("careers-edit", id);
+            }} />
+          </Suspense>
+        );
+      case "careers-add":
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminAddCareer />
+          </Suspense>
+        );
+      case "careers-edit":
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminEditCareer id={activeId} onDone={() => goTo("careers")} />
+          </Suspense>
+        );
       case "contacts":
         return isAdmin ? (
           <Suspense fallback={<PageLoader />}>
@@ -831,10 +864,24 @@ const AdminDashboard = () => {
             New article
           </Button>
         );
+      case "careers":
+        return (
+          <Button size="sm" className="bg-[#D4AF37] hover:bg-[#c9a22a] text-white border-0" onClick={() => goTo("careers-add")}>
+            <Plus className="w-4 h-4 mr-1.5" />
+            New job offer
+          </Button>
+        );
       case "properties-add":
       case "properties-edit":
         return (
           <Button variant="outline" size="sm" onClick={() => goTo("properties")}>
+            ← Back
+          </Button>
+        );
+      case "careers-add":
+      case "careers-edit":
+        return (
+          <Button variant="outline" size="sm" onClick={() => goTo("careers")}>
             ← Back
           </Button>
         );

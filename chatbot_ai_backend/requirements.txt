@@ -1,0 +1,15 @@
+# API
+fastapi
+uvicorn[standard]
+
+# Validation
+pydantic
+python-dotenv
+
+# Redis
+redis[asyncio]
+pymongo
+
+# ChromaDB + embeddings
+chromadb
+openai

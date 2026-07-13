@@ -321,6 +321,15 @@ const formLimiter = rateLimit({
   message: "Limite de soumissions atteinte. Réessayez dans 1 heure."
 });
 
+// Chatbot public (protection contre le spam / l'abus du budget LLM)
+const chatbotLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de messages envoyés, merci de patienter un instant." }
+});
+
 // Appliquer le middleware d'analytics
 app.use(analyticsMiddleware);
 
@@ -437,7 +446,7 @@ app.post('/postulation', formLimiter, sendPostulation);
 app.post('/invest', formLimiter, sendInvestmentEmail);
 
 // ===== Chatbot route =====
-app.post('/chatbot', sendMessageToChatbot);
+app.post('/chatbot', chatbotLimiter, sendMessageToChatbot);
 
 // 📄 Route dynamique pour les activités récentes (filtrées sur 24h)
 app.get('/admin/recent-activities', verifyJWT, requireAdmin, async (req, res) => {

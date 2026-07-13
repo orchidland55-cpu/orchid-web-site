@@ -6,6 +6,21 @@ type Message = {
   text: string;
 };
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Identifiant stable par visiteur, pour que l'historique de conversation et
+// la limite de débit distinguent chaque visiteur au lieu de tous partager
+// la même session.
+function getSessionId(): string {
+  const key = "orchid_chat_session_id";
+  let sessionId = localStorage.getItem(key);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(key, sessionId);
+  }
+  return sessionId;
+}
+
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -44,25 +59,20 @@ const Chatbot: React.FC = () => {
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:5005/webhooks/rest/webhook", {
+      const res = await fetch(`${API_BASE_URL}/chatbot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: "user", message: messageText }),
+        body: JSON.stringify({ message: messageText, session_id: getSessionId() }),
       });
 
       if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
 
       const data = await res.json();
-
-      if (data && data.length > 0) {
-        const botReply = data[0].text || "Désolé, je n'ai pas compris.";
-        setMessages(prev => [...prev, { from: "bot", text: botReply }]);
-      } else {
-        setMessages(prev => [...prev, { from: "bot", text: "Aucune réponse du bot." }]);
-      }
+      const botReply = data.reply || "Désolé, je n'ai pas compris.";
+      setMessages(prev => [...prev, { from: "bot", text: botReply }]);
     } catch (err) {
       console.error("Erreur lors de l'envoi du message:", err);
-      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur ou CORS. Vérifiez la console." }]);
+      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur. Réessayez dans un instant." }]);
     }
   };
 

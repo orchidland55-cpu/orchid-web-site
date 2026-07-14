@@ -1,4 +1,5 @@
 import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
+import { MoreHorizontal, X, SquarePen, History, ArrowUp, Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
 import keyBg from "@/assets/cleeorchid.png";
 
 type Message = {
@@ -136,8 +137,8 @@ const Chatbot: React.FC = () => {
     boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
     cursor: "pointer",
     position: "fixed",
-    right: "20px",
-    bottom: "95px",
+    left: "20px",
+    bottom: "20px",
     zIndex: 9999,
     border: "none",
     fontSize: "24px",
@@ -168,8 +169,8 @@ const Chatbot: React.FC = () => {
         <div
           style={{
             position: "fixed",
-            bottom: "170px",
-            right: "20px",
+            bottom: "95px",
+            left: "20px",
             width: "380px",
             maxWidth: "92vw",
             height: "min(600px, 70vh)",
@@ -204,32 +205,36 @@ const Chatbot: React.FC = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  fontSize: "18px",
                   cursor: "pointer",
                   color: "#888",
                   width: "28px",
                   height: "28px",
                   borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
                 aria-label="Menu"
               >
-                ⋯
+                <MoreHorizontal size={18} />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
                   background: "none",
                   border: "none",
-                  fontSize: "18px",
                   cursor: "pointer",
                   color: "#888",
                   width: "28px",
                   height: "28px",
                   borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
                 aria-label="Fermer le chat"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
           </div>
@@ -254,7 +259,9 @@ const Chatbot: React.FC = () => {
               <button
                 onClick={startNewChat}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
                   padding: "10px 14px",
                   border: "none",
@@ -262,14 +269,18 @@ const Chatbot: React.FC = () => {
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                🆕 Nouvelle conversation
+                <SquarePen size={16} color="#082648" />
+                Nouvelle conversation
               </button>
               <button
                 onClick={endChat}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
                   padding: "10px 14px",
                   border: "none",
@@ -277,14 +288,18 @@ const Chatbot: React.FC = () => {
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                ❌ Terminer
+                <X size={16} color="#e11d48" />
+                Terminer
               </button>
               <button
                 onClick={viewRecentChats}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
                   padding: "10px 14px",
                   border: "none",
@@ -292,9 +307,11 @@ const Chatbot: React.FC = () => {
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                📋 Conversations récentes
+                <History size={16} color="#555" />
+                Conversations récentes
               </button>
             </div>
           )}
@@ -381,11 +398,11 @@ const Chatbot: React.FC = () => {
                             padding: "4px",
                             cursor: "pointer",
                             color: "#888",
-                            fontSize: "12px",
+                            display: "flex",
                           }}
                           title="Copier"
                         >
-                          📋
+                          <Copy size={14} />
                         </button>
 
                         <button
@@ -397,11 +414,11 @@ const Chatbot: React.FC = () => {
                             padding: "4px",
                             cursor: "pointer",
                             color: messageFeedback[i] === 'like' ? "#10a37f" : "#888",
-                            fontSize: "12px",
+                            display: "flex",
                           }}
                           title="Aimer"
                         >
-                          👍
+                          <ThumbsUp size={14} />
                         </button>
 
                         <button
@@ -413,11 +430,11 @@ const Chatbot: React.FC = () => {
                             padding: "4px",
                             cursor: "pointer",
                             color: messageFeedback[i] === 'dislike' ? "#f44336" : "#888",
-                            fontSize: "12px",
+                            display: "flex",
                           }}
                           title="Ne pas aimer"
                         >
-                          👎
+                          <ThumbsDown size={14} />
                         </button>
 
                         <button
@@ -429,11 +446,11 @@ const Chatbot: React.FC = () => {
                             padding: "4px",
                             cursor: "pointer",
                             color: "#888",
-                            fontSize: "12px",
+                            display: "flex",
                           }}
                           title="Régénérer"
                         >
-                          🔄
+                          <RotateCcw size={14} />
                         </button>
                       </div>
                     )}
@@ -510,7 +527,7 @@ const Chatbot: React.FC = () => {
                 }}
                 aria-label="Envoyer le message"
               >
-                ➤
+                <ArrowUp size={16} />
               </button>
             </div>
             <div

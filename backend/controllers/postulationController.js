@@ -1,5 +1,13 @@
 const nodemailer = require('nodemailer');
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
+
 const sendPostulation = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, address, position, experience, motivation } = req.body;
@@ -18,20 +26,12 @@ const sendPostulation = async (req, res) => {
         message: 'Veuillez joindre votre CV.'
       });
     }
-     
 
-    console.log('🔍 DEBUG GMAIL_USER défini:', !!process.env.GMAIL_USER);
-console.log('🔍 DEBUG GMAIL_USER valeur:', process.env.GMAIL_USER);
-console.log('🔍 DEBUG GMAIL_APP_PASSWORD défini:', !!process.env.GMAIL_APP_PASSWORD);
-console.log('🔍 DEBUG GMAIL_APP_PASSWORD longueur:', process.env.GMAIL_APP_PASSWORD?.length);
-
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-      }
+    // ✅ On répond immédiatement au client — l'utilisateur n'attend pas l'envoi SMTP,
+    // qui peut prendre plusieurs secondes (négociation Gmail + pièce jointe).
+    res.status(200).json({
+      success: true,
+      message: 'Candidature envoyée avec succès par email !'
     });
 
     // ✅ Utilise cvFile.data (buffer mémoire) au lieu de tempFilePath,
@@ -60,16 +60,24 @@ console.log('🔍 DEBUG GMAIL_APP_PASSWORD longueur:', process.env.GMAIL_APP_PAS
       attachments
     };
 
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({
-      success: true,
-      message: 'Candidature envoyée avec succès par email !'
-    });
+    // ✅ Envoi en arrière-plan, ne bloque plus la réponse au client.
+    // En cas d'échec, l'email n'est pas envoyé mais l'utilisateur a déjà reçu
+    // une confirmation — surveillez les logs serveur pour repérer les échecs SMTP
+    // (quota Gmail dépassé, mot de passe app invalide, etc.)
+    transporter.sendMail(mailOptions)
+      .then(() => {
+        console.log(`✅ Email de candidature envoyé pour ${firstName} ${lastName}`);
+      })
+      .catch((error) => {
+        console.error('❌ Erreur envoi email candidature (arrière-plan):', error);
+      });
 
   } catch (error) {
     console.error('❌ Erreur dans sendPostulation:', error);
-    res.status(500).json({ success: false, error: error.message });
+    // On ne peut répondre avec une erreur que si la réponse n'a pas déjà été envoyée
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 };
 

@@ -34,7 +34,10 @@ const sendMessageToChatbot = async (req, res) => {
           // par visiteur, pas par notre propre serveur.
           "X-Forwarded-For": req.ip,
         },
-        timeout: 15000,
+        // La réponse combine une recherche RAG (Postgres/Chroma) et un appel
+        // LLM (DeepSeek) ; observé en pratique entre 10 et 15+ secondes.
+        // 15s était trop juste et coupait certaines requêtes légitimes.
+        timeout: 30000,
       }
     );
 

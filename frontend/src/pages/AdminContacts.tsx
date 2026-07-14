@@ -165,9 +165,9 @@ const AdminContacts = () => {
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch =
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.subject.toLowerCase().includes(searchTerm.toLowerCase());
+      contact.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.subject?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" || contact.status === filterStatus;
     return matchesSearch && matchesFilter;
   });

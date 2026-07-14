@@ -433,7 +433,7 @@ app.put('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.up
 app.delete('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.deleteCareer);
 
 // ===== Postulation route =====
-app.post('/postulation', formLimiter, sendPostulation);
+app.post('/postulations', formLimiter, sendPostulation);
 
 // ===== Invest route =====
 app.post('/invest', formLimiter, sendInvestmentEmail);

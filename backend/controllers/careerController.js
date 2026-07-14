@@ -3,7 +3,11 @@ const Activity = require('../models/Activity');
 
 exports.getAllCareers = async (req, res) => {
   try {
-    const careers = await Career.find().sort({ createdAt: -1 });
+    // ✅ req.user n'existe que si un token valide a été fourni (voir middleware optionalAuth)
+    const isPrivileged = req.user && ['admin', 'editor'].includes(req.user.role);
+    const filter = isPrivileged ? {} : { status: 'active' };
+
+    const careers = await Career.find(filter).sort({ createdAt: -1 });
     res.json(careers);
   } catch (err) {
     console.error('❌ Erreur getAllCareers:', err);
@@ -17,6 +21,13 @@ exports.getCareerById = async (req, res) => {
     if (!career) {
       return res.status(404).json({ error: "Offre non trouvée." });
     }
+
+    // ✅ Un visiteur public ne peut pas voir une offre non active (draft/fermée)
+    const isPrivileged = req.user && ['admin', 'editor'].includes(req.user.role);
+    if (!isPrivileged && career.status !== 'active') {
+      return res.status(404).json({ error: "Offre non trouvée." });
+    }
+
     res.json(career);
   } catch (err) {
     console.error('❌ Erreur getCareerById:', err);
@@ -75,12 +86,11 @@ exports.updateCareer = async (req, res) => {
 exports.addCareer = async (req, res) => {
   try {
     console.log("📥 Requête reçue:", req.body);
-    // Valider les données reçues
     if (!req.body.title || !req.body.description || !req.body.city || !req.body.contractType) {
       console.error("❌ Validation échouée: Champs manquants");
       return res.status(400).json({ error: "Tous les champs requis sont manquants." });
     }
-    
+
     const career = new Career(req.body);
     await career.save();
 

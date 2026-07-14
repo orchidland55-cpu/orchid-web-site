@@ -24,6 +24,28 @@ const verifyJWT = (req, res, next) => {
   }
 };
 
+// ✅ NOUVEAU — Auth optionnelle : n'exige jamais de token, mais l'exploite s'il est présent.
+// Utile sur les routes publiques (ex: GET /api/careers) qui doivent quand même
+// distinguer un admin/editor connecté (voit tout) d'un visiteur anonyme (voit un sous-ensemble).
+// Ne bloque JAMAIS la requête, contrairement à verifyJWT.
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next(); // visiteur public, pas de token → on continue normalement
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET); // { userId, role }
+  } catch (err) {
+    // Token invalide/expiré → traité comme visiteur public, pas de blocage
+  }
+
+  next();
+};
+
 const requireAdmin = (req, res, next) => {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ message: 'Accès réservé aux administrateurs' });
@@ -154,6 +176,7 @@ const checkUploadAllowedOrAdmin = (req, res, next) => {
 
 module.exports = { 
   verifyJWT, 
+  optionalAuth,
   requireAdmin, 
   verifySpaceJWT, 
   checkUploadAllowed, 

@@ -12,7 +12,7 @@ const YearlyView = require('./models/YearlyView');
 const MonthlyView = require('./models/MonthlyView');
 const CountryView = require('./models/CountryView');
 const User = require('./models/User');
-const { verifyJWT, requireAdmin, requireAdminOrEditor } = require('./middleware/authMiddleware');
+const { verifyJWT, requireAdmin, requireAdminOrEditor, optionalAuth } = require('./middleware/authMiddleware');
 const {
   login, verifyToken, getAdmins,
   getUsers, createUser, updateUser, deleteUser,
@@ -331,12 +331,6 @@ app.get('/api/auth/verify', verifyJWT, verifyToken);
 
 // ===== Connect to MongoDB =====
 mongoose.connect(process.env.MONGO_URI)
-// mongoose.connect(process.env.MONGO_URI, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true
-// })
-//.then(() => console.log("MongoDB connected"))
-//.catch(err => console.log("MongoDB connection error:", err));
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
@@ -432,8 +426,8 @@ app.get('/dashboard/stats', verifyJWT, requireAdminOrEditor, dashboardController
 app.get('/dashboard/details/:type', verifyJWT, requireAdminOrEditor, dashboardController.getDetailedStats);
 
 // ===== Career routes =====
-app.get('/api/careers', verifyJWT, requireAdminOrEditor, careerController.getAllCareers);
-app.get('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.getCareerById);
+app.get('/api/careers', optionalAuth, careerController.getAllCareers);           // ✅ public (filtré) + admin/editor (tout)
+app.get('/api/careers/:id', optionalAuth, careerController.getCareerById);       // ✅ public (si active) + admin/editor
 app.post('/api/careers', verifyJWT, requireAdminOrEditor, careerController.addCareer);
 app.put('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.updateCareer);
 app.delete('/api/careers/:id', verifyJWT, requireAdminOrEditor, careerController.deleteCareer);

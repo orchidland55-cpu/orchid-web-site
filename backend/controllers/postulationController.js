@@ -4,24 +4,28 @@ const sendPostulation = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, address, position, experience, motivation } = req.body;
 
-    // Vérifie que les fichiers existent
     const cvFile = req.files?.cv;
-    const coverLetterFile = req.files?.coverLetter;
+    const coverLetterFile = req.files?.coverLetter; // optionnel, comme dans le formulaire
 
-    // Débogage
     console.log('req.files:', req.files);
-    console.log('cvFile:', cvFile);
-    console.log('coverLetterFile:', coverLetterFile);
+    console.log('cvFile:', cvFile?.name);
+    console.log('coverLetterFile:', coverLetterFile?.name);
 
-    // Vérifie que les fichiers ont été envoyés
-    if (!cvFile || !coverLetterFile) {
+    // ✅ Seul le CV est obligatoire — conforme au formulaire frontend
+    if (!cvFile) {
       return res.status(400).json({
         success: false,
-        message: 'Veuillez envoyer à la fois le CV et la lettre de motivation.'
+        message: 'Veuillez joindre votre CV.'
       });
     }
+     
 
-    // Configuration de Nodemailer
+    console.log('🔍 DEBUG GMAIL_USER défini:', !!process.env.GMAIL_USER);
+console.log('🔍 DEBUG GMAIL_USER valeur:', process.env.GMAIL_USER);
+console.log('🔍 DEBUG GMAIL_APP_PASSWORD défini:', !!process.env.GMAIL_APP_PASSWORD);
+console.log('🔍 DEBUG GMAIL_APP_PASSWORD longueur:', process.env.GMAIL_APP_PASSWORD?.length);
+
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -30,7 +34,15 @@ const sendPostulation = async (req, res) => {
       }
     });
 
-    // Email
+    // ✅ Utilise cvFile.data (buffer mémoire) au lieu de tempFilePath,
+    // qui n'existe pas sans l'option useTempFiles sur express-fileupload
+    const attachments = [
+      { filename: cvFile.name, content: cvFile.data }
+    ];
+    if (coverLetterFile) {
+      attachments.push({ filename: coverLetterFile.name, content: coverLetterFile.data });
+    }
+
     const mailOptions = {
       from: `"Orchid Island" <${process.env.GMAIL_USER}>`,
       to: process.env.ADMIN_EMAIL || 'orchido651@gmail.com',
@@ -40,18 +52,14 @@ const sendPostulation = async (req, res) => {
         <p><strong>Nom:</strong> ${firstName} ${lastName}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Téléphone:</strong> ${phone}</p>
-        <p><strong>Adresse:</strong> ${address}</p>
+        <p><strong>Adresse:</strong> ${address || "Non renseignée"}</p>
         <p><strong>Poste souhaité:</strong> ${position}</p>
         <p><strong>Expérience:</strong><br/>${experience}</p>
         <p><strong>Motivation:</strong><br/>${motivation}</p>
       `,
-      attachments: [
-        { filename: cvFile.name, path: cvFile.tempFilePath },
-        { filename: coverLetterFile.name, path: coverLetterFile.tempFilePath }
-      ]
+      attachments
     };
 
-    // Envoi de l'email
     await transporter.sendMail(mailOptions);
 
     res.status(200).json({

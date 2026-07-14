@@ -91,8 +91,16 @@ const PORT = process.env.PORT || 3000;
 
 // ===== Middlewares =====
 // app.use(cors());
+// Autorise le domaine de production, plus les URLs de preview Vercel du même
+// projet/équipe (utile pour tester une branche avant de la merger dans main).
+const VERCEL_PREVIEW_ORIGIN = /^https:\/\/orchid-immo-web-site-git-[a-z0-9-]+-orchidland55-cpus-projects\.vercel\.app$/;
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: (origin, callback) => {
+    if (!origin || origin === process.env.FRONTEND_URL || VERCEL_PREVIEW_ORIGIN.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true
 }));
 app.use(bodyParser.json({ limit: '10mb' }));

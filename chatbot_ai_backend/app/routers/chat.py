@@ -13,6 +13,14 @@ from app.security.rate_limit import get_client_ip, is_rate_limited
 
 router = APIRouter(prefix="/chat", tags=["chat"], dependencies=[Depends(verify_internal_token)])
 
+# Coordonnées officielles, toujours disponibles pour le LLM même si aucune
+# source pertinente n'a été retrouvée dans ChromaDB pour cette question.
+ORCHID_CONTACT = (
+    "Téléphone : +212 6 18 68 88 88\n"
+    "Adresse : Centre d'affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Maroc\n"
+    "Site web : https://www.orchidisland.immo"
+)
+
 
 @router.post("", response_model=ChatResponse)
 async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
@@ -48,7 +56,12 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
             "content": (
                 f"Tu es l'assistant OrchidIsland. Réponds en {answer_language} de façon concise et utile. "
                 "Base-toi d'abord sur les sources fournies. Si l'information manque, dis-le clairement. "
-                "Si plusieurs sources se contredisent, signale-le et privilégie la source la plus pertinente selon la question."
+                "Si plusieurs sources se contredisent, signale-le et privilégie la source la plus pertinente selon la question.\n\n"
+                f"Coordonnées officielles d'Orchid Island Real Estate (utilise-les si on te demande comment "
+                f"contacter l'agence, même si elles n'apparaissent pas dans les sources ci-dessous) :\n{ORCHID_CONTACT}\n"
+                "Si on te demande une adresse email précise, dis honnêtement que tu ne l'as pas et recommande "
+                "le téléphone ou le formulaire de contact du site. N'invente jamais de lien ou de coordonnée. "
+                "Ne mets pas de liens markdown : écris les URLs en texte brut, sans crochets ni parenthèses."
             ),
         },
         {

@@ -168,49 +168,70 @@ const Chatbot: React.FC = () => {
         <div
           style={{
             position: "fixed",
-            bottom: "235px",
+            bottom: "170px",
             right: "20px",
-            width: "260px",
-            height: "280px",
+            width: "380px",
+            maxWidth: "92vw",
+            height: "min(600px, 70vh)",
             background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
+            borderRadius: "18px",
             display: "flex",
             flexDirection: "column",
-            fontFamily: "Arial, sans-serif",
-            boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
+            fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
             zIndex: 9999,
+            overflow: "hidden",
           }}
         >
-          {/* Header avec menu */}
+          {/* Header */}
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "8px 12px",
+              padding: "16px 18px",
               borderBottom: "1px solid #eee",
-              backgroundColor: "#f8f9fa",
-              borderRadius: "10px 10px 0 0",
+              backgroundColor: "#fff",
             }}
           >
-            <span style={{ fontSize: "14px", fontWeight: "bold", color: "#082648" }}>
+            <span style={{ fontSize: "16px", fontWeight: 700, color: "#082648" }}>
               Orchid Island
             </span>
-            <button
-              className="chat-menu"
-              onClick={() => setShowMenu(!showMenu)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "18px",
-                cursor: "pointer",
-                color: "#666",
-              }}
-              aria-label="Menu"
-            >
-              ⋮
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                className="chat-menu"
+                onClick={() => setShowMenu(!showMenu)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  color: "#888",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                }}
+                aria-label="Menu"
+              >
+                ⋯
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  color: "#888",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                }}
+                aria-label="Fermer le chat"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Menu déroulant */}
@@ -219,14 +240,15 @@ const Chatbot: React.FC = () => {
               className="chat-menu"
               style={{
                 position: "absolute",
-                top: "45px",
-                right: "10px",
+                top: "56px",
+                right: "14px",
                 background: "#fff",
-                border: "1px solid #ddd",
-                borderRadius: "5px",
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.1)",
+                border: "1px solid #eee",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 16px rgba(0,0,0,0.12)",
                 zIndex: 10000,
-                minWidth: "150px",
+                minWidth: "170px",
+                overflow: "hidden",
               }}
             >
               <button
@@ -234,7 +256,7 @@ const Chatbot: React.FC = () => {
                 style={{
                   display: "block",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
@@ -242,14 +264,14 @@ const Chatbot: React.FC = () => {
                   fontSize: "14px",
                 }}
               >
-                🆕 Start a new chat
+                🆕 Nouvelle conversation
               </button>
               <button
                 onClick={endChat}
                 style={{
                   display: "block",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
@@ -257,14 +279,14 @@ const Chatbot: React.FC = () => {
                   fontSize: "14px",
                 }}
               >
-                ❌ End chat
+                ❌ Terminer
               </button>
               <button
                 onClick={viewRecentChats}
                 style={{
                   display: "block",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
@@ -272,7 +294,7 @@ const Chatbot: React.FC = () => {
                   fontSize: "14px",
                 }}
               >
-                📋 View recent chats
+                📋 Conversations récentes
               </button>
             </div>
           )}
@@ -281,14 +303,24 @@ const Chatbot: React.FC = () => {
           <div
             style={{
               flex: 1,
-              padding: "8px",
+              padding: "16px",
               overflowY: "auto",
-              backgroundColor: "#f9f9f9",
+              backgroundColor: "#fff",
             }}
           >
             {messages.length === 0 ? (
-              <div style={{ color: "#888", fontSize: "12px", textAlign: "center", marginTop: "20px" }}>
-                Démarrez la conversation 👋
+              <div
+                style={{
+                  display: "inline-block",
+                  background: "#f4f4f6",
+                  color: "#222",
+                  padding: "10px 14px",
+                  borderRadius: "14px",
+                  fontSize: "14px",
+                  maxWidth: "85%",
+                }}
+              >
+                Bonjour ! Comment puis-je vous aider ?
               </div>
             ) : (
               <>
@@ -297,9 +329,9 @@ const Chatbot: React.FC = () => {
                     key={i}
                     style={{
                       textAlign: m.from === "user" ? "right" : "left",
-                      margin: "4px 0",
-                      fontSize: "13px",
-                      lineHeight: "1.4",
+                      margin: "10px 0",
+                      fontSize: "14px",
+                      lineHeight: "1.5",
                       position: "relative",
                     }}
                   >
@@ -307,10 +339,10 @@ const Chatbot: React.FC = () => {
                       className="message-bubble"
                       style={{
                         display: "inline-block",
-                        background: m.from === "user" ? "#dcf8c6" : "#ffffff",
-                        padding: "6px 10px",
-                        borderRadius: "12px",
-                        border: m.from === "bot" ? "1px solid #e0e0e0" : "none",
+                        background: m.from === "user" ? "#082648" : "#f4f4f6",
+                        color: m.from === "user" ? "#fff" : "#222",
+                        padding: "10px 14px",
+                        borderRadius: "16px",
                         maxWidth: "85%",
                         wordBreak: "break-word",
                         position: "relative",
@@ -318,36 +350,13 @@ const Chatbot: React.FC = () => {
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
                         <div style={{ flex: 1 }}>
-                          <b style={{ fontSize: "11px", color: "#555" }}>
-                            {m.from === "user" ? "Vous" : "Orchid Island"}
-                          </b>
-                          <br />
                           {m.text.split(/(\s+|\/[^\s]+)/).map((part, index) => {
                             if (part.startsWith('/')) {
-                              return <a key={index} href={part} style={{ color: "#007bff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">{part}</a>;
+                              return <a key={index} href={part} style={{ color: m.from === "user" ? "#cfe0ff" : "#007bff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">{part}</a>;
                             }
                             return part;
                           })}
                         </div>
-                        {m.from === "bot" && (
-                          <button
-                            onClick={() => copyToClipboard(m.text)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "2px",
-                              borderRadius: "3px",
-                              opacity: 0.7,
-                              fontSize: "12px",
-                            }}
-                            title="Copier le message"
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.7"}
-                          >
-                            📋
-                          </button>
-                        )}
                       </div>
                     </div>
 
@@ -356,11 +365,9 @@ const Chatbot: React.FC = () => {
                       <div
                         className="message-actions"
                         style={{
-                          position: "absolute",
-                          top: "6px",
-                          right: "10px",
                           display: "flex",
                           gap: "4px",
+                          marginTop: "4px",
                           opacity: 0,
                           transition: "opacity 0.2s ease",
                         }}
@@ -368,16 +375,13 @@ const Chatbot: React.FC = () => {
                         <button
                           onClick={() => copyToClipboard(m.text)}
                           style={{
-                            background: "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
+                            color: "#888",
                             fontSize: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Copier"
                         >
@@ -387,16 +391,13 @@ const Chatbot: React.FC = () => {
                         <button
                           onClick={() => handleFeedback(i, 'like')}
                           style={{
-                            background: messageFeedback[i] === 'like' ? "#10a37f" : "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
+                            color: messageFeedback[i] === 'like' ? "#10a37f" : "#888",
                             fontSize: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Aimer"
                         >
@@ -406,16 +407,13 @@ const Chatbot: React.FC = () => {
                         <button
                           onClick={() => handleFeedback(i, 'dislike')}
                           style={{
-                            background: messageFeedback[i] === 'dislike' ? "#f44336" : "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
+                            color: messageFeedback[i] === 'dislike' ? "#f44336" : "#888",
                             fontSize: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Ne pas aimer"
                         >
@@ -425,16 +423,13 @@ const Chatbot: React.FC = () => {
                         <button
                           onClick={() => repeatResponse(i)}
                           style={{
-                            background: "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
+                            color: "#888",
                             fontSize: "12px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Régénérer"
                         >
@@ -454,53 +449,80 @@ const Chatbot: React.FC = () => {
               <div
                 style={{
                   marginTop: "10px",
-                  padding: "8px",
-                  backgroundColor: "#e9ecef",
-                  borderRadius: "8px",
+                  padding: "10px",
+                  backgroundColor: "#f4f4f6",
+                  borderRadius: "10px",
                   fontSize: "12px",
                   color: "#666",
                   textAlign: "center",
                 }}
               >
-                📋 Recent chats will be displayed here
+                📋 L'historique des conversations s'affichera ici
                 <br />
-                <em>Feature coming soon...</em>
+                <em>Bientôt disponible...</em>
               </div>
             )}
           </div>
 
           {/* Input utilisateur */}
-          <div style={{ display: "flex", borderTop: "1px solid #ddd", background: "#fff" }}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Écrire un message..."
+          <div style={{ padding: "12px 16px 8px", background: "#fff" }}>
+            <div
               style={{
-                flex: 1,
-                border: "none",
-                padding: "8px 10px",
-                fontSize: "14px",
-                outline: "none",
+                display: "flex",
+                alignItems: "center",
+                background: "#f4f4f6",
+                borderRadius: "999px",
+                padding: "6px 6px 6px 16px",
+                gap: "8px",
               }}
-              aria-label="Saisir un message"
-            />
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim()}
-              style={{
-                padding: "8px 12px",
-                background: input.trim() ? "#082648" : "#ccc",
-                color: "#fff",
-                border: "none",
-                cursor: input.trim() ? "pointer" : "not-allowed",
-                fontSize: "16px",
-                fontWeight: "bold",
-              }}
-              aria-label="Envoyer le message"
             >
-              ➤
-            </button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Écrire un message..."
+                style={{
+                  flex: 1,
+                  border: "none",
+                  background: "transparent",
+                  padding: "8px 0",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+                aria-label="Saisir un message"
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                style={{
+                  width: "34px",
+                  height: "34px",
+                  borderRadius: "50%",
+                  background: input.trim() ? "#082648" : "#ccc",
+                  color: "#fff",
+                  border: "none",
+                  cursor: input.trim() ? "pointer" : "not-allowed",
+                  fontSize: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+                aria-label="Envoyer le message"
+              >
+                ➤
+              </button>
+            </div>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "11px",
+                color: "#aaa",
+                marginTop: "8px",
+              }}
+            >
+              Propulsé par Orchid Island
+            </div>
           </div>
         </div>
       )}

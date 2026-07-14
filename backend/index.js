@@ -335,7 +335,9 @@ const chatbotLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Trop de messages envoyés, merci de patienter un instant." }
+  message: {
+    error: "Trop de messages envoyés, merci de patienter un instant. En attendant, vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo."
+  }
 });
 
 // Appliquer le middleware d'analytics

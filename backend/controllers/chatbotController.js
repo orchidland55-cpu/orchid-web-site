@@ -46,11 +46,13 @@ const sendMessageToChatbot = async (req, res) => {
   } catch (err) {
     if (err.response?.status === 429) {
       return res.status(429).json({
-        error: "Trop de messages envoyés, merci de patienter un instant.",
+        error: "Trop de messages envoyés, merci de patienter un instant. En attendant, vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo.",
       });
     }
     console.error("Erreur chatbot:", err.message);
-    res.status(502).json({ error: "Erreur de communication avec le chatbot." });
+    res.status(502).json({
+      error: "Le chatbot rencontre un problème technique. Vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo.",
+    });
   }
 };
 

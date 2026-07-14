@@ -12,6 +12,34 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // Identifiant stable par visiteur, pour que l'historique de conversation et
 // la limite de débit distinguent chaque visiteur au lieu de tous partager
 // la même session.
+// Convertit les liens markdown [texte](url) et les URLs brutes (http(s)://...)
+// en vrais liens cliquables ; le reste du texte est affiché tel quel.
+function renderMessageText(text: string, linkColor: string): React.ReactNode[] {
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+)/g;
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    const label = match[1] ?? match[3];
+    const url = match[2] ?? match[3];
+    nodes.push(
+      <a key={key++} href={url} style={{ color: linkColor, textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+        {label}
+      </a>
+    );
+    lastIndex = pattern.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+}
+
 function getSessionId(): string {
   const key = "orchid_chat_session_id";
   let sessionId = localStorage.getItem(key);
@@ -29,13 +57,14 @@ const Chatbot: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showRecentChats, setShowRecentChats] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<{[key: number]: 'like' | 'dislike' | null}>({});
+  const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null); // ✅ Référence pour scroll
 
   // ✅ Scroll vers le bas à chaque nouveau message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   // Fermer le menu quand on clique ailleurs
   useEffect(() => {
@@ -59,6 +88,7 @@ const Chatbot: React.FC = () => {
       setInput("");
     }
 
+    setIsTyping(true);
     try {
       const res = await fetch(`${API_BASE_URL}/chatbot`, {
         method: "POST",
@@ -66,14 +96,23 @@ const Chatbot: React.FC = () => {
         body: JSON.stringify({ message: messageText, session_id: getSessionId() }),
       });
 
-      if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
+      const data = await res.json().catch(() => null);
 
-      const data = await res.json();
-      const botReply = data.reply || "Désolé, je n'ai pas compris.";
+      if (!res.ok) {
+        // Le backend renvoie un message utile (avec les coordonnées d'Orchid
+        // Island) pour les cas prévus (limite de débit, panne temporaire).
+        const fallback = data?.error || "⚠️ Erreur serveur. Réessayez dans un instant.";
+        setMessages(prev => [...prev, { from: "bot", text: fallback }]);
+        return;
+      }
+
+      const botReply = data?.reply || "Désolé, je n'ai pas compris.";
       setMessages(prev => [...prev, { from: "bot", text: botReply }]);
     } catch (err) {
       console.error("Erreur lors de l'envoi du message:", err);
       setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur. Réessayez dans un instant." }]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -156,6 +195,15 @@ const Chatbot: React.FC = () => {
           .message-bubble:hover .message-actions {
             opacity: 1 !important;
           }
+          @keyframes typing-dot-bounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-4px); opacity: 1; }
+          }
+          .typing-dot {
+            animation: typing-dot-bounce 1.2s infinite ease-in-out;
+          }
+          .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+          .typing-dot:nth-child(3) { animation-delay: 0.3s; }
         `}
       </style>
       <button
@@ -366,13 +414,8 @@ const Chatbot: React.FC = () => {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                        <div style={{ flex: 1 }}>
-                          {m.text.split(/(\s+|\/[^\s]+)/).map((part, index) => {
-                            if (part.startsWith('/')) {
-                              return <a key={index} href={part} style={{ color: m.from === "user" ? "#cfe0ff" : "#007bff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">{part}</a>;
-                            }
-                            return part;
-                          })}
+                        <div style={{ flex: 1, whiteSpace: "pre-wrap" }}>
+                          {renderMessageText(m.text, m.from === "user" ? "#cfe0ff" : "#007bff")}
                         </div>
                       </div>
                     </div>
@@ -456,6 +499,23 @@ const Chatbot: React.FC = () => {
                     )}
                   </div>
                 ))}
+                {isTyping && (
+                  <div style={{ textAlign: "left", margin: "10px 0" }}>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        gap: "4px",
+                        background: "#f4f4f6",
+                        padding: "12px 16px",
+                        borderRadius: "16px",
+                      }}
+                    >
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                    </div>
+                  </div>
+                )}
                 {/* 👇 Anchor invisible pour le scroll */}
                 <div ref={messagesEndRef} />
               </>

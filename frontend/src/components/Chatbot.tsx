@@ -137,7 +137,7 @@ const Chatbot: React.FC = () => {
     cursor: "pointer",
     position: "fixed",
     right: "20px",
-    bottom: "20px",
+    bottom: "95px",
     zIndex: 9999,
     border: "none",
     fontSize: "24px",
@@ -168,7 +168,7 @@ const Chatbot: React.FC = () => {
         <div
           style={{
             position: "fixed",
-            bottom: "160px",
+            bottom: "235px",
             right: "20px",
             width: "260px",
             height: "280px",

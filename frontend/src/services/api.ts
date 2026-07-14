@@ -733,7 +733,7 @@ class ApiService {
   }
 
   async createPostulation(formData: FormData): Promise<Postulation> {
-    const url = `${API_BASE_URL}/postulations`;
+    const url = `${API_BASE_URL}/postulation`;
     const token = localStorage.getItem("adminToken");
 
 

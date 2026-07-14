@@ -1,16 +1,44 @@
-import { useRef, useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet-async";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Mail, Phone, User, MapPin } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ReCAPTCHA from "react-google-recaptcha";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Briefcase, MapPin, Calendar, Upload, Send,
+  CheckCircle2, Loader2, FileText, X,
+} from "lucide-react";
+import { apiService } from "@/services/api";
+import { showToast } from "@/components/ToastContainer";
+import { SITE_URL } from "@/config/schema";
+
+// ── Type d'une offre publiée côté admin ────────────────────────────────────
+interface CareerOffer {
+  _id: string;
+  title: string;
+  description: string;
+  city: string;
+  contractType: "CDI" | "CDD" | "Stage" | "Freelance";
+  salary?: string;
+  duration?: string;
+  stageType?: string;
+  freelanceDeadline?: string;
+  status: "active" | "closed";
+  createdAt: string;
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
 const Postulation = () => {
+  // ── Offres ──────────────────────────────────────────────────────────────
+  const [careers, setCareers] = useState<CareerOffer[]>([]);
+  const [loadingCareers, setLoadingCareers] = useState(true);
+  const [selectedCareer, setSelectedCareer] = useState<CareerOffer | null>(null);
+
+  // ── Formulaire ──────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,330 +48,418 @@ const Postulation = () => {
     position: "",
     experience: "",
     motivation: "",
-    cv: null as File | null,
-    coverLetter: null as File | null,
   });
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const formRef = useRef<HTMLDivElement>(null);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  const coverLetterInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCareers = async () => {
+      try {
+        setLoadingCareers(true);
+        const data = await apiService.getAllCareers();
+        setCareers((data as CareerOffer[]).filter((c) => c.status === "active"));
+      } catch (err) {
+        console.error("Erreur chargement des offres:", err);
+      } finally {
+        setLoadingCareers(false);
+      }
+    };
+    fetchCareers();
+  }, []);
+
+  const handleApplyClick = (career: CareerOffer) => {
+    setSelectedCareer(career);
+    setFormData((prev) => ({ ...prev, position: career.title }));
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cv' | 'coverLetter') => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
-      ...prev,
-      [field]: file
-    }));
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "cv" | "coverLetter"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      showToast({
+        type: "error",
+        title: "Fichier trop volumineux",
+        message: "Le fichier ne doit pas dépasser 5 Mo.",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    if (type === "cv") setCvFile(file);
+    else setCoverLetterFile(file);
   };
 
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA | null>(null);
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const handleRecaptchaChange = (token: string | null) => {
-    setRecaptchaToken(token);
+    if (!cvFile) {
+      showToast({
+        type: "error",
+        title: "CV requis",
+        message: "Merci de joindre votre CV avant d'envoyer votre candidature.",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = new FormData();
+      payload.append("firstName", formData.firstName);
+      payload.append("lastName", formData.lastName);
+      payload.append("email", formData.email);
+      payload.append("phone", formData.phone);
+      if (formData.address) payload.append("address", formData.address);
+      payload.append("position", formData.position);
+      payload.append("experience", formData.experience);
+      payload.append("motivation", formData.motivation);
+      payload.append("cv", cvFile);
+      if (coverLetterFile) payload.append("coverLetter", coverLetterFile);
+
+      await apiService.createPostulation(payload);
+      setSubmitted(true);
+      showToast({
+        type: "success",
+        title: "Candidature envoyée",
+        message: "Nous avons bien reçu votre candidature.",
+      });
+    } catch (err: any) {
+      showToast({
+        type: "error",
+        title: "Erreur",
+        message: err.message || "Impossible d'envoyer votre candidature. Réessayez.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleSelectChange = (value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      position: value
-    }));
-  };
-
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  const formDataObj = new FormData();
-  formDataObj.append('firstName', formData.firstName);
-  formDataObj.append('lastName', formData.lastName);
-  formDataObj.append('email', formData.email);
-  formDataObj.append('phone', formData.phone);
-  formDataObj.append('address', formData.address);
-  formDataObj.append('position', formData.position);
-  formDataObj.append('experience', formData.experience);
-  formDataObj.append('motivation', formData.motivation);
-  
-  if (formData.cv) formDataObj.append('cv', formData.cv);
-  if (formData.coverLetter) formDataObj.append('coverLetter', formData.coverLetter);
-
-  try {
-    const response = await fetch('https://orchid-web-site-production-1f73.up.railway.app/postulation', {
-      method: 'POST',
-      body: formDataObj,
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
-    
-    const result = await response.json();
-    alert(result.message);
-
-    // 🔄 Reload page after success
-    window.location.reload();
-  } catch (err) {
-    console.error(err);
-    alert('Error submitting application');
-  }
-};
-
 
   return (
-    <div className="min-h-screen bg-ivory-white">
+    <div className="min-h-screen">
+      <Helmet>
+        <title>Carrières & Offres d'emploi | Orchid Island Real Estate</title>
+        <link rel="canonical" href={`${SITE_URL}/contact-us/careers/`} />
+        <meta
+          name="description"
+          content="Découvrez nos offres d'emploi et postulez pour rejoindre Orchid Island, agence immobilière de luxe à Marrakech."
+        />
+      </Helmet>
+
       <Header />
-      
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-6">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="font-playfair text-4xl md:text-5xl font-bold text-charcoal mb-6">
-              Join Our Team
+
+      <main>
+        {/* ── Hero ── */}
+        <section className="py-12 sm:py-16 bg-muted/30 border-b">
+          <div className="container mx-auto px-4 sm:px-6 text-center">
+            <h1 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              Rejoignez notre équipe
             </h1>
-            <p className="font-lora text-lg text-charcoal/80 max-w-3xl mx-auto">
-              At Orchid Island, we're seeking passionate talent to help us redefine excellence in luxury real estate in Morocco.
+            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
+              Découvrez nos opportunités de carrière et faites partie d'une équipe passionnée
+              par l'immobilier de luxe à Marrakech.
             </p>
           </div>
+        </section>
 
-          {/* Application Form */}
-          <div className="max-w-4xl mx-auto">
-            <Card className="shadow-xl border-0">
-              <CardHeader className="bg-gradient-to-r from-primary to-primary/80 text-white">
-                <CardTitle className="font-playfair text-2xl">Application Form</CardTitle>
-                <CardDescription className="text-white/90 font-lora">
-                  Fill out this form to apply for a position at Orchid Island
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Personal Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName" className="font-lora flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        First Name *
-                      </Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        required
-                        className="font-lora"
-                        placeholder="Your first name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName" className="font-lora flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Last Name *
-                      </Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        required
-                        className="font-lora"
-                        placeholder="Your last name"
-                      />
-                    </div>
-                  </div>
+        {/* ── Offres ouvertes ── */}
+        <section className="py-10 sm:py-14">
+          <div className="container mx-auto px-4 sm:px-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-6">Offres ouvertes</h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="font-lora flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email *
-                      </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="font-lora"
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone" className="font-lora flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        Phone *
-                      </Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        required
-                        className="font-lora"
-                        placeholder="+212 6XX XXX XXX"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="font-lora flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      Address
-                    </Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="font-lora"
-                      placeholder="Your full address"
-                    />
-                  </div>
-
-                  {/* Position */}
-                  <div className="space-y-2">
-                    <Label className="font-lora">Desired Position *</Label>
-                    <Select onValueChange={handleSelectChange} required>
-                      <SelectTrigger className="font-lora">
-                        <SelectValue placeholder="Select a position" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="agent-immobilier">Real Estate Agent</SelectItem>
-                        <SelectItem value="conseiller-commercial">Sales Advisor</SelectItem>
-                        <SelectItem value="gestionnaire-patrimoine">Wealth Manager</SelectItem>
-                        <SelectItem value="marketing">Marketing & Communications</SelectItem>
-                        <SelectItem value="administratif">Administrative</SelectItem>
-                        <SelectItem value="autre">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Experience */}
-                  <div className="space-y-2">
-                    <Label htmlFor="experience" className="font-lora">
-                      Professional Experience *
-                    </Label>
-                    <Textarea
-                      id="experience"
-                      name="experience"
-                      value={formData.experience}
-                      onChange={handleInputChange}
-                      required
-                      className="font-lora min-h-[120px]"
-                      placeholder="Describe your relevant professional experience..."
-                    />
-                  </div>
-
-                  {/* Motivation */}
-                  <div className="space-y-2">
-                    <Label htmlFor="motivation" className="font-lora">
-                      Motivation Letter *
-                    </Label>
-                    <Textarea
-                      id="motivation"
-                      name="motivation"
-                      value={formData.motivation}
-                      onChange={handleInputChange}
-                      required
-                      className="font-lora min-h-[150px]"
-                      placeholder="Explain why you want to join Orchid Island..."
-                    />
-                  </div>
-
-                  {/* File Uploads */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="font-lora flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        CV (PDF) *
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, 'cv')}
-                          required
-                          className="font-lora"
-                        />
-                        <Upload className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            {loadingCareers ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : careers.length === 0 ? (
+              <Card>
+                <CardContent className="p-10 text-center text-muted-foreground">
+                  <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                  Aucune offre n'est ouverte pour le moment. N'hésitez pas à nous envoyer
+                  une candidature spontanée via le formulaire ci-dessous.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                {careers.map((career) => (
+                  <Card key={career._id} className="hover:shadow-luxury transition-all duration-300">
+                    <CardContent className="p-5 sm:p-6">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <h3 className="text-lg sm:text-xl font-bold leading-tight">
+                          {career.title}
+                        </h3>
+                        <Badge className="shrink-0 bg-primary/10 text-primary hover:bg-primary/10 border-primary/20">
+                          {career.contractType}
+                        </Badge>
                       </div>
-                      {formData.cv && (
-                        <p className="text-sm text-green-600 font-lora">
-                          ✓ {formData.cv.name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="font-lora flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Cover Letter (PDF)
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept=".pdf"
-                          onChange={(e) => handleFileChange(e, 'coverLetter')}
-                          className="font-lora"
-                        />
-                        <Upload className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                        {career.description}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-muted-foreground mb-5">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span>{career.city}</span>
+                        </div>
+                        {career.salary && <span>💰 {career.salary}</span>}
+                        {career.duration && <span>Durée : {career.duration}</span>}
+                        {career.stageType && <span>{career.stageType}</span>}
+                        {career.freelanceDeadline && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            <span>Deadline : {formatDate(career.freelanceDeadline)}</span>
+                          </div>
+                        )}
                       </div>
-                      {formData.coverLetter && (
-                        <p className="text-sm text-green-600 font-lora">
-                          ✓ {formData.coverLetter.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {/* reCAPTCHA placeholder */}
-                  <div className="mb-4">
-                    <ReCAPTCHA
-                      sitekey={RECAPTCHA_SITE_KEY}  // Remplace par ta Site Key
-                      onChange={handleRecaptchaChange}
-                    />
-                  </div>
 
-                  {/* Submit Button */}
-                  <div className="pt-6">
-                    <Button
-                      type="submit"
-                      variant="luxury"
-                      size="lg"
-                      className="w-full font-lora text-lg"
-                      disabled={!recaptchaToken}
-                    >
-                      Submit Application
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+                      <Button
+                        variant="luxury"
+                        className="w-full"
+                        onClick={() => handleApplyClick(career)}
+                      >
+                        Postuler
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
+        </section>
 
-          {/* Additional Information */}
-          <div className="mt-16 text-center">
-            <Card className="max-w-2xl mx-auto">
-              <CardContent className="p-8">
-                <h3 className="font-playfair text-2xl font-bold text-charcoal mb-4">
-                  Why Orchid Island?
-                </h3>
-                <div className="space-y-4 font-lora text-charcoal/80">
-                  <p>
-                    • Stimulating work environment in the luxury real estate sector
+        {/* ── Formulaire de candidature ── */}
+        <section ref={formRef} className="py-10 sm:py-14 bg-muted/30 border-t scroll-mt-20">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="max-w-2xl mx-auto">
+              {submitted ? (
+                <Card>
+                  <CardContent className="p-10 text-center">
+                    <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">Candidature envoyée !</h3>
+                    <p className="text-muted-foreground">
+                      Merci pour votre candidature
+                      {formData.position ? ` pour le poste de ${formData.position}` : ""}.
+                      Notre équipe l'examinera et reviendra vers vous rapidement.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                    {selectedCareer ? `Postuler : ${selectedCareer.title}` : "Candidature spontanée"}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Remplissez le formulaire ci-dessous, notre équipe RH vous répondra dans les
+                    meilleurs délais.
                   </p>
-                  <p>
-                    • Professional development and continuous training opportunities
-                  </p>
-                  <p>
-                    • Dynamic and collaborative team
-                  </p>
-                  <p>
-                    • Attractive compensation and social benefits
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+
+                  <form onSubmit={handleSubmit}>
+                    <Card>
+                      <CardContent className="p-5 sm:p-6 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Prénom *</label>
+                            <Input
+                              name="firstName"
+                              value={formData.firstName}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Nom *</label>
+                            <Input
+                              name="lastName"
+                              value={formData.lastName}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Email *</label>
+                            <Input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">Téléphone *</label>
+                            <Input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Ville *</label>
+                          <Input name="address" value={formData.address} onChange={handleInputChange} />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Poste souhaité *</label>
+                          <Input
+                            name="position"
+                            value={formData.position}
+                            onChange={handleInputChange}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Expérience *</label>
+                          <Textarea
+                            name="experience"
+                            value={formData.experience}
+                            onChange={handleInputChange}
+                            rows={3}
+                            placeholder="Résumez votre parcours professionnel..."
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Lettre de motivation *</label>
+                          <Textarea
+                            name="motivation"
+                            value={formData.motivation}
+                            onChange={handleInputChange}
+                            rows={4}
+                            placeholder="Pourquoi souhaitez-vous rejoindre Orchid Island ?"
+                            required
+                          />
+                        </div>
+
+                        {/* CV */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">CV *</label>
+                          <input
+                            ref={cvInputRef}
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            className="hidden"
+                            onChange={(e) => handleFileChange(e, "cv")}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => cvInputRef.current?.click()}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-md border border-input bg-background text-sm hover:bg-muted/50 transition-colors"
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <Upload className="w-4 h-4 shrink-0 text-muted-foreground" />
+                              {cvFile ? (
+                                <span className="truncate">{cvFile.name}</span>
+                              ) : (
+                                <span className="text-muted-foreground">Choisir un fichier (PDF, Word)...</span>
+                              )}
+                            </span>
+                            {cvFile && (
+                              <X
+                                className="w-4 h-4 shrink-0 text-muted-foreground hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCvFile(null);
+                                  if (cvInputRef.current) cvInputRef.current.value = "";
+                                }}
+                              />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Lettre de motivation (fichier optionnel) */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Lettre de motivation — fichier (optionnel)
+                          </label>
+                          <input
+                            ref={coverLetterInputRef}
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            className="hidden"
+                            onChange={(e) => handleFileChange(e, "coverLetter")}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => coverLetterInputRef.current?.click()}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-md border border-input bg-background text-sm hover:bg-muted/50 transition-colors"
+                          >
+                            <span className="flex items-center gap-2 truncate">
+                              <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
+                              {coverLetterFile ? (
+                                <span className="truncate">{coverLetterFile.name}</span>
+                              ) : (
+                                <span className="text-muted-foreground">Choisir un fichier (PDF, Word)...</span>
+                              )}
+                            </span>
+                            {coverLetterFile && (
+                              <X
+                                className="w-4 h-4 shrink-0 text-muted-foreground hover:text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCoverLetterFile(null);
+                                  if (coverLetterInputRef.current) coverLetterInputRef.current.value = "";
+                                }}
+                              />
+                            )}
+                          </button>
+                        </div>
+
+                        <Button type="submit" variant="luxury" className="w-full" disabled={submitting}>
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Envoi en cours...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Envoyer ma candidature
+                            </>
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </form>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
       </main>
 
       <Footer />

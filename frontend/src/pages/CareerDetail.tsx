@@ -32,7 +32,7 @@ interface CareerOffer {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
-const CareerDetails = () => {
+const CareerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -56,6 +56,11 @@ const CareerDetails = () => {
 
   const cvInputRef = useRef<HTMLInputElement>(null);
   const coverLetterInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -155,6 +160,71 @@ const CareerDetails = () => {
       year: "numeric",
     });
 
+  // ── Google for Jobs — mapping du type de contrat vers schema.org ──────────
+  const getEmploymentType = (contractType: string): string => {
+    switch (contractType) {
+      case "CDI":
+        return "FULL_TIME";
+      case "CDD":
+        return "TEMPORARY";
+      case "Stage":
+        return "INTERN";
+      case "Freelance":
+        return "CONTRACTOR";
+      default:
+        return "OTHER";
+    }
+  };
+
+  // ── Google for Jobs — construction du JSON-LD JobPosting ──────────────────
+  const buildJobPostingSchema = (offer: CareerOffer) => {
+    // validThrough : requis par Google. On utilise la deadline freelance si
+    // elle existe, sinon on considère l'offre valide 90 jours après sa création.
+    let validThrough: string;
+    if (offer.freelanceDeadline) {
+      validThrough = new Date(offer.freelanceDeadline).toISOString();
+    } else {
+      const fallback = new Date(offer.createdAt);
+      fallback.setDate(fallback.getDate() + 90);
+      validThrough = fallback.toISOString();
+    }
+
+    const schema: Record<string, any> = {
+      "@context": "https://schema.org/",
+      "@type": "JobPosting",
+      title: offer.title,
+      description: `<p>${offer.description.replace(/\n/g, "<br/>")}</p>`,
+      identifier: {
+        "@type": "PropertyValue",
+        name: "Orchid Island",
+        value: offer._id,
+      },
+      datePosted: new Date(offer.createdAt).toISOString(),
+      validThrough,
+      employmentType: getEmploymentType(offer.contractType),
+      hiringOrganization: {
+        "@type": "Organization",
+        name: "Orchid Island",
+        sameAs: SITE_URL,
+        logo: `${SITE_URL}/logo.png`,
+      },
+      jobLocation: {
+        "@type": "Place",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: offer.city,
+          addressCountry: "MA",
+        },
+      },
+    };
+
+    // baseSalary — uniquement si un montant numérique clair est fourni
+    // (le champ "salary" est une chaîne libre type "12000 - 15000 MAD",
+    // on ne l'inclut donc pas ici pour éviter des données structurées invalides)
+
+    return schema;
+  };
+
   // ── États de chargement / erreur ──────────────────────────────────────────
   if (loading) {
     return (
@@ -196,6 +266,9 @@ const CareerDetails = () => {
         <title>{career.title} | Carrières Orchid Island Real Estate</title>
         <link rel="canonical" href={`${SITE_URL}/careers/${career._id}`} />
         <meta name="description" content={career.description.slice(0, 155)} />
+        <script type="application/ld+json">
+          {JSON.stringify(buildJobPostingSchema(career))}
+        </script>
       </Helmet>
 
       <Header />
@@ -241,6 +314,13 @@ const CareerDetails = () => {
                   )}
                 </div>
               </div>
+
+              {career.status !== "closed" && (
+                <Button variant="luxury" size="lg" onClick={scrollToForm} className="shrink-0">
+                  <Send className="w-4 h-4 mr-2" />
+                  Postuler
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -259,6 +339,7 @@ const CareerDetails = () => {
               </Card>
 
               {/* ── Formulaire de candidature ── */}
+              <div ref={formRef} className="scroll-mt-24">
               {career.status === "closed" ? (
                 <Card>
                   <CardContent className="p-8 sm:p-10 text-center">
@@ -471,6 +552,7 @@ const CareerDetails = () => {
                   </form>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </section>
@@ -481,4 +563,4 @@ const CareerDetails = () => {
   );
 };
 
-export default CareerDetails;
+export default CareerDetail;

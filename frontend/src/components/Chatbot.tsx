@@ -5,6 +5,7 @@ import keyBg from "@/assets/cleeorchid.png";
 type Message = {
   from: "user" | "bot";
   text: string;
+  isError?: boolean;
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -102,7 +103,7 @@ const Chatbot: React.FC = () => {
         // Le backend renvoie un message utile (avec les coordonnées d'Orchid
         // Island) pour les cas prévus (limite de débit, panne temporaire).
         const fallback = data?.error || "⚠️ Erreur serveur. Réessayez dans un instant.";
-        setMessages(prev => [...prev, { from: "bot", text: fallback }]);
+        setMessages(prev => [...prev, { from: "bot", text: fallback, isError: true }]);
         return;
       }
 
@@ -110,7 +111,7 @@ const Chatbot: React.FC = () => {
       setMessages(prev => [...prev, { from: "bot", text: botReply }]);
     } catch (err) {
       console.error("Erreur lors de l'envoi du message:", err);
-      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur. Réessayez dans un instant." }]);
+      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur. Réessayez dans un instant.", isError: true }]);
     } finally {
       setIsTyping(false);
     }
@@ -419,6 +420,28 @@ const Chatbot: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {m.isError && (
+                      <button
+                        onClick={() => repeatResponse(i)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          marginTop: "6px",
+                          padding: "6px 12px",
+                          borderRadius: "999px",
+                          border: "1px solid #ddd",
+                          background: "#fff",
+                          color: "#082648",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <RotateCcw size={13} />
+                        Réessayer
+                      </button>
+                    )}
 
                     {/* Action buttons for bot messages - ChatGPT style */}
                     {m.from === "bot" && (

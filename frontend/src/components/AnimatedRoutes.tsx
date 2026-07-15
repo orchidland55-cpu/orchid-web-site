@@ -23,6 +23,9 @@ const TermsAndConditions = lazy(() => import("@/pages/Termsandconditions"));
 const LegalNotice = lazy(() => import("@/pages/Legalnotice"));
 const Disclaimer = lazy(() => import("@/pages/Disclaimer"));
 
+// ── Careers ─────────────────────────────────────────────────────────────
+const CareerDetail = lazy(() => import("@/pages/CareerDetail"));
+
 // ── Services ────────────────────────────────────────────────────────────
 const Services = lazy(() => import("@/pages/services/Services"));
 const DataCentersPage = lazy(() => import("@/pages/services/DataCentersPage"));
@@ -61,6 +64,7 @@ const AnimatedRoutes = () => {
       {/* ── Publiques ── */}
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/contact-us/careers/" element={<PageTransition><Postulation /></PageTransition>} />
+        <Route path="/careers/:id" element={<PageTransition><CareerDetail /></PageTransition>} />
         <Route path="/real-estate-guide-orchid-island-marrakech" element={<PageTransition><Blog /></PageTransition>} />
         <Route path="/corporate-social-responsibility" element={<PageTransition><Scr /></PageTransition>} />
         <Route path="/about-us" element={<PageTransition><About /></PageTransition>} />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,13 +10,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Briefcase, MapPin, Calendar, Upload, Send,
-  CheckCircle2, Loader2, FileText, X,
+  CheckCircle2, Loader2, FileText, X, ArrowLeft,
 } from "lucide-react";
 import { apiService } from "@/services/api";
 import { showToast } from "@/components/ToastContainer";
 import { SITE_URL } from "@/config/schema";
 
-// ── Type d'une offre publiée côté admin ────────────────────────────────────
 interface CareerOffer {
   _id: string;
   title: string;
@@ -33,21 +32,20 @@ interface CareerOffer {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
-const Postulation = () => {
+const CareerDetails = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // ── Offres ──────────────────────────────────────────────────────────────
-  const [careers, setCareers] = useState<CareerOffer[]>([]);
-  const [loadingCareers, setLoadingCareers] = useState(true);
+  const [career, setCareer] = useState<CareerOffer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ── Formulaire (candidature spontanée uniquement) ──────────────────────
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     address: "",
-    position: "",
     experience: "",
     motivation: "",
   });
@@ -56,36 +54,27 @@ const Postulation = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const formRef = useRef<HTMLDivElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
   const coverLetterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchCareers = async () => {
+    window.scrollTo(0, 0);
+    const fetchCareer = async () => {
+      if (!id) return;
       try {
-        setLoadingCareers(true);
-        const data = await apiService.getAllCareers();
-        setCareers((data as CareerOffer[]).filter((c) => c.status === "active"));
-      } catch (err) {
-        console.error("Erreur chargement des offres:", err);
+        setLoading(true);
+        setError(null);
+        const data = await apiService.getCareerById(id);
+        setCareer(data as CareerOffer);
+      } catch (err: any) {
+        console.error("Erreur chargement de l'offre:", err);
+        setError(err.message || "Impossible de charger cette offre.");
       } finally {
-        setLoadingCareers(false);
+        setLoading(false);
       }
     };
-    fetchCareers();
-  }, []);
-
-  // ── Clique sur une offre → page de détail dédiée ────────────────────────
-  const handleViewCareer = (career: CareerOffer) => {
-    navigate(`/careers/${career._id}`);
-  };
-
-  // ── Candidature spontanée (sans offre précise) ──────────────────────────
-  const handleSpontaneousClick = () => {
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
+    fetchCareer();
+  }, [id]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -135,7 +124,7 @@ const Postulation = () => {
       payload.append("email", formData.email);
       payload.append("phone", formData.phone);
       if (formData.address) payload.append("address", formData.address);
-      payload.append("position", formData.position);
+      payload.append("position", career?.title || "");
       payload.append("experience", formData.experience);
       payload.append("motivation", formData.motivation);
       payload.append("cv", cvFile);
@@ -166,130 +155,147 @@ const Postulation = () => {
       year: "numeric",
     });
 
+  // ── États de chargement / erreur ──────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="flex justify-center items-center py-32">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !career) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="container mx-auto px-4 sm:px-6 py-24 text-center">
+          <Briefcase className="w-10 h-10 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h1 className="text-xl sm:text-2xl font-bold mb-2">Offre introuvable</h1>
+          <p className="text-muted-foreground mb-6">
+            {error || "Cette offre a peut-être été supprimée ou le lien est incorrect."}
+          </p>
+          <Button variant="luxury" asChild>
+            <Link to="/contact-us/careers/">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour aux offres
+            </Link>
+          </Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Carrières & Offres d'emploi | Orchid Island Real Estate</title>
-        <link rel="canonical" href={`${SITE_URL}/contact-us/careers/`} />
-        <meta
-          name="description"
-          content="Découvrez nos offres d'emploi et postulez pour rejoindre Orchid Island, agence immobilière de luxe à Marrakech."
-        />
+        <title>{career.title} | Carrières Orchid Island Real Estate</title>
+        <link rel="canonical" href={`${SITE_URL}/careers/${career._id}`} />
+        <meta name="description" content={career.description.slice(0, 155)} />
       </Helmet>
 
       <Header />
 
       <main>
         {/* ── Hero ── */}
-        <section className="py-12 sm:py-16 bg-muted/30 border-b">
-          <div className="container mx-auto px-4 sm:px-6 text-center">
-            <h1 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              Rejoignez notre équipe
-            </h1>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-              Découvrez nos opportunités de carrière et faites partie d'une équipe passionnée
-              par l'immobilier de luxe à Marrakech.
-            </p>
+        <section className="py-10 sm:py-14 bg-muted/30 border-b">
+          <div className="container mx-auto px-4 sm:px-6">
+            <button
+              onClick={() => navigate("/contact-us/careers/")}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour aux offres
+            </button>
+
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <Badge className="bg-primary/10 text-primary hover:bg-primary/10 border-primary/20">
+                    {career.contractType}
+                  </Badge>
+                  {career.status === "closed" && (
+                    <Badge variant="secondary">Offre fermée</Badge>
+                  )}
+                </div>
+                <h1 className="font-playfair text-2xl sm:text-4xl font-bold mb-4">
+                  {career.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" />
+                    <span>{career.city}</span>
+                  </div>
+                  {career.salary && <span>💰 {career.salary}</span>}
+                  {career.duration && <span>Durée : {career.duration}</span>}
+                  {career.stageType && <span>{career.stageType}</span>}
+                  {career.freelanceDeadline && (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4" />
+                      <span>Deadline : {formatDate(career.freelanceDeadline)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── Offres ouvertes ── */}
+        {/* ── Description détaillée ── */}
         <section className="py-10 sm:py-14">
           <div className="container mx-auto px-4 sm:px-6">
-            <h2 className="text-xl sm:text-2xl font-bold mb-6">Offres ouvertes</h2>
-
-            {loadingCareers ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : careers.length === 0 ? (
+            <div className="max-w-3xl mx-auto space-y-10">
               <Card>
-                <CardContent className="p-10 text-center text-muted-foreground">
-                  <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                  Aucune offre n'est ouverte pour le moment. N'hésitez pas à nous envoyer
-                  une candidature spontanée via le formulaire ci-dessous.
+                <CardContent className="p-5 sm:p-8">
+                  <h2 className="text-lg sm:text-xl font-bold mb-4">Description du poste</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {career.description}
+                  </p>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                {careers.map((career) => (
-                  <Card
-                    key={career._id}
-                    className="hover:shadow-luxury transition-all duration-300 cursor-pointer"
-                    onClick={() => handleViewCareer(career)}
-                  >
-                    <CardContent className="p-5 sm:p-6">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <h3 className="text-lg sm:text-xl font-bold leading-tight hover:text-primary transition-colors">
-                          {career.title}
-                        </h3>
-                        <Badge className="shrink-0 bg-primary/10 text-primary hover:bg-primary/10 border-primary/20">
-                          {career.contractType}
-                        </Badge>
-                      </div>
 
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                        {career.description}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-muted-foreground mb-5">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 shrink-0" />
-                          <span>{career.city}</span>
-                        </div>
-                        {career.salary && <span>💰 {career.salary}</span>}
-                        {career.duration && <span>Durée : {career.duration}</span>}
-                        {career.stageType && <span>{career.stageType}</span>}
-                        {career.freelanceDeadline && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 shrink-0" />
-                            <span>Deadline : {formatDate(career.freelanceDeadline)}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <Button
-                        variant="luxury"
-                        className="w-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewCareer(career);
-                        }}
-                      >
-                        Voir l'offre & Postuler
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ── Formulaire de candidature spontanée ── */}
-        <section ref={formRef} className="py-10 sm:py-14 bg-muted/30 border-t scroll-mt-20">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="max-w-2xl mx-auto">
-              {submitted ? (
+              {/* ── Formulaire de candidature ── */}
+              {career.status === "closed" ? (
                 <Card>
-                  <CardContent className="p-10 text-center">
-                    <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold mb-2">Candidature envoyée !</h3>
-                    <p className="text-muted-foreground">
-                      Merci pour votre candidature
-                      {formData.position ? ` pour le poste de ${formData.position}` : ""}.
-                      Notre équipe l'examinera et reviendra vers vous rapidement.
+                  <CardContent className="p-8 sm:p-10 text-center">
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">
+                      Cette offre n'accepte plus de candidatures
+                    </h3>
+                    <p className="text-muted-foreground mb-6">
+                      Consultez nos autres offres ouvertes.
                     </p>
+                    <Button variant="luxury" asChild>
+                      <Link to="/contact-us/careers/">Voir les offres</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : submitted ? (
+                <Card>
+                  <CardContent className="p-8 sm:p-10 text-center">
+                    <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-lg sm:text-xl font-bold mb-2">Candidature envoyée !</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Merci pour votre candidature pour le poste de{" "}
+                      <strong className="text-foreground">{career.title}</strong>. Notre équipe
+                      l'examinera et reviendra vers vous rapidement.
+                    </p>
+                    <Button variant="luxury" asChild>
+                      <Link to="/contact-us/careers/">Voir d'autres offres</Link>
+                    </Button>
                   </CardContent>
                 </Card>
               ) : (
-                <>
-                  <h2 className="text-xl sm:text-2xl font-bold mb-2">
-                    Candidature spontanée
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold mb-2">
+                    Postuler : {career.title}
                   </h2>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Aucune de nos offres ne correspond exactement à votre profil ? Envoyez-nous
-                    une candidature spontanée, notre équipe RH l'étudiera avec attention.
+                    Remplissez le formulaire ci-dessous, notre équipe RH vous répondra dans les
+                    meilleurs délais.
                   </p>
 
                   <form onSubmit={handleSubmit}>
@@ -340,18 +346,13 @@ const Postulation = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1">Ville *</label>
+                          <label className="block text-sm font-medium mb-1">Ville</label>
                           <Input name="address" value={formData.address} onChange={handleInputChange} />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-1">Poste souhaité *</label>
-                          <Input
-                            name="position"
-                            value={formData.position}
-                            onChange={handleInputChange}
-                            required
-                          />
+                          <label className="block text-sm font-medium mb-1">Poste souhaité</label>
+                          <Input value={career.title} disabled className="bg-muted/50" />
                         </div>
 
                         <div>
@@ -468,7 +469,7 @@ const Postulation = () => {
                       </CardContent>
                     </Card>
                   </form>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -480,4 +481,4 @@ const Postulation = () => {
   );
 };
 
-export default Postulation;
+export default CareerDetails;

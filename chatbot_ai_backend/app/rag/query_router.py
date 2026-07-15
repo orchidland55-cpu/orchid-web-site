@@ -158,10 +158,13 @@ def _extract_vector(raw_embedding: object) -> list[float]:
     if hasattr(raw_embedding, "tolist"):
         raw_embedding = raw_embedding.tolist()
 
-    if not isinstance(raw_embedding, list) or not raw_embedding:
+    if not isinstance(raw_embedding, (list, tuple)) or not raw_embedding:
         raise TypeError("Embedding payload must be a non-empty list.")
 
-    vector = raw_embedding[0] if isinstance(raw_embedding[0], list) else raw_embedding
+    first = raw_embedding[0]
+    if hasattr(first, "tolist"):
+        first = first.tolist()
+    vector = first if isinstance(first, (list, tuple)) else raw_embedding
     return [float(value) for value in vector]
 
 

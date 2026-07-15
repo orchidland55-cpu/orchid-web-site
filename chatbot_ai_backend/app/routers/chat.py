@@ -3,7 +3,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.ai.deepseek import ask_deepseek
 from app.config import settings
-from app.memory.redis_memory import save_message
+from app.memory.redis_memory import get_history, save_message
 from app.rag.query_router import gather_search_results
 from app.schemas.chat import ChatRequest, ChatResponse, ChatSource
 from app.security.auth import verify_internal_token
@@ -20,6 +20,11 @@ ORCHID_CONTACT = (
     "Adresse : Centre d'affaire Oualid, Jbel Gueliz 10, 40010 Marrakech, Maroc\n"
     "Site web : https://www.orchidisland.immo"
 )
+
+# Nombre de tours (user + assistant) de l'historique récent à transmettre au
+# LLM pour qu'il garde le fil de la conversation, sans faire grossir le
+# prompt indéfiniment.
+MAX_HISTORY_MESSAGES = 10
 
 
 @router.post("", response_model=ChatResponse)
@@ -48,6 +53,13 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
 
     answer_language = "français" if plan.language == "fr" else "English"
 
+    history = await get_history(payload.session_id)
+    recent_history = [
+        {"role": message["role"], "content": message["content"]}
+        for message in history[-MAX_HISTORY_MESSAGES:]
+        if message["role"] in ("user", "assistant")
+    ]
+
     await save_message(payload.session_id, "user", payload.message)
 
     prompt_messages = [
@@ -66,6 +78,7 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
                 "Ne mets pas de liens markdown : écris les URLs en texte brut, sans crochets ni parenthèses."
             ),
         },
+        *recent_history,
         {
             "role": "user",
             "content": (

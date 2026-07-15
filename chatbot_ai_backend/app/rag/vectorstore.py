@@ -61,10 +61,21 @@ class LocalHashEmbeddingFunction:
 
 
 def get_chroma_client() -> chromadb.HttpClient:
-    """Retourne le client ChromaDB, en le créant si nécessaire."""
+    """Retourne le client ChromaDB, en le créant si nécessaire.
+
+    Priorité : Chroma Cloud (si CHROMA_API_KEY est renseigné) > serveur
+    HTTP distant (si CHROMA_HOST n'est pas "localhost") > disque local.
+    """
     global _chroma_client
     if _chroma_client is None:
-        if settings.chroma_host == "localhost":
+        if settings.chroma_api_key:
+            _chroma_client = chromadb.CloudClient(
+                tenant=settings.chroma_tenant,
+                database=settings.chroma_database,
+                api_key=settings.chroma_api_key,
+            )
+            logger.info("Client ChromaDB Cloud prêt — tenant=%s database=%s", settings.chroma_tenant, settings.chroma_database)
+        elif settings.chroma_host == "localhost":
             _chroma_client = chromadb.PersistentClient(
                 path=settings.chroma_persist_directory,
             )

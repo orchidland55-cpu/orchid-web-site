@@ -22,6 +22,11 @@ class Settings(BaseModel):
     chroma_host: str = os.getenv("CHROMA_HOST", "localhost")
     chroma_port: int = int(os.getenv("CHROMA_PORT", "8001"))
     chroma_persist_directory: str = os.getenv("CHROMA_PERSIST_DIRECTORY", "./chroma")
+    # Chroma Cloud (https://trychroma.com) — si CHROMA_API_KEY est renseigné,
+    # get_chroma_client() se connecte à Chroma Cloud au lieu du disque local.
+    chroma_tenant: str = os.getenv("CHROMA_TENANT", "")
+    chroma_database: str = os.getenv("CHROMA_DATABASE", "")
+    chroma_api_key: str = os.getenv("CHROMA_API_KEY", "")
     deepseek_api_key: str = os.getenv("DEEPSEEK_API_KEY", "")
     deepseek_base_url: str = os.getenv("DEEPSEEK_BASE_URL", "https://integrate.api.nvidia.com/v1")
     deepseek_model: str = os.getenv("DEEPSEEK_MODEL", "deepseek-ai/deepseek-v4-pro")

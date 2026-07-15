@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- index.html — dans <head>, AVANT tout <script> -->
-    <link
-     rel="preload"
-     as="image"
-     href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1200,dpr_1/v1782416336/hero_tweegz.webp"
-     fetchpriority="high"
-     media="(max-width: 767px)"
-    />
-    <!-- Pour desktop, on précharge aussi le poster de la vidéo -->
-    <link
-      rel="preload"
-      as="image"
-      href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1920/v1782416336/hero_tweegz.webp"
-      fetchpriority="high"
-      media="(min-width: 768px)"
-    />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Luxury Real Estate in Marrakech | Villas, Riads & Investment Properties | Orchid Island</title>
-    <meta name="description"
-      content="Discover luxury villas, riads, apartments and investment properties in Marrakech with Orchid Island Real Estate. Trusted experts in high-end Moroccan real estate." />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Preconnect Cloudinary -->
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+  <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
+  <!-- Preload image LCP mobile -->
+  <link
+    rel="preload"
+    as="image"
+    href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1200,dpr_auto/v1782416336/hero_tweegz.webp"
+    fetchpriority="high"
+    media="(max-width: 767px)"
+  />
+
+  <!-- Preload poster desktop -->
+  <link
+    rel="preload"
+    as="image"
+    href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1920,dpr_auto/v1782416336/hero_tweegz.webp"
+    fetchpriority="high"
+    media="(min-width: 768px)"
+  />
+
+  <title>
+    Luxury Real Estate in Marrakech | Villas, Riads & Investment Properties | Orchid Island
+  </title>
+
+  <meta
+    name="description"
+    content="Discover luxury villas, riads, apartments and investment properties in Marrakech with Orchid Island Real Estate. Trusted experts in high-end Moroccan real estate."
+  />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { 

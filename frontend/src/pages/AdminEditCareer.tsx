@@ -150,12 +150,12 @@ const AdminEditCareer = ({ id, onDone }: AdminEditCareerProps) => {
           </>
         );
       case "Freelance":
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">Date de deadline *</label>
-            <Input type="date" name="freelanceDeadline" value={formData.freelanceDeadline} onChange={handleInputChange} required />
-          </div>
-        );
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">Date de deadline (optionnel)</label>
+      <Input type="date" name="freelanceDeadline" value={formData.freelanceDeadline} onChange={handleInputChange} />
+    </div>
+  );
       default:
         return null;
     }

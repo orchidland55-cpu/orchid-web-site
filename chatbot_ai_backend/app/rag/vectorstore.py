@@ -4,8 +4,10 @@ import logging
 import hashlib
 import re
 from dataclasses import dataclass
+from typing import Any
 
 import chromadb
+import numpy as np
 from chromadb import Collection
 from chromadb.errors import NotFoundError
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
@@ -40,16 +42,16 @@ class LocalHashEmbeddingFunction:
     def name(self) -> str:
         return "default"
 
-    def __call__(self, input: list[str]) -> list[list[float]]:
+    def __call__(self, input: list[str]) -> list[Any]:
         return self.embed_documents(input)
 
-    def embed_documents(self, input: list[str]) -> list[list[float]]:
+    def embed_documents(self, input: list[str]) -> list[Any]:
         return [self._embed(text) for text in input]
 
-    def embed_query(self, input: list[str]) -> list[list[float]]:
+    def embed_query(self, input: list[str]) -> list[Any]:
         return [self._embed(text) for text in input]
 
-    def _embed(self, text: str) -> list[float]:
+    def _embed(self, text: str) -> Any:
         vector = [0.0] * self.dimension
         tokens = re.findall(r"\w+", text.lower())
         for token in tokens:
@@ -57,7 +59,11 @@ class LocalHashEmbeddingFunction:
             index = int.from_bytes(digest[:4], "little") % self.dimension
             vector[index] += 1.0
         norm = sum(value * value for value in vector) ** 0.5 or 1.0
-        return [value / norm for value in vector]
+        # Le client HTTP/Cloud de chromadb appelle .tolist() sur chaque
+        # embedding — un tableau numpy est donc requis, une simple liste
+        # Python provoque une AttributeError (fonctionne en local car le
+        # PersistentClient emprunte un autre chemin de code).
+        return np.array([value / norm for value in vector], dtype=float)
 
 
 def get_chroma_client() -> chromadb.HttpClient:

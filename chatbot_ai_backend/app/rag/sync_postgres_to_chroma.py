@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -53,6 +54,22 @@ def _normalize_text(value: Any) -> str:
     return str(value).strip()
 
 
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _clean_long_text(value: Any, max_length: int = 2000) -> str:
+    """Retire le HTML brut et tronque les textes longs (descriptions, articles) :
+    ces champs peuvent contenir des dizaines de Ko de balisage qui n'apporte
+    rien à la recherche sémantique et dépasse les quotas de taille par
+    document de certains hébergeurs ChromaDB (ex. Chroma Cloud, 16 Ko)."""
+    text = _normalize_text(value)
+    text = _HTML_TAG_RE.sub(" ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) > max_length:
+        text = text[:max_length].rsplit(" ", 1)[0] + "…"
+    return text
+
+
 def _metadata_value(value: Any) -> Any:
     if value is None:
         return ""
@@ -87,7 +104,7 @@ def _build_property_text(row: dict[str, Any]) -> str:
         f"Sécurité: {_normalize_text(row['security'])}",
         f"Meublé: {_normalize_text(row['furnished'])}",
         f"Agent: {row['agent']}",
-        f"Description: {row['description']}",
+        f"Description: {_clean_long_text(row['description'])}",
     ]
     return "\n".join(line for line in lines if not line.endswith(": "))
 
@@ -99,8 +116,8 @@ def _build_article_text(row: dict[str, Any]) -> str:
         f"Auteur: {row['author']}",
         f"Date: {_normalize_text(row['published_at'])}",
         f"Mots-clés: {_normalize_text(row.get('tags') or [])}",
-        f"Résumé: {row['summary']}",
-        f"Contenu: {row['content']}",
+        f"Résumé: {_clean_long_text(row['summary'], max_length=500)}",
+        f"Contenu: {_clean_long_text(row['content'])}",
     ]
     return "\n".join(line for line in lines if not line.endswith(": "))
 

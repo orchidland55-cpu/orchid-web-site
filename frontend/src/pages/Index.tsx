@@ -15,7 +15,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 
 const Index = () => {
   const [heroFilters, setHeroFilters] = useState<HeroFilters>({
-    type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
+    listingType: "all", type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
   });
 
   const propertiesRef = useRef<HTMLDivElement>(null);

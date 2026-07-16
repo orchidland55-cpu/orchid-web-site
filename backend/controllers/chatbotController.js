@@ -1,23 +1,58 @@
 const axios = require("axios");
 
+// Relais vers le backend Chatbot-AI (FastAPI + RAG + DeepSeek).
+// Remplace l'ancien appel direct à Rasa (rasa_chatbot/ reste en place,
+// simplement plus appelé depuis ce contrôleur).
 const sendMessageToChatbot = async (req, res) => {
-  const { message } = req.body;
+  const { message, session_id } = req.body;
+
+  if (!message || typeof message !== "string") {
+    return res.status(400).json({ error: "Message manquant ou invalide." });
+  }
+
+  const backendUrl = process.env.CHATBOT_AI_URL;
+  const internalToken = process.env.CHATBOT_AI_TOKEN;
+
+  if (!backendUrl) {
+    console.error("CHATBOT_AI_URL non configuré.");
+    return res.status(500).json({ error: "Chatbot indisponible pour le moment." });
+  }
 
   try {
-    // Envoyer le message au serveur Rasa
-    const response = await axios.post("http://localhost:5005/webhooks/rest/webhook", {
-      sender: "user1",
-      message: message
-    });
+    const response = await axios.post(
+      `${backendUrl}/chat`,
+      {
+        message,
+        session_id: session_id || "anonymous",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(internalToken ? { "X-Internal-Token": internalToken } : {}),
+          // Transmet la vraie IP du visiteur (Express la connaît déjà via
+          // 'trust proxy') pour que le rate limiting de Chatbot-AI s'applique
+          // par visiteur, pas par notre propre serveur.
+          "X-Forwarded-For": req.ip,
+        },
+        // La réponse combine une recherche RAG (Postgres/Chroma) et un appel
+        // LLM (DeepSeek) ; observé en pratique entre 10 et 15+ secondes.
+        // 15s était trop juste et coupait certaines requêtes légitimes.
+        timeout: 30000,
+      }
+    );
 
-    // Récupérer le texte du premier message reçu de Rasa
-    const reply = response.data[0]?.text || "Désolé, je n'ai pas compris.";
-
-    // Réponse simplifiée
+    const reply = response.data?.reply || "Désolé, je n'ai pas compris.";
     res.json({ reply });
   } catch (err) {
+    if (err.response?.status === 429) {
+      return res.status(429).json({
+        error: "Trop de messages envoyés, merci de patienter un instant. En attendant, vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo.",
+      });
+    }
     console.error("Erreur chatbot:", err.message);
-    res.status(500).json({ error: "Erreur de communication avec Rasa" });
+    res.status(502).json({
+      error: "Le chatbot rencontre un problème technique. Vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo.",
+    });
   }
 };
 

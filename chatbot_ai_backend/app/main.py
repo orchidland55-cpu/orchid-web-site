@@ -1,0 +1,27 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.memory.redis_memory import close_redis
+from app.routers import chat
+
+
+app = FastAPI(title=settings.app_name)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.include_router(chat.router)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
+@app.on_event("shutdown")
+async def shutdown_event() -> None:
+    await close_redis()

@@ -92,8 +92,16 @@ const PORT = process.env.PORT || 3000;
 
 // ===== Middlewares =====
 // app.use(cors());
+// Autorise le domaine de production, plus les URLs de preview Vercel du même
+// projet/équipe (utile pour tester une branche avant de la merger dans main).
+const VERCEL_PREVIEW_ORIGIN = /^https:\/\/orchid-immo-web-site-git-[a-z0-9-]+-orchidland55-cpus-projects\.vercel\.app$/;
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: (origin, callback) => {
+    if (!origin || origin === process.env.FRONTEND_URL || VERCEL_PREVIEW_ORIGIN.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   credentials: true
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -322,6 +330,17 @@ const formLimiter = rateLimit({
   message: "Limite de soumissions atteinte. Réessayez dans 1 heure."
 });
 
+// Chatbot public (protection contre le spam / l'abus du budget LLM)
+const chatbotLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Trop de messages envoyés, merci de patienter un instant. En attendant, vous pouvez contacter Orchid Island directement au +212 6 18 68 88 88 ou via https://www.orchidisland.immo."
+  }
+});
+
 // Appliquer le middleware d'analytics
 app.use(analyticsMiddleware);
 
@@ -439,7 +458,7 @@ app.post('/postulation', formLimiter, sendPostulation);
 app.post('/invest', formLimiter, sendInvestmentEmail);
 
 // ===== Chatbot route =====
-app.post('/chatbot', sendMessageToChatbot);
+app.post('/chatbot', chatbotLimiter, sendMessageToChatbot);
 
 // 📄 Route dynamique pour les activités récentes (filtrées sur 24h)
 app.get('/admin/recent-activities', verifyJWT, requireAdmin, async (req, res) => {

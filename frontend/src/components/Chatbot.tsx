@@ -1,10 +1,55 @@
 import React, { useState, KeyboardEvent, useRef, useEffect } from "react";
+import { MoreHorizontal, X, SquarePen, History, ArrowUp, Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
 import keyBg from "@/assets/cleeorchid.png";
 
 type Message = {
   from: "user" | "bot";
   text: string;
+  isError?: boolean;
 };
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Identifiant stable par visiteur, pour que l'historique de conversation et
+// la limite de débit distinguent chaque visiteur au lieu de tous partager
+// la même session.
+// Convertit les liens markdown [texte](url) et les URLs brutes (http(s)://...)
+// en vrais liens cliquables ; le reste du texte est affiché tel quel.
+function renderMessageText(text: string, linkColor: string): React.ReactNode[] {
+  const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+)/g;
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    const label = match[1] ?? match[3];
+    const url = match[2] ?? match[3];
+    nodes.push(
+      <a key={key++} href={url} style={{ color: linkColor, textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+        {label}
+      </a>
+    );
+    lastIndex = pattern.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+  return nodes;
+}
+
+function getSessionId(): string {
+  const key = "orchid_chat_session_id";
+  let sessionId = localStorage.getItem(key);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(key, sessionId);
+  }
+  return sessionId;
+}
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -13,13 +58,14 @@ const Chatbot: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showRecentChats, setShowRecentChats] = useState(false);
   const [messageFeedback, setMessageFeedback] = useState<{[key: number]: 'like' | 'dislike' | null}>({});
+  const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null); // ✅ Référence pour scroll
 
   // ✅ Scroll vers le bas à chaque nouveau message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   // Fermer le menu quand on clique ailleurs
   useEffect(() => {
@@ -43,26 +89,31 @@ const Chatbot: React.FC = () => {
       setInput("");
     }
 
+    setIsTyping(true);
     try {
-      const res = await fetch("http://127.0.0.1:5005/webhooks/rest/webhook", {
+      const res = await fetch(`${API_BASE_URL}/chatbot`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: "user", message: messageText }),
+        body: JSON.stringify({ message: messageText, session_id: getSessionId() }),
       });
 
-      if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
+      const data = await res.json().catch(() => null);
 
-      const data = await res.json();
-
-      if (data && data.length > 0) {
-        const botReply = data[0].text || "Désolé, je n'ai pas compris.";
-        setMessages(prev => [...prev, { from: "bot", text: botReply }]);
-      } else {
-        setMessages(prev => [...prev, { from: "bot", text: "Aucune réponse du bot." }]);
+      if (!res.ok) {
+        // Le backend renvoie un message utile (avec les coordonnées d'Orchid
+        // Island) pour les cas prévus (limite de débit, panne temporaire).
+        const fallback = data?.error || "⚠️ Erreur serveur. Réessayez dans un instant.";
+        setMessages(prev => [...prev, { from: "bot", text: fallback, isError: true }]);
+        return;
       }
+
+      const botReply = data?.reply || "Désolé, je n'ai pas compris.";
+      setMessages(prev => [...prev, { from: "bot", text: botReply }]);
     } catch (err) {
       console.error("Erreur lors de l'envoi du message:", err);
-      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur ou CORS. Vérifiez la console." }]);
+      setMessages(prev => [...prev, { from: "bot", text: "⚠️ Erreur serveur. Réessayez dans un instant.", isError: true }]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -126,7 +177,7 @@ const Chatbot: React.FC = () => {
     boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
     cursor: "pointer",
     position: "fixed",
-    right: "20px",
+    left: "20px",
     bottom: "20px",
     zIndex: 9999,
     border: "none",
@@ -145,6 +196,15 @@ const Chatbot: React.FC = () => {
           .message-bubble:hover .message-actions {
             opacity: 1 !important;
           }
+          @keyframes typing-dot-bounce {
+            0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+            40% { transform: translateY(-4px); opacity: 1; }
+          }
+          .typing-dot {
+            animation: typing-dot-bounce 1.2s infinite ease-in-out;
+          }
+          .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+          .typing-dot:nth-child(3) { animation-delay: 0.3s; }
         `}
       </style>
       <button
@@ -158,49 +218,74 @@ const Chatbot: React.FC = () => {
         <div
           style={{
             position: "fixed",
-            bottom: "160px",
-            right: "20px",
-            width: "260px",
-            height: "280px",
+            bottom: "95px",
+            left: "20px",
+            width: "380px",
+            maxWidth: "92vw",
+            height: "min(600px, 70vh)",
             background: "#fff",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
+            borderRadius: "18px",
             display: "flex",
             flexDirection: "column",
-            fontFamily: "Arial, sans-serif",
-            boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
+            fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
             zIndex: 9999,
+            overflow: "hidden",
           }}
         >
-          {/* Header avec menu */}
+          {/* Header */}
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "8px 12px",
+              padding: "16px 18px",
               borderBottom: "1px solid #eee",
-              backgroundColor: "#f8f9fa",
-              borderRadius: "10px 10px 0 0",
+              backgroundColor: "#fff",
             }}
           >
-            <span style={{ fontSize: "14px", fontWeight: "bold", color: "#082648" }}>
+            <span style={{ fontSize: "16px", fontWeight: 700, color: "#082648" }}>
               Orchid Island
             </span>
-            <button
-              className="chat-menu"
-              onClick={() => setShowMenu(!showMenu)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "18px",
-                cursor: "pointer",
-                color: "#666",
-              }}
-              aria-label="Menu"
-            >
-              ⋮
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                className="chat-menu"
+                onClick={() => setShowMenu(!showMenu)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#888",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                aria-label="Menu"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#888",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                aria-label="Fermer le chat"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Menu déroulant */}
@@ -209,60 +294,73 @@ const Chatbot: React.FC = () => {
               className="chat-menu"
               style={{
                 position: "absolute",
-                top: "45px",
-                right: "10px",
+                top: "56px",
+                right: "14px",
                 background: "#fff",
-                border: "1px solid #ddd",
-                borderRadius: "5px",
-                boxShadow: "0px 2px 8px rgba(0,0,0,0.1)",
+                border: "1px solid #eee",
+                borderRadius: "10px",
+                boxShadow: "0px 4px 16px rgba(0,0,0,0.12)",
                 zIndex: 10000,
-                minWidth: "150px",
+                minWidth: "170px",
+                overflow: "hidden",
               }}
             >
               <button
                 onClick={startNewChat}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                🆕 Start a new chat
+                <SquarePen size={16} color="#082648" />
+                Nouvelle conversation
               </button>
               <button
                 onClick={endChat}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                ❌ End chat
+                <X size={16} color="#e11d48" />
+                Terminer
               </button>
               <button
                 onClick={viewRecentChats}
                 style={{
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   width: "100%",
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   border: "none",
                   background: "none",
                   textAlign: "left",
                   cursor: "pointer",
                   fontSize: "14px",
+                  color: "#222",
                 }}
               >
-                📋 View recent chats
+                <History size={16} color="#555" />
+                Conversations récentes
               </button>
             </div>
           )}
@@ -271,14 +369,24 @@ const Chatbot: React.FC = () => {
           <div
             style={{
               flex: 1,
-              padding: "8px",
+              padding: "16px",
               overflowY: "auto",
-              backgroundColor: "#f9f9f9",
+              backgroundColor: "#fff",
             }}
           >
             {messages.length === 0 ? (
-              <div style={{ color: "#888", fontSize: "12px", textAlign: "center", marginTop: "20px" }}>
-                Démarrez la conversation 👋
+              <div
+                style={{
+                  display: "inline-block",
+                  background: "#f4f4f6",
+                  color: "#222",
+                  padding: "10px 14px",
+                  borderRadius: "14px",
+                  fontSize: "14px",
+                  maxWidth: "85%",
+                }}
+              >
+                Bonjour ! Comment puis-je vous aider ?
               </div>
             ) : (
               <>
@@ -287,9 +395,9 @@ const Chatbot: React.FC = () => {
                     key={i}
                     style={{
                       textAlign: m.from === "user" ? "right" : "left",
-                      margin: "4px 0",
-                      fontSize: "13px",
-                      lineHeight: "1.4",
+                      margin: "10px 0",
+                      fontSize: "14px",
+                      lineHeight: "1.5",
                       position: "relative",
                     }}
                   >
@@ -297,60 +405,52 @@ const Chatbot: React.FC = () => {
                       className="message-bubble"
                       style={{
                         display: "inline-block",
-                        background: m.from === "user" ? "#dcf8c6" : "#ffffff",
-                        padding: "6px 10px",
-                        borderRadius: "12px",
-                        border: m.from === "bot" ? "1px solid #e0e0e0" : "none",
+                        background: m.from === "user" ? "#082648" : "#f4f4f6",
+                        color: m.from === "user" ? "#fff" : "#222",
+                        padding: "10px 14px",
+                        borderRadius: "16px",
                         maxWidth: "85%",
                         wordBreak: "break-word",
                         position: "relative",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                        <div style={{ flex: 1 }}>
-                          <b style={{ fontSize: "11px", color: "#555" }}>
-                            {m.from === "user" ? "Vous" : "Orchid Island"}
-                          </b>
-                          <br />
-                          {m.text.split(/(\s+|\/[^\s]+)/).map((part, index) => {
-                            if (part.startsWith('/')) {
-                              return <a key={index} href={part} style={{ color: "#007bff", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">{part}</a>;
-                            }
-                            return part;
-                          })}
+                        <div style={{ flex: 1, whiteSpace: "pre-wrap" }}>
+                          {renderMessageText(m.text, m.from === "user" ? "#cfe0ff" : "#007bff")}
                         </div>
-                        {m.from === "bot" && (
-                          <button
-                            onClick={() => copyToClipboard(m.text)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: "2px",
-                              borderRadius: "3px",
-                              opacity: 0.7,
-                              fontSize: "12px",
-                            }}
-                            title="Copier le message"
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = "0.7"}
-                          >
-                            📋
-                          </button>
-                        )}
                       </div>
                     </div>
+
+                    {m.isError && (
+                      <button
+                        onClick={() => repeatResponse(i)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          marginTop: "6px",
+                          padding: "6px 12px",
+                          borderRadius: "999px",
+                          border: "1px solid #ddd",
+                          background: "#fff",
+                          color: "#082648",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <RotateCcw size={13} />
+                        Réessayer
+                      </button>
+                    )}
 
                     {/* Action buttons for bot messages - ChatGPT style */}
                     {m.from === "bot" && (
                       <div
                         className="message-actions"
                         style={{
-                          position: "absolute",
-                          top: "6px",
-                          right: "10px",
                           display: "flex",
                           gap: "4px",
+                          marginTop: "4px",
                           opacity: 0,
                           transition: "opacity 0.2s ease",
                         }}
@@ -358,82 +458,87 @@ const Chatbot: React.FC = () => {
                         <button
                           onClick={() => copyToClipboard(m.text)}
                           style={{
-                            background: "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
-                            fontSize: "12px",
+                            color: "#888",
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Copier"
                         >
-                          📋
+                          <Copy size={14} />
                         </button>
 
                         <button
                           onClick={() => handleFeedback(i, 'like')}
                           style={{
-                            background: messageFeedback[i] === 'like' ? "#10a37f" : "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
-                            fontSize: "12px",
+                            color: messageFeedback[i] === 'like' ? "#10a37f" : "#888",
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Aimer"
                         >
-                          👍
+                          <ThumbsUp size={14} />
                         </button>
 
                         <button
                           onClick={() => handleFeedback(i, 'dislike')}
                           style={{
-                            background: messageFeedback[i] === 'dislike' ? "#f44336" : "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
-                            fontSize: "12px",
+                            color: messageFeedback[i] === 'dislike' ? "#f44336" : "#888",
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Ne pas aimer"
                         >
-                          👎
+                          <ThumbsDown size={14} />
                         </button>
 
                         <button
                           onClick={() => repeatResponse(i)}
                           style={{
-                            background: "rgba(0, 0, 0, 0.5)",
+                            background: "none",
                             border: "none",
                             borderRadius: "4px",
                             padding: "4px",
                             cursor: "pointer",
-                            color: "white",
-                            fontSize: "12px",
+                            color: "#888",
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
                           }}
                           title="Régénérer"
                         >
-                          🔄
+                          <RotateCcw size={14} />
                         </button>
                       </div>
                     )}
                   </div>
                 ))}
+                {isTyping && (
+                  <div style={{ textAlign: "left", margin: "10px 0" }}>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        gap: "4px",
+                        background: "#f4f4f6",
+                        padding: "12px 16px",
+                        borderRadius: "16px",
+                      }}
+                    >
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                      <span className="typing-dot" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#999", display: "inline-block" }} />
+                    </div>
+                  </div>
+                )}
                 {/* 👇 Anchor invisible pour le scroll */}
                 <div ref={messagesEndRef} />
               </>
@@ -444,53 +549,80 @@ const Chatbot: React.FC = () => {
               <div
                 style={{
                   marginTop: "10px",
-                  padding: "8px",
-                  backgroundColor: "#e9ecef",
-                  borderRadius: "8px",
+                  padding: "10px",
+                  backgroundColor: "#f4f4f6",
+                  borderRadius: "10px",
                   fontSize: "12px",
                   color: "#666",
                   textAlign: "center",
                 }}
               >
-                📋 Recent chats will be displayed here
+                📋 L'historique des conversations s'affichera ici
                 <br />
-                <em>Feature coming soon...</em>
+                <em>Bientôt disponible...</em>
               </div>
             )}
           </div>
 
           {/* Input utilisateur */}
-          <div style={{ display: "flex", borderTop: "1px solid #ddd", background: "#fff" }}>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Écrire un message..."
+          <div style={{ padding: "12px 16px 8px", background: "#fff" }}>
+            <div
               style={{
-                flex: 1,
-                border: "none",
-                padding: "8px 10px",
-                fontSize: "14px",
-                outline: "none",
+                display: "flex",
+                alignItems: "center",
+                background: "#f4f4f6",
+                borderRadius: "999px",
+                padding: "6px 6px 6px 16px",
+                gap: "8px",
               }}
-              aria-label="Saisir un message"
-            />
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim()}
-              style={{
-                padding: "8px 12px",
-                background: input.trim() ? "#082648" : "#ccc",
-                color: "#fff",
-                border: "none",
-                cursor: input.trim() ? "pointer" : "not-allowed",
-                fontSize: "16px",
-                fontWeight: "bold",
-              }}
-              aria-label="Envoyer le message"
             >
-              ➤
-            </button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Écrire un message..."
+                style={{
+                  flex: 1,
+                  border: "none",
+                  background: "transparent",
+                  padding: "8px 0",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+                aria-label="Saisir un message"
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                style={{
+                  width: "34px",
+                  height: "34px",
+                  borderRadius: "50%",
+                  background: input.trim() ? "#082648" : "#ccc",
+                  color: "#fff",
+                  border: "none",
+                  cursor: input.trim() ? "pointer" : "not-allowed",
+                  fontSize: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+                aria-label="Envoyer le message"
+              >
+                <ArrowUp size={16} />
+              </button>
+            </div>
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "11px",
+                color: "#aaa",
+                marginTop: "8px",
+              }}
+            >
+              Propulsé par Orchid Island
+            </div>
           </div>
         </div>
       )}

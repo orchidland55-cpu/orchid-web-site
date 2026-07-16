@@ -2,6 +2,12 @@ from __future__ import annotations
 
 import re
 
+from langdetect import DetectorFactory, LangDetectException, detect
+
+# Résultats reproductibles d'un appel à l'autre (langdetect est
+# probabiliste par défaut et peut varier sans seed fixe).
+DetectorFactory.seed = 0
+
 FRENCH_HINTS = {
     "bonjour",
     "merci",
@@ -60,22 +66,27 @@ def normalize_language(language: str | None) -> str | None:
 
 
 def detect_language(text: str, default: str = "fr") -> str:
-    normalized_text = text.strip().lower()
+    normalized_text = text.strip()
     if not normalized_text:
         return default
 
-    french_score = 0
-    english_score = 0
+    try:
+        detected = detect(normalized_text)
+    except LangDetectException:
+        detected = None
 
-    for hint in FRENCH_HINTS:
-        if hint in normalized_text:
-            french_score += 1
+    if detected == "fr":
+        return "fr"
+    if detected == "en":
+        return "en"
 
-    for hint in ENGLISH_HINTS:
-        if hint in normalized_text:
-            english_score += 1
+    # Repli sur les indices lexicaux si langdetect hésite (texte très
+    # court, ambigu) ou détecte une langue tierce non supportée.
+    lowered = normalized_text.lower()
+    french_score = sum(1 for hint in FRENCH_HINTS if hint in lowered)
+    english_score = sum(1 for hint in ENGLISH_HINTS if hint in lowered)
 
-    if re.search(r"[àâçéèêëîïôùûüÿœ]", normalized_text):
+    if re.search(r"[àâçéèêëîïôùûüÿœ]", lowered):
         french_score += 2
 
     if french_score == english_score == 0:

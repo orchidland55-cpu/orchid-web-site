@@ -10,6 +10,7 @@ export interface PropertyFormData {
   location: string;
   city: string;
   type: string;
+  listingType: "sale" | "rent"; // ✅ Achat / Location
   bedrooms: string;
   bathrooms: string;
   area: string;
@@ -44,6 +45,7 @@ export interface PropertyData {
   location: string;
   city: string;
   type: string;
+  listingType: "sale" | "rent"; // ✅ Achat / Location
   bedrooms: number;
   bathrooms: number;
   area: number;
@@ -384,34 +386,6 @@ class ApiService {
     return data;
   }
 
-  // async verifyToken(): Promise<boolean> {
-  //   const token = localStorage.getItem("adminToken");
-  //   if (!token) return false;
-  //   try {
-  //     const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     return res.ok;
-  //   } catch {
-  //     return false;
-  //   }
-  // }
-
-  //   async verifyToken(): Promise<{ valid: boolean; role?: string }> {
-  //     const token = localStorage.getItem("adminToken");
-  //     if (!token) return { valid: false };
-  //     try {
-  //       const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     if (!res.ok) return { valid: false };
-  //     const data = await res.json();
-  //     return { valid: true, role: data.user.role }; // ← data.user.role
-  //   } catch {
-  //     return { valid: false };
-  //   }
-  // }
-
   async verifyToken(): Promise<{ valid: boolean; role?: string }> {
     const token = localStorage.getItem("adminToken");
 
@@ -544,6 +518,7 @@ class ApiService {
       location: formData.location.substring(0, 100),
       city: formData.city.substring(0, 50),
       type: formData.type,
+      listingType: formData.listingType || "sale", // ✅ Achat / Location
       bedrooms: parseInt(formData.bedrooms) || 0,
       bathrooms: parseInt(formData.bathrooms) || 0,
       area: parseFloat(formData.area) || 0,
@@ -733,7 +708,7 @@ class ApiService {
   }
 
   async createPostulation(formData: FormData): Promise<Postulation> {
-    const url = `${API_BASE_URL}/postulation`;
+    const url = `${API_BASE_URL}/postulation`; // ✅ singulier — matche la route backend app.post('/postulation', ...)
     const token = localStorage.getItem("adminToken");
 
 
@@ -769,6 +744,17 @@ class ApiService {
   // ============================================================
   // CAREERS
   // ============================================================
+
+  // ── Publiques (site vitrine — pas d'auth, offres actives uniquement) ─────
+  async getPublicCareers(): Promise<any[]> {
+    return this.request<any[]>('/api/public/careers');
+  }
+
+  async getPublicCareerById(id: string): Promise<any> {
+    return this.request<any>(`/api/public/careers/${id}`);
+  }
+
+  // ── Admin (JWT requis — tous statuts confondus) ───────────────────────────
   async getAllCareers(): Promise<any[]> {
     return this.request<any[]>('/api/careers');
   }

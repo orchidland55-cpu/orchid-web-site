@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, Home, BadgeDollarSign, Search } from "lucide-react";
+import { MapPin, Home, BadgeDollarSign, Search, Tag } from "lucide-react";
 import { apiService, Property } from "@/services/api";
 
 // ── Budget ranges ─────────────────────────────────────────────────────────────
@@ -13,7 +13,17 @@ export const BUDGET_RANGES = [
   { label: "> 10M MAD",     min: 10_000_000, max: Infinity   },
 ];
 
+// ── Achat / Location ────────────────────────────────────────────────────────
+// "all" = pas de filtre, "sale" = à vendre, "rent" = à louer.
+// Les valeurs matchent exactement le champ `listingType` du modèle Property backend.
+export const LISTING_TYPES = [
+  { value: "all",  label: "Any" },
+  { value: "sale", label: "Buy" },
+  { value: "rent", label: "Rent" },
+] as const;
+
 export interface HeroFilters {
+  listingType: string; // ✅ "all" | "sale" | "rent"
   type:     string;
   city:     string;
   minPrice: number;
@@ -32,11 +42,12 @@ const Divider = () => (
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
-  const [propertyTypes,  setPropertyTypes]  = useState<string[]>([]);
-  const [propertyCities, setPropertyCities] = useState<string[]>([]);
-  const [selectedType,   setSelectedType]   = useState("all");
-  const [selectedCity,   setSelectedCity]   = useState("all");
-  const [selectedBudget, setSelectedBudget] = useState(0); // index dans BUDGET_RANGES
+  const [propertyTypes,      setPropertyTypes]      = useState<string[]>([]);
+  const [propertyCities,     setPropertyCities]     = useState<string[]>([]);
+  const [selectedListingType, setSelectedListingType] = useState("all");
+  const [selectedType,       setSelectedType]        = useState("all");
+  const [selectedCity,       setSelectedCity]        = useState("all");
+  const [selectedBudget,     setSelectedBudget]      = useState(0); // index dans BUDGET_RANGES
 
   useEffect(() => {
     apiService.getAllPropertiesCached().then((data: Property[]) => {
@@ -49,6 +60,7 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
   const handleSearch = () => {
     const range = BUDGET_RANGES[selectedBudget];
     onSearch({
+      listingType: selectedListingType,
       type:     selectedType,
       city:     selectedCity,
       minPrice: range.min,
@@ -58,6 +70,28 @@ const HeroSearchBar = ({ onSearch }: HeroSearchBarProps) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white/95 backdrop-blur-md border border-white/60 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] px-2 py-2 flex flex-col md:flex-row md:items-center gap-1">
+
+      {/* Purchase type */}
+      <div className="flex items-center gap-3 flex-1 min-w-0 px-4 py-2.5">
+        <Tag className="w-4 h-4 text-primary shrink-0" />
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-1">
+            Purchase type
+          </span>
+          <select
+            aria-label="purchase-type"
+            value={selectedListingType}
+            onChange={(e) => setSelectedListingType(e.target.value)}
+            className="font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer w-full truncate"
+          >
+            {LISTING_TYPES.map((lt) => (
+              <option key={lt.value} value={lt.value}>{lt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <Divider />
 
       {/* Location */}
       <div className="flex items-center gap-3 flex-1 min-w-0 px-4 py-2.5">

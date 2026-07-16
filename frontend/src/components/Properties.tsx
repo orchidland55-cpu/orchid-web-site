@@ -15,8 +15,13 @@ interface PropertiesProps {
 }
 
 const DEFAULT_FILTERS: HeroFilters = {
-  type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
+  listingType: "all", type: "all", city: "all", minPrice: 0, maxPrice: Infinity,
 };
+
+// ✅ Les propriétés créées avant l'ajout du champ listingType n'ont pas cette
+// valeur en base — on les traite comme "sale" par défaut (comportement
+// historique du site) plutôt que de les faire disparaître des résultats.
+const getListingType = (p: Property): string => (p as any).listingType || "sale";
 
 const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -45,13 +50,14 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
 
   // Filtre côté client à chaque changement de filters (pas de nouvelle requête)
   const displayed = allProperties
+    .filter((p) => filters.listingType === "all" || getListingType(p) === filters.listingType)
     .filter((p) => filters.type === "all" || p.type.toLowerCase() === filters.type)
     .filter((p) => filters.city === "all" || p.city === filters.city)
     .filter((p) => p.price >= filters.minPrice && p.price <= filters.maxPrice)
     .slice(0, 6);
 
   const hasActiveFilters =
-    filters.type !== "all" || filters.city !== "all" || filters.minPrice > 0;
+    filters.listingType !== "all" || filters.type !== "all" || filters.city !== "all" || filters.minPrice > 0;
 
   const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => {
     const localeMap = { MAD: "fr-MA", USD: "en-US", EUR: "fr-FR" };
@@ -114,6 +120,11 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
           {/* Filtres actifs */}
           {hasActiveFilters && (
             <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
+              {filters.listingType !== "all" && (
+                <span className="font-lora text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
+                  {filters.listingType === "sale" ? "For Sale" : "For Rent"}
+                </span>
+              )}
               {filters.type !== "all" && (
                 <span className="font-lora text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
                   {filters.type.charAt(0).toUpperCase() + filters.type.slice(1)}
@@ -173,7 +184,7 @@ const Properties = ({ filters = DEFAULT_FILTERS }: PropertiesProps) => {
                       </Badge>
                     )}
                     <Badge className="bg-white/90 text-foreground text-xs font-medium border-0">
-                      For Sale
+                      {getListingType(property) === "sale" ? "For Sale" : "For Rent"}
                     </Badge>
                   </div>
 

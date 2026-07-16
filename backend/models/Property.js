@@ -17,6 +17,11 @@ const propertySchema = new mongoose.Schema({
   location: String,
   city: String,
   type: String,
+  // ✅ Achat / Location. Par défaut "sale" — cohérent avec le comportement
+  // historique du site (100% vente jusqu'ici). Les documents existants en
+  // base n'auront ce champ qu'après une resauvegarde ; le frontend traite
+  // l'absence de valeur comme "sale" pour rester rétrocompatible.
+  listingType: { type: String, enum: ["sale", "rent"], default: "sale" },
   bedrooms: Number,
   bathrooms: Number,
   area: Number,

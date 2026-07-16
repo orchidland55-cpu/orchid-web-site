@@ -6,7 +6,7 @@ import Sitemap from "vite-plugin-sitemap";
 import { fetchDynamicRoutes } from "./scripts/fetchDynamicRoutes";
 
 const staticRoutes = [
-  '/',
+  
   '/contact-us/careers/',
   '/real-estate-guide-orchid-island-marrakech',
   '/corporate-social-responsibility',

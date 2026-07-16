@@ -16,3 +16,6 @@ psycopg2-binary
 # ChromaDB + embeddings
 chromadb
 openai
+
+# Détection de langue
+langdetect

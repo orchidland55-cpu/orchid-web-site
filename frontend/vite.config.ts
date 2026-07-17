@@ -1,4 +1,4 @@
-import { defineConfig, ConfigEnv, UserConfig } from "vite";
+import { defineConfig, ConfigEnv, UserConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -6,7 +6,6 @@ import Sitemap from "vite-plugin-sitemap";
 import { fetchDynamicRoutes } from "./scripts/fetchDynamicRoutes";
 
 const staticRoutes = [
-  
   '/contact-us/careers/',
   '/real-estate-guide-orchid-island-marrakech',
   '/corporate-social-responsibility',
@@ -26,6 +25,21 @@ const staticRoutes = [
   '/terms-and-conditions',
   '/legal-notice',
 ];
+
+// ── Plugin : transforme le <link rel="stylesheet"> bloquant en preload non-bloquant ──
+function deferCss(): Plugin {
+  return {
+    name: "defer-css",
+    transformIndexHtml(html) {
+      return html.replace(
+        /<link rel="stylesheet"([^>]*?)href="([^"]+\.css)"([^>]*)>/g,
+        (_match, before, href, after) =>
+          `<link rel="preload" as="style" href="${href}" onload="this.onload=null;this.rel='stylesheet'"${before}${after}>` +
+          `<noscript><link rel="stylesheet" href="${href}"></noscript>`
+      );
+    },
+  };
+}
 
 export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => {
   const dynamicRoutes = await fetchDynamicRoutes();
@@ -54,6 +68,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         priority: 0.8,
         lastmod: new Date(),
       }),
+      mode === 'production' && deferCss(),
     ].filter(Boolean),
     resolve: {
       alias: {
@@ -62,9 +77,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       dedupe: ["react", "react-dom"],
     },
     build: {
-      // ✅ IMPORTANT : Vite injecte automatiquement les CSS dans index.html
-      // Pas besoin de configuration spéciale pour cela
-      cssCodeSplit: true, // ← Gardé true, Vite génère des CSS par chunk
+      cssCodeSplit: true,
       minify: 'terser',
       terserOptions: {
         compress: {
@@ -77,24 +90,19 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         output: {
           manualChunks(id: string) {
             if (!id.includes('node_modules')) return;
-
-            // ✅ ORDRE CRITIQUE : du plus spécifique au plus général
             if (id.includes('react-router-dom')) return 'react-vendor';
             if (id.includes('react-dom'))        return 'react-vendor';
             if (id.includes('/react/'))          return 'react-vendor';
-
             if (id.includes('@tanstack'))        return 'query-vendor';
             if (id.includes('@radix-ui'))        return 'ui-vendor';
             if (id.includes('lucide-react'))     return 'icons-vendor';
             if (id.includes('date-fns'))         return 'date-vendor';
             if (id.includes('framer-motion'))    return 'animation-vendor';
             if (id.includes('gsap'))             return 'animation-vendor';
-            
             if (id.includes('embla-carousel'))   return 'carousel-vendor';
             if (id.includes('axios'))            return 'http-vendor';
             if (id.includes('zod'))              return 'forms-vendor';
             if (id.includes('react-hook-form'))  return 'forms-vendor';
-
             if (id.includes('/pages/Admin'))     return 'admin-vendor';
             if (id.includes('/pages/services/')) return 'services-vendor';
           },

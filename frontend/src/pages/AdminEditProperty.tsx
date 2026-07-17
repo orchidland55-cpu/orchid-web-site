@@ -157,6 +157,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
   const [formData, setFormData] = useState<PropertyFormData>({
     title: "", description: "", price: "", location: "", city: "",
     type: "", bedrooms: "", bathrooms: "", area: "", status: "available",
+    listingType: "sale",       // ✅ Achat / Location par défaut
     featured: false, mainImage: "", additionalImages: [],
     videos: [],               // ✅
     currency: "MAD",          // ✅
@@ -205,6 +206,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
         description: propertyData.description,
         price: propertyData.price.toString(),
         currency: (propertyData.currency as "MAD" | "USD" | "EUR") || "MAD", // ✅
+        listingType: (propertyData.listingType as "sale" | "rent") || "sale", // ✅
         location: propertyData.location,
         city: propertyData.city,
         type: propertyData.type,
@@ -348,7 +350,6 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
     if (!id) return;
     setIsLoading(true);
     try {
-      // const allImages = [...additionalImagePreviews, ...formData.additionalImages];
       const allImages = [...new Set([...additionalImagePreviews, ...formData.additionalImages])];
       const finalData = { ...formData, additionalImages: allImages };
       await apiService.updateProperty(id, finalData);
@@ -367,7 +368,6 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
     if (!id) return;
     setIsLoading(true);
     try {
-      // const allImages = [...additionalImagePreviews, ...formData.additionalImages];
       const allImages = [...new Set([...additionalImagePreviews, ...formData.additionalImages])];
       const draftData = { ...formData, status: "draft", additionalImages: allImages };
       await apiService.updateProperty(id, draftData);
@@ -418,38 +418,20 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* <header className="bg-white border-b border-border shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">*/}
-            <div className="flex items-center space-x-4">
-              <a href="#" onClick={(e) => { e.preventDefault(); goBack(); }}>
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Properties
-                </Button>
-              </a>
-            
-              <div> 
-                <h1 className="text-2xl font-bold text-foreground">Edit Property</h1>
-                <p className="text-sm text-muted-foreground">ID: {id}</p>
-              </div>
-            </div>{/*
-            <div className="flex items-center space-x-2">
-              <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
-                <Trash2 className="w-4 h-4 mr-2" />DELETE
-              </Button>
-              <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
-                <Save className="w-4 h-4 mr-2" />{isLoading ? "Saving..." : "Save Draft"}
-              </Button>
-              <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
-                <Building className="w-4 h-4 mr-2" />{isLoading ? "Updating..." : "Update"}
-              </Button>
-            </div>
+      <main className="container mx-auto px-6 py-8">
+        <div className="flex items-center space-x-4 mb-6">
+          <a href="#" onClick={(e) => { e.preventDefault(); goBack(); }}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Properties
+            </Button>
+          </a>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Edit Property</h1>
+            <p className="text-sm text-muted-foreground">ID: {id}</p>
           </div>
         </div>
-      </header> */}
 
-      <main className="container mx-auto px-6 py-8">
         <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
 
@@ -760,7 +742,6 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                 </div>
 
               </CardContent>
-              
             </Card>
 
             {/* SEO */}
@@ -836,6 +817,20 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* ✅ Listing Type — Achat / Location */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Listing Type *</label>
+                  <select
+                    name="listingType"
+                    value={formData.listingType}
+                    onChange={handleInputChange}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    required
+                  >
+                    <option value="sale">For Sale</option>
+                    <option value="rent">For Rent</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Status</label>
                   <select name="status" value={formData.status} onChange={handleInputChange} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
@@ -875,7 +870,7 @@ const AdminEditProperty = ({ id: propId, onDone }: AdminEditPropertyProps = {}) 
                   metaDescription={formData.metaDescription}
                   slug={formData.slug}
                   focusKeyword={formData.focusKeyword}
-                  description={formData.description}
+                  content={formData.description}
                   image={formData.mainImage}
                   imageAlt={formData.imageAlt}
                   ogTitle={formData.ogTitle}

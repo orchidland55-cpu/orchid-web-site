@@ -21,8 +21,19 @@ const formatPrice = (price: number, currency: "MAD" | "USD" | "EUR" = "MAD") => 
   return currency === "MAD" ? `${formatted} MAD` : `${symbolMap[currency]}${formatted}`;
 };
 
+// ✅ Les propriétés créées avant l'ajout du champ listingType n'ont pas cette
+// valeur en base — traitées comme "sale" par défaut (comportement historique).
+const getListingType = (p: Property): string => (p as any).listingType || "sale";
+
 const PropertyCard = ({ property, variant = "small" }: PropertyCardProps) => {
   const imageHeight = variant === "large" ? 400 : 288;
+
+  const listingLabel =
+    property.status === "sold"
+      ? "Sold"
+      : getListingType(property) === "sale"
+      ? "For Sale"
+      : "For Rent";
 
   return (
     <Link
@@ -47,7 +58,7 @@ const PropertyCard = ({ property, variant = "small" }: PropertyCardProps) => {
             </Badge>
           )}
           <Badge className="bg-white/90 text-foreground text-xs font-medium border-0">
-            {property.status === "sold" ? "Sold" : "For Sale"}
+            {listingLabel}
           </Badge>
         </div>
 

@@ -149,6 +149,7 @@ const AdminAddProperty = () => {
     description: "",
     price: "",
     currency: "MAD",          // ✅ Devise par défaut
+    listingType: "sale",      // ✅ Achat / Location par défaut
     location: "",
     city: "",
     type: "",
@@ -349,35 +350,6 @@ const AdminAddProperty = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* <header className="bg-white border-b border-border shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* <Link to="/admin/properties">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Properties
-                </Button>
-              </Link> 
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">New Property</h1>
-                <p className="text-sm text-muted-foreground">Add a new property to the portfolio</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" onClick={handleSaveDraft} disabled={isLoading}>
-                <Save className="w-4 h-4 mr-2" />
-                Save Draft
-              </Button>
-              <Button variant="luxury" form="property-form" type="submit" disabled={isLoading}>
-                <Building className="w-4 h-4 mr-2" />
-                {isLoading ? "Creating..." : "Create Property"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
       <main className="container mx-auto px-6 py-8">
         <form id="property-form" onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -781,7 +753,6 @@ const AdminAddProperty = () => {
               </Button>
             </div>
           </div>
-          
 
           {/* Sidebar */}
           <div className="space-y-6">
@@ -793,6 +764,20 @@ const AdminAddProperty = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* ✅ Listing Type — Achat / Location */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Listing Type *</label>
+                  <select
+                    name="listingType"
+                    value={formData.listingType}
+                    onChange={handleInputChange}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    required
+                  >
+                    <option value="sale">For Sale</option>
+                    <option value="rent">For Rent</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Property Status</label>
                   <select name="status" value={formData.status} onChange={handleInputChange} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">

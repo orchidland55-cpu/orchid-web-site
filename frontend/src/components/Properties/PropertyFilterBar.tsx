@@ -6,9 +6,19 @@ import { useDebouncedCallback } from "use-debounce";
 // ── Config ────────────────────────────────────────────────────────────────────
 const IMAGE_SEARCH_APP_URL = "https://placeholder-image-search.vercel.app";
 
+// ── Achat / Location ────────────────────────────────────────────────────────
+// Les valeurs matchent exactement le champ `listingType` du modèle Property backend.
+const LISTING_TYPES = [
+  { value: "all",  label: "Any" },
+  { value: "sale", label: "Buy" },
+  { value: "rent", label: "Rent" },
+] as const;
+
 interface PropertyFilterBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  filterListingType: string;
+  onFilterListingTypeChange: (value: string) => void;
   filterType: string;
   onFilterTypeChange: (value: string) => void;
   propertyTypes: string[];
@@ -92,6 +102,8 @@ const ImageSearchSidebar = ({ onClose }: { onClose: () => void }) => {
 const PropertyFilterBar = ({
   searchTerm,
   onSearchChange,
+  filterListingType,
+  onFilterListingTypeChange,
   filterType,
   onFilterTypeChange,
   propertyTypes,
@@ -147,6 +159,28 @@ const PropertyFilterBar = ({
 
         <span className="w-px h-7 bg-border/60 shrink-0" />
 
+        {/* Purchase type select */}
+        <div className="flex flex-col min-w-0 px-3 py-1.5">
+          <label htmlFor="filter-listing-type-desktop" className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
+            Purchase type
+          </label>
+          <select
+            id="filter-listing-type-desktop"
+            value={filterListingType}
+            onChange={(e) => onFilterListingTypeChange(e.target.value)}
+            disabled={isImageSearchMode}
+            className={`font-lora text-sm text-foreground bg-transparent border-0 focus:outline-none cursor-pointer transition-opacity ${
+              isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
+            }`}
+          >
+            {LISTING_TYPES.map((lt) => (
+              <option key={lt.value} value={lt.value}>{lt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <span className="w-px h-7 bg-border/60 shrink-0" />
+
         {/* Type select */}
         <div className="flex flex-col min-w-0 px-3 py-1.5">
           <label htmlFor="filter-type-desktop" className="font-lora text-[10px] tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
@@ -196,7 +230,7 @@ const PropertyFilterBar = ({
       
       </div>
 
-      {/* ── Mobile : layout vertical en deux lignes ── */}
+      {/* ── Mobile : layout vertical en trois lignes ── */}
       <div className="flex md:hidden flex-col gap-2 w-full">
 
         {/* Ligne 1 : champ de recherche */}
@@ -221,8 +255,21 @@ const PropertyFilterBar = ({
           )}
         </div>
 
-        {/* Ligne 2 : filtres + bouton search */}
+        {/* Ligne 2 : Purchase type + Type */}
         <div className="flex items-center gap-2">
+          <select
+            value={filterListingType}
+            onChange={(e) => onFilterListingTypeChange(e.target.value)}
+            disabled={isImageSearchMode}
+            className={`font-lora text-xs text-foreground bg-background border border-border/60 rounded-full px-3 py-2 flex-1 focus:outline-none transition-opacity ${
+              isImageSearchMode ? "opacity-30 cursor-not-allowed" : ""
+            }`}
+          >
+            {LISTING_TYPES.map((lt) => (
+              <option key={lt.value} value={lt.value}>{lt.label}</option>
+            ))}
+          </select>
+
           <select
             value={filterType}
             onChange={(e) => onFilterTypeChange(e.target.value)}
@@ -238,7 +285,10 @@ const PropertyFilterBar = ({
               </option>
             ))}
           </select>
+        </div>
 
+        {/* Ligne 3 : City + bouton search */}
+        <div className="flex items-center gap-2">
           <select
             value={filterCity}
             onChange={(e) => onFilterCityChange(e.target.value)}

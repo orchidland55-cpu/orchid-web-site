@@ -10,6 +10,9 @@ import MasonryGrid from "@/components/Properties/MasonryGrid";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 import { Helmet } from 'react-helmet-async';
 
+// ✅ Les propriétés créées avant l'ajout du champ listingType n'ont pas cette
+// valeur en base — traitées comme "sale" par défaut (comportement historique).
+const getListingType = (p: Property): string => (p as any).listingType || "sale";
 
 const PropertiesPage = () => {
   const filterBarRef = useRef<HTMLDivElement>(null);
@@ -25,6 +28,9 @@ const PropertiesPage = () => {
   const [searchParams] = useSearchParams();
   const [filterType, setFilterType] = useState<string>(
     searchParams.get("type") ?? "all"
+  );
+  const [filterListingType, setFilterListingType] = useState<string>(
+    searchParams.get("listingType") ?? "all"
   );
 
   useEffect(() => {
@@ -45,7 +51,7 @@ const PropertiesPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterType, filterCity]);
+  }, [searchTerm, filterType, filterCity, filterListingType]);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -87,7 +93,7 @@ const PropertiesPage = () => {
   ).sort();
 
   const hasActiveFilters =
-    searchTerm.trim() !== "" || filterType !== "all" || filterCity !== "all";
+    searchTerm.trim() !== "" || filterType !== "all" || filterCity !== "all" || filterListingType !== "all";
 
   const filteredProperties = properties
     .filter((p) => {
@@ -97,7 +103,9 @@ const PropertiesPage = () => {
         (filterType === "all" ||
           p.type.toLowerCase() === filterType.toLowerCase()) &&
         (filterCity === "all" ||
-          p.city.toLowerCase() === filterCity.toLowerCase())
+          p.city.toLowerCase() === filterCity.toLowerCase()) &&
+        (filterListingType === "all" ||
+          getListingType(p) === filterListingType)
       );
     })
     .sort(
@@ -233,6 +241,8 @@ const PropertiesPage = () => {
             <PropertyFilterBar
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
+              filterListingType={filterListingType}
+              onFilterListingTypeChange={setFilterListingType}
               filterType={filterType}
               onFilterTypeChange={setFilterType}
               propertyTypes={propertyTypes}

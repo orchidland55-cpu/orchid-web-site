@@ -1,5 +1,8 @@
-const HERO_IMAGE_URL =
-  "https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,w_1200,dpr_auto/v1782416336/hero_tweegz.webp";
+const HERO_IMAGE_BASE =
+  "https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,dpr_auto";
+
+const HERO_IMAGE_1200 = `${HERO_IMAGE_BASE},w_1200/v1782416336/hero_tweegz.webp`;
+const HERO_IMAGE_1920 = `${HERO_IMAGE_BASE},w_1920/v1782416336/hero_tweegz.webp`;
 
 const HERO_VIDEO_URL = "";
 
@@ -16,7 +19,7 @@ const Hero = () => {
             loop
             playsInline
             preload="none"
-            poster={HERO_IMAGE_URL}
+            poster={HERO_IMAGE_1920}
             className="hidden md:block w-full h-full object-cover"
             aria-hidden="true"
           >
@@ -24,14 +27,19 @@ const Hero = () => {
           </video>
         )}
 
-        {/* Mobile Image */}
+        {/* Responsive image (mobile + desktop, since no video is active) */}
         <img
-          src={HERO_IMAGE_URL}
+          src={HERO_IMAGE_1200}
+          srcSet={`${HERO_IMAGE_1200} 1200w, ${HERO_IMAGE_1920} 1920w`}
+          sizes="100vw"
           alt="Orchid Island luxury property"
           className={`w-full h-full object-cover ${
             HERO_VIDEO_URL ? "block md:hidden" : "block"
           }`}
           fetchPriority="high"
+          decoding="async"
+          width={1920}
+          height={1080}
         />
 
         {/* Overlay */}

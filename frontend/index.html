@@ -8,22 +8,17 @@
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
   <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-  <!-- Preload image LCP mobile -->
+  <!-- Preload image LCP - doit matcher EXACTEMENT le srcset du <img> dans Hero.tsx -->
   <link
     rel="preload"
     as="image"
-    href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1200,dpr_auto/v1782416336/hero_tweegz.webp"
+    href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,dpr_auto,w_1200/v1782416336/hero_tweegz.webp"
+    imagesrcset="
+      https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,dpr_auto,w_1200/v1782416336/hero_tweegz.webp 1200w,
+      https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto:eco,dpr_auto,w_1920/v1782416336/hero_tweegz.webp 1920w
+    "
+    imagesizes="100vw"
     fetchpriority="high"
-    media="(max-width: 767px)"
-  />
-
-  <!-- Preload poster desktop -->
-  <link
-    rel="preload"
-    as="image"
-    href="https://res.cloudinary.com/drgg2rocc/image/upload/f_auto,q_auto,w_1920,dpr_auto/v1782416336/hero_tweegz.webp"
-    fetchpriority="high"
-    media="(min-width: 768px)"
   />
 
   <title>
@@ -76,7 +71,6 @@
     <link rel="preconnect" href="https://orchid-web-site-production-1f73.up.railway.app" />
     <link rel="dns-prefetch" href="https://orchid-web-site-production-1f73.up.railway.app" />
 
-    <link rel="preconnect" href="https://res.cloudinary.com" />
     <meta name="orchid Island" content="orchid Island" />
     <meta property="og:title" content="Orchid Island - Luxury Real Estate" />
     <meta property="og:description" content="Agence immobilière de luxe spécialisée dans la vente, acquisition et location de propriétés exclusives." />

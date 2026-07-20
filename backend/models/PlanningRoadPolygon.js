@@ -1,17 +1,11 @@
 import mongoose from "mongoose";
 
-const zoningPolygonSchema = new mongoose.Schema(
+const planningRoadPolygonSchema = new mongoose.Schema(
     {
-        polygon_id: {
+        road_polygon_id: {
             type: Number,
             required: true,
             unique: true,
-            index: true,
-        },
-
-        document_id: {
-            type: String,
-            required: true,
             index: true,
         },
 
@@ -21,17 +15,28 @@ const zoningPolygonSchema = new mongoose.Schema(
             index: true,
         },
 
-        zoning_code: {
+        planning_zone_code: Number,
+
+        road_class: {
             type: String,
-            required: true,
             index: true,
         },
 
         designation: String,
 
-        summary: String,
+        current_width: String,
 
-        category: String,
+        planned_width: String,
+
+        location: String,
+
+        length: Number,
+
+        observation: String,
+
+        shape_length: Number,
+
+        shape_area: Number,
 
         geometry: {
             type: {
@@ -50,11 +55,11 @@ const zoningPolygonSchema = new mongoose.Schema(
     }
 );
 
-zoningPolygonSchema.index({
+planningRoadPolygonSchema.index({
     geometry: "2dsphere",
 });
 
 export default mongoose.model(
-    "ZoningPolygon",
-    zoningPolygonSchema
+    "PlanningRoadPolygon",
+    planningRoadPolygonSchema
 );

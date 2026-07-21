@@ -47,18 +47,21 @@ import { useUserRole } from "@/hooks/useUserRole";
 // ─── Lazy imports des pages internes ────────────────────────────────────────
 // On charge les pages existantes à la demande.
 // Elles s'affichent dans la zone de contenu du shell sans navigation externe.
-const AdminProperties     = lazy(() => import("@/pages/AdminProperties"));
-const AdminAddProperty    = lazy(() => import("@/pages/AdminAddProperty"));
-const AdminArticles       = lazy(() => import("@/pages/AdminArticles"));
-const AdminAddArticle     = lazy(() => import("@/pages/AdminAddArticle"));
-const AdminAnalytics     = lazy(() => import("@/pages/AdminAnalytics"));
-const AdminContacts       = lazy(() => import("@/pages/AdminContacts"));
-const SpaceManagerPage   = lazy(() => import("@/pages/SpaceManagerPage"));
+const AdminProperties = lazy(() => import("@/pages/AdminProperties"));
+const AdminAddProperty = lazy(() => import("@/pages/AdminAddProperty"));
+const AdminArticles = lazy(() => import("@/pages/AdminArticles"));
+const AdminAddArticle = lazy(() => import("@/pages/AdminAddArticle"));
+const AdminAnalytics = lazy(() => import("@/pages/AdminAnalytics"));
+const AdminContacts = lazy(() => import("@/pages/AdminContacts"));
+const SpaceManagerPage = lazy(() => import("@/pages/SpaceManagerPage"));
+const DueDiligencePage = lazy(
+  () => import("@/pages/DueDiligence/DueDiligencePage")
+);
 const AdminEditProperty = lazy(() => import("@/pages/AdminEditProperty"));
 const AdminEditArticle = lazy(() => import("@/pages/AdminEditArticle"));
-const AdminAddCareer   = lazy(() => import("@/pages/AdminAddCareer"));
-const AdminCareers     = lazy(() => import("@/pages/AdminCareers"));
-const AdminEditCareer  = lazy(() => import("@/pages/AdminEditCareer"));
+const AdminAddCareer = lazy(() => import("@/pages/AdminAddCareer"));
+const AdminCareers = lazy(() => import("@/pages/AdminCareers"));
+const AdminEditCareer = lazy(() => import("@/pages/AdminEditCareer"));
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type ViewKey =
@@ -110,10 +113,9 @@ const NavItem = ({
       w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm
       transition-colors duration-150 text-left
       ${collapsed ? "justify-center px-2" : ""}
-      ${
-        active
-          ? "bg-background text-foreground font-medium border-l-2 border-[#D4AF37] pl-[10px]"
-          : "text-muted-foreground hover:bg-background hover:text-foreground"
+      ${active
+        ? "bg-background text-foreground font-medium border-l-2 border-[#D4AF37] pl-[10px]"
+        : "text-muted-foreground hover:bg-background hover:text-foreground"
       }
       ${collapsed && active ? "border-l-2 border-[#D4AF37] pl-[6px]" : ""}
     `}
@@ -125,8 +127,8 @@ const NavItem = ({
 
 // ─── IframeView ────────────────────────────────────────────────────────────── tous les trois liens sont a changer par les vrais
 const EXTERNAL_APPS: Record<string, { url: string; label: string }> = {
-  "due-diligence":       { url: "https://placeholder-due-diligence.vercel.app",      label: "Due Diligence" },
-  "price-prediction":  { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Price Prediction" },
+  "due-diligence": { url: "https://placeholder-due-diligence.vercel.app", label: "Due Diligence" },
+  "price-prediction": { url: "https://price-prediction-hmqrl6gzgyqxbm9nktg4at.streamlit.app/", label: "Price Prediction" },
   "reverse-engineering": { url: "https://placeholder-reverse-engineering.vercel.app", label: "Reverse Engineering" },
 };
 
@@ -153,48 +155,48 @@ const AdminDashboard = () => {
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [dashboardStats, setDashboardStats] = useState(null);
-  const [recentActivities, setRecentActivities]  = useState<Activity[]>([]);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isActivitiesLoading, setIsActivitiesLoading] = useState(true);
-  const [userModalOpen, setUserModalOpen]        = useState(false);
-  const [yearlyViewsData, setYearlyViewsData]    = useState<any[]>([]);
-  const [countryViewsData, setCountryViewsData]  = useState<any[]>([]);
-  const [analyticsLoading, setAnalyticsLoading]  = useState(true);
-  const [currentPage, setCurrentPage]            = useState(1);
+  const [userModalOpen, setUserModalOpen] = useState(false);
+  const [yearlyViewsData, setYearlyViewsData] = useState<any[]>([]);
+  const [countryViewsData, setCountryViewsData] = useState<any[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
 
   // Layout state
-  const [mobileOpen, setMobileOpen]     = useState(false);
-  const [collapsed, setCollapsed]       = useState(false);
-  const [activeView, setActiveView]     = useState<ViewKey>("dashboard");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [activeView, setActiveView] = useState<ViewKey>("dashboard");
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Titre dynamique selon la vue active
   const viewTitles: Record<ViewKey, string> = {
-    dashboard:       "Dashboard",
-    analytics:       "Analytics",
-    properties:      "Properties",
+    dashboard: "Dashboard",
+    analytics: "Analytics",
+    properties: "Properties",
     "properties-add": "Add Property",
-    articles:        "Articles",
-    "articles-add":  "New Article",
-    careers:         "Careers",
-    "careers-add":   "New Job Offer",
-    "careers-edit":  "Edit Job Offer",
-    contacts:        "Contact Requests",
+    articles: "Articles",
+    "articles-add": "New Article",
+    careers: "Careers",
+    "careers-add": "New Job Offer",
+    "careers-edit": "Edit Job Offer",
+    contacts: "Contact Requests",
     "space-manager": "Data Room",
     "properties-edit": "Edit Property",
     "articles-edit": "Edit Article",
-    "due-diligence":       "Due Diligence",
-    "price-prediction":  "Price Prediction",
+    "due-diligence": "Due Diligence",
+    "price-prediction": "Price Prediction",
     "reverse-engineering": "Reverse Engineering",
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const formatTimeAgo = (dateString: string): string => {
-    const date    = new Date(dateString);
-    const now     = new Date();
-    const diffMs  = now.getTime() - date.getTime();
-    const diffH   = Math.floor(diffMs / 3_600_000);
-    const diffD   = Math.floor(diffH / 24);
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffH = Math.floor(diffMs / 3_600_000);
+    const diffD = Math.floor(diffH / 24);
     if (diffD > 0) return `${diffD} day${diffD > 1 ? "s" : ""} ago`;
     if (diffH > 0) return `${diffH} hour${diffH > 1 ? "s" : ""} ago`;
     return "Just now";
@@ -286,17 +288,17 @@ const AdminDashboard = () => {
   const getStatsFromBackend = () => {
     if (!dashboardStats) {
       return [
-        { title: "Total Properties",  value: "...", change: "Loading...", icon: Building,      color: "text-blue-600",   bgColor: "bg-blue-50"   },
-        { title: "Blog Articles",     value: "...", change: "Loading...", icon: FileText,       color: "text-green-600",  bgColor: "bg-green-50"  },
-        { title: "Total Views",       value: "...", change: "Loading...", icon: Eye,            color: "text-purple-600", bgColor: "bg-purple-50" },
-        { title: "Contact Requests",  value: "...", change: "Loading...", icon: MessageCircle,  color: "text-orange-600", bgColor: "bg-orange-50" },
+        { title: "Total Properties", value: "...", change: "Loading...", icon: Building, color: "text-blue-600", bgColor: "bg-blue-50" },
+        { title: "Blog Articles", value: "...", change: "Loading...", icon: FileText, color: "text-green-600", bgColor: "bg-green-50" },
+        { title: "Total Views", value: "...", change: "Loading...", icon: Eye, color: "text-purple-600", bgColor: "bg-purple-50" },
+        { title: "Contact Requests", value: "...", change: "Loading...", icon: MessageCircle, color: "text-orange-600", bgColor: "bg-orange-50" },
       ];
     }
     return [
-      { title: "Total Properties",  value: dashboardStats.properties?.total?.toString()           || "0", change: dashboardStats.properties?.growthText  || "+0 this month",  icon: Building,      color: "text-blue-600",   bgColor: "bg-blue-50"   },
-      { title: "Blog Articles",     value: dashboardStats.articles?.total?.toString()             || "0", change: dashboardStats.articles?.growthText     || "+0 this week",   icon: FileText,       color: "text-green-600",  bgColor: "bg-green-50"  },
-      { title: "Total Views",       value: formatNumber(dashboardStats.views?.total              || 0),  change: dashboardStats.views?.growthText         || "+0% this month", icon: Eye,            color: "text-purple-600", bgColor: "bg-purple-50" },
-      { title: "Contact Requests",  value: dashboardStats.contacts?.total?.toString()            || "0", change: dashboardStats.contacts?.growthText      || "+0 today",       icon: MessageCircle,  color: "text-orange-600", bgColor: "bg-orange-50" },
+      { title: "Total Properties", value: dashboardStats.properties?.total?.toString() || "0", change: dashboardStats.properties?.growthText || "+0 this month", icon: Building, color: "text-blue-600", bgColor: "bg-blue-50" },
+      { title: "Blog Articles", value: dashboardStats.articles?.total?.toString() || "0", change: dashboardStats.articles?.growthText || "+0 this week", icon: FileText, color: "text-green-600", bgColor: "bg-green-50" },
+      { title: "Total Views", value: formatNumber(dashboardStats.views?.total || 0), change: dashboardStats.views?.growthText || "+0% this month", icon: Eye, color: "text-purple-600", bgColor: "bg-purple-50" },
+      { title: "Contact Requests", value: dashboardStats.contacts?.total?.toString() || "0", change: dashboardStats.contacts?.growthText || "+0 today", icon: MessageCircle, color: "text-orange-600", bgColor: "bg-orange-50" },
     ];
   };
 
@@ -304,20 +306,20 @@ const AdminDashboard = () => {
 
   // ── Quick actions ─────────────────────────────────────────────────────────
   const quickActions = [
-    { title: "Add Property",      description: "Create a new property",       icon: Building,  view: "properties-add" as ViewKey, allowedRoles: ["admin","editor"] },
-    { title: "New Article",       description: "Write a blog article",         icon: FileText,  view: "articles-add"   as ViewKey, allowedRoles: ["admin","editor"] },
-    { title: "View Properties",   description: "Manage existing properties",   icon: Eye,       view: "properties"     as ViewKey, allowedRoles: ["admin","editor"] },
-    { title: "Manage Articles",   description: "Edit blog articles",           icon: Settings,  view: "articles"       as ViewKey, allowedRoles: ["admin","editor"] },
+    { title: "Add Property", description: "Create a new property", icon: Building, view: "properties-add" as ViewKey, allowedRoles: ["admin", "editor"] },
+    { title: "New Article", description: "Write a blog article", icon: FileText, view: "articles-add" as ViewKey, allowedRoles: ["admin", "editor"] },
+    { title: "View Properties", description: "Manage existing properties", icon: Eye, view: "properties" as ViewKey, allowedRoles: ["admin", "editor"] },
+    { title: "Manage Articles", description: "Edit blog articles", icon: Settings, view: "articles" as ViewKey, allowedRoles: ["admin", "editor"] },
   ].filter((a) => a.allowedRoles.includes(role || ""));
 
   // ── Stat card config ──────────────────────────────────────────────────────
   const getCardConfig = (title: string) => {
     switch (title) {
-      case "Total Views":       return { isClickable: true,    view: "analytics"  as ViewKey, clickText: "Click for details →",   ariaLabel: "View detailed view statistics"  };
-      case "Total Properties":  return { isClickable: true,    view: "properties" as ViewKey, clickText: "Manage properties →",   ariaLabel: "Manage real estate properties"  };
-      case "Blog Articles":     return { isClickable: true,    view: "articles"   as ViewKey, clickText: "Manage articles →",     ariaLabel: "Manage blog articles"           };
-      case "Contact Requests":  return { isClickable: isAdmin, view: "contacts"   as ViewKey, clickText: isAdmin ? "View requests →" : "", ariaLabel: "View contact requests" };
-      default:                  return { isClickable: false,   view: "dashboard"  as ViewKey, clickText: "",                      ariaLabel: ""                               };
+      case "Total Views": return { isClickable: true, view: "analytics" as ViewKey, clickText: "Click for details →", ariaLabel: "View detailed view statistics" };
+      case "Total Properties": return { isClickable: true, view: "properties" as ViewKey, clickText: "Manage properties →", ariaLabel: "Manage real estate properties" };
+      case "Blog Articles": return { isClickable: true, view: "articles" as ViewKey, clickText: "Manage articles →", ariaLabel: "Manage blog articles" };
+      case "Contact Requests": return { isClickable: isAdmin, view: "contacts" as ViewKey, clickText: isAdmin ? "View requests →" : "", ariaLabel: "View contact requests" };
+      default: return { isClickable: false, view: "dashboard" as ViewKey, clickText: "", ariaLabel: "" };
     }
   };
 
@@ -364,8 +366,8 @@ const AdminDashboard = () => {
             </p>
           )}
           <div className="space-y-0.5">
-            <NavItem icon={LayoutDashboard} label="Dashboard"  viewKey="dashboard" active={activeView === "dashboard"}  collapsed={collapsed} onClick={() => goTo("dashboard")}  />
-            <NavItem icon={BarChart3}       label="Analytics"  viewKey="analytics" active={activeView === "analytics"}  collapsed={collapsed} onClick={() => goTo("analytics")}  />
+            <NavItem icon={LayoutDashboard} label="Dashboard" viewKey="dashboard" active={activeView === "dashboard"} collapsed={collapsed} onClick={() => goTo("dashboard")} />
+            <NavItem icon={BarChart3} label="Analytics" viewKey="analytics" active={activeView === "analytics"} collapsed={collapsed} onClick={() => goTo("analytics")} />
           </div>
         </div>
 
@@ -377,9 +379,9 @@ const AdminDashboard = () => {
             </p>
           )}
           <div className="space-y-0.5">
-            <NavItem icon={Building}      label="Properties"       viewKey="properties" active={activeView === "properties" || activeView === "properties-add" || activeView === "properties-edit"} collapsed={collapsed} onClick={() => goTo("properties")} />
-            <NavItem icon={FileText}      label="Articles"         viewKey="articles"   active={activeView === "articles"   || activeView === "articles-add"   || activeView === "articles-edit"}   collapsed={collapsed} onClick={() => goTo("articles")}   />
-            <NavItem icon={Briefcase}     label="Careers"          viewKey="careers"    active={activeView === "careers"    || activeView === "careers-add"    || activeView === "careers-edit"}    collapsed={collapsed} onClick={() => goTo("careers")}    />
+            <NavItem icon={Building} label="Properties" viewKey="properties" active={activeView === "properties" || activeView === "properties-add" || activeView === "properties-edit"} collapsed={collapsed} onClick={() => goTo("properties")} />
+            <NavItem icon={FileText} label="Articles" viewKey="articles" active={activeView === "articles" || activeView === "articles-add" || activeView === "articles-edit"} collapsed={collapsed} onClick={() => goTo("articles")} />
+            <NavItem icon={Briefcase} label="Careers" viewKey="careers" active={activeView === "careers" || activeView === "careers-add" || activeView === "careers-edit"} collapsed={collapsed} onClick={() => goTo("careers")} />
             {/* Contacts — cliquable seulement si admin (logique inchangée) */}
             {isAdmin ? (
               <NavItem icon={MessageCircle} label="Contact Requests" viewKey="contacts" active={activeView === "contacts"} collapsed={collapsed} onClick={() => goTo("contacts")} />
@@ -422,9 +424,9 @@ const AdminDashboard = () => {
                 {!collapsed && <span>Manage Users</span>}
               </button>
               <NavItem icon={Home} label="Data Room" viewKey="space-manager" active={activeView === "space-manager"} collapsed={collapsed} onClick={() => goTo("space-manager")} />
-              <NavItem icon={ClipboardCheck} label="Due Diligence"      viewKey="due-diligence"       active={activeView === "due-diligence"}       collapsed={collapsed} onClick={() => goTo("due-diligence")}       />
-              <NavItem icon={GraduationCap}  label="Price Prediction" viewKey="price-prediction"  active={activeView === "price-prediction"}  collapsed={collapsed} onClick={() => goTo("price-prediction")}  />
-              <NavItem icon={ScanSearch}     label="Reverse Engineering" viewKey="reverse-engineering" active={activeView === "reverse-engineering"} collapsed={collapsed} onClick={() => goTo("reverse-engineering")} />
+              <NavItem icon={ClipboardCheck} label="Due Diligence" viewKey="due-diligence" active={activeView === "due-diligence"} collapsed={collapsed} onClick={() => goTo("due-diligence")} />
+              <NavItem icon={GraduationCap} label="Price Prediction" viewKey="price-prediction" active={activeView === "price-prediction"} collapsed={collapsed} onClick={() => goTo("price-prediction")} />
+              <NavItem icon={ScanSearch} label="Reverse Engineering" viewKey="reverse-engineering" active={activeView === "reverse-engineering"} collapsed={collapsed} onClick={() => goTo("reverse-engineering")} />
             </div>
           </div>
         )}
@@ -710,7 +712,7 @@ const AdminDashboard = () => {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-3 h-3 rounded-full shrink-0"
-                          style={{ backgroundColor: ["#D4AF37","#4F46E5","#EF4444","#10B981","#F59E0B"][index] }}
+                          style={{ backgroundColor: ["#D4AF37", "#4F46E5", "#EF4444", "#10B981", "#F59E0B"][index] }}
                         />
                         <span className="font-medium text-sm">{country.pays}</span>
                       </div>
@@ -743,19 +745,19 @@ const AdminDashboard = () => {
           </Suspense>
         );
       case "properties":
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <AdminProperties
-        onNavigate={(id: string) => goTo("properties-edit", id)}
-      />
-    </Suspense>
-  );
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminProperties
+              onNavigate={(id: string) => goTo("properties-edit", id)}
+            />
+          </Suspense>
+        );
       case "properties-add":
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <AdminAddProperty />
-    </Suspense>
-  );
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminAddProperty />
+          </Suspense>
+        );
       case "articles":
         return (
           <Suspense fallback={<PageLoader />}>
@@ -808,27 +810,33 @@ const AdminDashboard = () => {
           </Suspense>
         ) : null;
       case "properties-edit":
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <AdminEditProperty
-        id={activeId}
-        onDone={() => goTo("properties")}
-      />
-    </Suspense>
-  );
-  case "articles-edit":
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <AdminEditArticle
-        id={activeId}
-        onDone={() => goTo("articles")}
-      />
-    </Suspense>
-  );
-  case "due-diligence":
-  case "price-prediction":
-  case "reverse-engineering":
-    return <IframeView viewKey={activeView} />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminEditProperty
+              id={activeId}
+              onDone={() => goTo("properties")}
+            />
+          </Suspense>
+        );
+      case "articles-edit":
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <AdminEditArticle
+              id={activeId}
+              onDone={() => goTo("articles")}
+            />
+          </Suspense>
+        );
+      case "due-diligence":
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <DueDiligencePage />
+          </Suspense>
+        );
+
+      case "price-prediction":
+      case "reverse-engineering":
+        return <IframeView viewKey={activeView} />;
       default:
         return <DashboardHome />;
     }

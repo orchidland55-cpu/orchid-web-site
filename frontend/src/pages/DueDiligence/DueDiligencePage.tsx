@@ -6,7 +6,24 @@ import CoordinateInputs from "./components/CoordinateInputs";
 
 export default function DueDiligencePage() {
 
-    const [position, setPosition] = useState<[number, number] | null>(null);
+
+    const [position, setPosition] =
+        useState<[number, number] | null>(null);
+
+    const [latitude, setLatitude] = useState("");
+
+    const [longitude, setLongitude] = useState("");
+
+    const [confirmed, setConfirmed] = useState(false);
+
+    const handlePositionChange = (pos: [number, number]) => {
+        setPosition(pos);
+
+        setLatitude(pos[0].toString());
+        setLongitude(pos[1].toString());
+
+        setConfirmed(false);
+    };
 
     return (
 
@@ -29,18 +46,15 @@ export default function DueDiligencePage() {
             </div>
 
             <PropertyMap
-
                 position={position}
-
-                setPosition={setPosition}
-
+                setPosition={handlePositionChange}
             />
 
             <CoordinateInputs
 
                 position={position}
 
-                setPosition={setPosition}
+                setPosition={handlePositionChange}
 
             />
 

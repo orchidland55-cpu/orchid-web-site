@@ -41,17 +41,14 @@ export default function CoordinateInputs({
                         value={position?.[0] ?? ""}
 
                         onChange={(e) => {
-
                             const lat = parseFloat(e.target.value);
 
-                            setPosition([
-
-                                lat,
-
-                                position?.[1] ?? 0
-
-                            ]);
-
+                            if (!isNaN(lat)) {
+                                setPosition([
+                                    lat,
+                                    position?.[1] ?? 0
+                                ]);
+                            }
                         }}
 
                     />
@@ -73,17 +70,14 @@ export default function CoordinateInputs({
                         value={position?.[1] ?? ""}
 
                         onChange={(e) => {
-
                             const lng = parseFloat(e.target.value);
 
-                            setPosition([
-
-                                position?.[0] ?? 0,
-
-                                lng
-
-                            ]);
-
+                            if (!isNaN(lng)) {
+                                setPosition([
+                                    position?.[0] ?? 0,
+                                    lng
+                                ]);
+                            }
                         }}
 
                     />

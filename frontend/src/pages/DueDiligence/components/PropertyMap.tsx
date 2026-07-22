@@ -87,11 +87,8 @@ export default function PropertyMap({
                 />
 
                 <LocationMarker
-
                     position={position}
-
                     setPosition={setPosition}
-
                 />
 
             </MapContainer>

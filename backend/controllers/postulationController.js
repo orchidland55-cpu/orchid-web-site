@@ -37,9 +37,13 @@ const sendPostulation = async (req, res) => {
     }
 
     try {
+
+      console.log('CAREERS_EMAIL =', process.env.CAREERS_EMAIL);
+
+      
       const data = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Orchid Island <onboarding@resend.dev>',
-        to: process.env.ADMIN_EMAIL || 'orchido651@gmail.com',
+        to: process.env.CAREERS_EMAIL || 'i@orchidisland.immo',
         subject: `📄 Nouvelle candidature de ${firstName} ${lastName} — ${position || 'Poste non précisé'}`,
         html: `
           <!DOCTYPE html>

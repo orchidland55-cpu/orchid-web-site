@@ -676,6 +676,25 @@ class ApiService {
     return this.request<any>('/dashboard/stats');
   }
 
+  // ============================================================
+  // DUE DILIGENCE
+  // ============================================================
+
+  async analyzeLocation(latitude: number, longitude: number): Promise<any> {
+
+    return this.request<any>("/api/due-diligence/analyze", {
+
+      method: "POST",
+
+      body: JSON.stringify({
+        latitude,
+        longitude,
+      }),
+
+    });
+
+  }
+
   async getDetailedStats(type: string): Promise<any> {
     return this.request<any>(`/dashboard/details/${type}`);
   }

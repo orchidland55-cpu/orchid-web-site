@@ -13,6 +13,16 @@ const region = JSON.parse(
     )
 );
 
+const communes = JSON.parse(
+    fs.readFileSync(
+        path.join(
+            __dirname,
+            "../datasets/Commune.json"
+        ),
+        "utf8"
+    )
+);
+
 exports.isSupportedRegion = (latitude, longitude) => {
 
     const point = turf.point([
@@ -24,5 +34,39 @@ exports.isSupportedRegion = (latitude, longitude) => {
         point,
         region.features[0]
     );
+
+};
+
+exports.findCommune = (latitude, longitude) => {
+
+    const point = turf.point([
+        Number(longitude),
+        Number(latitude)
+    ]);
+
+    for (const commune of communes) {
+
+        if (
+            turf.booleanPointInPolygon(
+                point,
+                commune.geometry
+            )
+        ) {
+
+            return {
+
+                commune: commune.name,
+
+                province: "Marrakech",
+
+                region: "Marrakech-Safi"
+
+            };
+
+        }
+
+    }
+
+    return null;
 
 };

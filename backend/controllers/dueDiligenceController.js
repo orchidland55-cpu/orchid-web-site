@@ -4,11 +4,10 @@ exports.analyzeLocation = async (req, res) => {
 
     const { latitude, longitude } = req.body;
 
-    const supported =
-        gisService.isSupportedRegion(
-            latitude,
-            longitude
-        );
+    const supported = gisService.isSupportedRegion(
+        latitude,
+        longitude
+    );
 
     if (!supported) {
 
@@ -25,21 +24,18 @@ exports.analyzeLocation = async (req, res) => {
 
     }
 
+    const location = gisService.findCommune(
+        latitude,
+        longitude
+    );
+
     return res.json({
 
         success: true,
 
         supported: true,
 
-        data: {
-
-            commune: "Coming soon",
-
-            province: "Marrakech",
-
-            region: "Marrakech-Safi"
-
-        }
+        data: location
 
     });
 

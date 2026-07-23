@@ -230,6 +230,134 @@ export default function DueDiligencePage() {
 
             )}
 
+            {analysis && (
+
+                <div className="rounded-xl border bg-white shadow p-6">
+
+                    <h2 className="text-2xl font-semibold mb-5">
+
+                        Planning Analysis
+
+                    </h2>
+
+                    {
+
+                        analysis.planning.available ? (
+
+                            <div className="space-y-5">
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Planning Status
+
+                                    </p>
+
+                                    <p className="text-green-600 font-semibold">
+
+                                        ✓ Planning data available
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Planning Document
+
+                                    </p>
+
+                                    <p className="font-semibold">
+
+                                        {analysis.planning.planningDocument}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Approval Date
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.approvalDate}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Zoning Code
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.zoningCode}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Zone
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.zoningDesignation}
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+
+                                <p className="font-semibold text-yellow-700">
+
+                                    ⚠ Planning information is still being integrated.
+
+                                </p>
+
+                                <p className="mt-2 text-sm text-yellow-700">
+
+                                    Detailed planning rules are currently available
+                                    for Marrakech Ouest and Mhamid Sud.
+
+                                    Additional planning documents will be added
+                                    progressively for the remaining communes.
+
+                                </p>
+
+                            </div>
+
+                        )
+
+                    }
+
+                </div>
+
+            )}
+
         </div>
 
     );

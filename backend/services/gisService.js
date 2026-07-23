@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-
+const planningBoundaries = require("../datasets/PlanningBoundary.json");
 const turf = require("@turf/turf");
 
 const region = JSON.parse(
@@ -68,5 +68,37 @@ exports.findCommune = (latitude, longitude) => {
     }
 
     return null;
+
+};
+
+exports.findPlanningDocument = (latitude, longitude) => {
+
+    const point = turf.point([
+        Number(longitude),
+        Number(latitude)
+    ]);
+
+    for (const boundary of planningBoundaries) {
+
+        const polygon = {
+            type: "Feature",
+            geometry: boundary.geometry
+        };
+
+        if (turf.booleanPointInPolygon(point, polygon)) {
+
+            return {
+                available: true,
+                designation: boundary.designation,
+                approval_date: boundary.approval_date
+            };
+
+        }
+
+    }
+
+    return {
+        available: false
+    };
 
 };

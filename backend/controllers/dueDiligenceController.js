@@ -1,4 +1,5 @@
 const gisService = require("../services/gisService");
+const planningService = require("../services/planningService");
 
 exports.analyzeLocation = async (req, res) => {
 
@@ -29,13 +30,21 @@ exports.analyzeLocation = async (req, res) => {
         longitude
     );
 
+    const planning = planningService.analyzePlanning(
+        latitude,
+        longitude
+    );
+
     return res.json({
 
         success: true,
 
         supported: true,
 
-        data: location
+        data: {
+            ...location,
+            planning
+        }
 
     });
 

@@ -9,6 +9,12 @@ import PropertyFilterBar from "@/components/Properties/PropertyFilterBar";
 import MasonryGrid from "@/components/Properties/MasonryGrid";
 import { getCloudinaryUrl } from "@/services/cloudinary";
 import { Helmet } from 'react-helmet-async';
+import {
+  SITE_URL,
+  ORGANIZATION_REF,
+  WEBSITE_REF,
+  LOGO_URL,
+} from "@/config/schema";
 
 // ✅ Les propriétés créées avant l'ajout du champ listingType n'ont pas cette
 // valeur en base — traitées comme "sale" par défaut (comportement historique).
@@ -148,14 +154,6 @@ const PropertiesPage = () => {
 
     return (
       <div className="flex flex-col items-center gap-3 mt-14">
-      <Helmet>
-        <title>Properties | Orchid Island - Luxury Real Estate</title>
-        <meta 
-          name="description" 
-          content="Explore our collection of luxury properties in Marrakech. Find your dream home with Orchid Island." 
-        />
-        <link rel="canonical" href="https://orchidisland.immo/properties" />
-      </Helmet>
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -204,8 +202,65 @@ const PropertiesPage = () => {
     );
   };
 
+  const propertiesJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/properties#webpage`,
+    url: `${SITE_URL}/properties`,
+    name: "Luxury Properties | Orchid Island Real Estate",
+    description:
+      "Browse our exclusive collection of luxury villas, apartments, riads, commercial properties, and investment opportunities in Morocco.",
+    isPartOf: WEBSITE_REF,
+    about: ORGANIZATION_REF,
+    publisher: ORGANIZATION_REF,
+    inLanguage: "en",
+
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: LOGO_URL,
+    },
+
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: filteredProperties.length,
+      itemListElement: filteredProperties
+        .slice(0, 20)
+        .map((property, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          url: `${SITE_URL}/properties/${property.slug ?? property._id}`,
+          name: property.seoTitle || property.title,
+        })),
+    },
+  };
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Luxury Properties | Orchid Island Real Estate</title>
+        <meta
+          name="description"
+          content="Browse our exclusive collection of luxury villas, apartments, riads, commercial properties, and investment opportunities in Morocco."
+        />
+        <link
+          rel="canonical"
+          href={`${SITE_URL}/properties`}
+        />
+        <meta
+          property="og:title"
+          content="Luxury Properties | Orchid Island Real Estate"
+        />
+        <meta
+          property="og:description"
+          content="Browse our exclusive collection of luxury villas, apartments, riads, commercial properties, and investment opportunities in Morocco."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/properties`} />
+        <meta property="og:image" content={LOGO_URL} />
+        <meta property="og:site_name" content="Orchid Island Real Estate" />
+        <script type="application/ld+json">
+          {JSON.stringify(propertiesJsonLd)}
+        </script>
+      </Helmet>
       <Header />
       <main>
         {/* ── Hero ── purely visual now: no search bar overlay.

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, ArrowRight, CheckCircle, TrendingUp, Users, Globe, Store, Building2, LayoutGrid, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: Store,      label: "Commercial Centers",     desc: "Flagship retail destinations and high-footfall shopping complexes" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const RetailService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Retail & Mixed-Use Real Estate Investment"
+      description="Orchid Island invests in and develops high-performance retail real estate — commercial centers, mixed-use developments, and bespoke private projects — across Africa, the Middle East, and Europe, delivering strong yields and long-term capital appreciation."
+      url="https://www.orchidisland.immo/services/retail"
+      serviceType="Retail & Mixed-Use Real Estate Investment"
+    />
     <PageTransition>
     <Header />
     <main>

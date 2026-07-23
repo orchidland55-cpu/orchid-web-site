@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Truck, ArrowRight, CheckCircle, TrendingUp, Users, Globe, MapPin, Package, Network, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: MapPin,    label: "Strategic Hubs",          desc: "Prime logistics parks positioned at key intermodal and trade corridors" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const LogisticsService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Logistics Real Estate & Supply Chain Infrastructure"
+      description="Orchid Island invests in and develops strategic logistics hubs, warehousing platforms, and supply chain infrastructure assets across Africa, the Middle East, and Europe — capturing the structural growth of global trade and e-commerce."
+      url="https://www.orchidisland.immo/services/logistics"
+      serviceType="Logistics Real Estate & Supply Chain Infrastructure"
+    />
     <PageTransition>
     <Header />
     <main>

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, ArrowRight, CheckCircle, TrendingUp, Users, Globe, Shield, Star, DollarSign, Key } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: DollarSign, label: "Private Investments",     desc: "Exclusive access to off-market real estate and structured investment opportunities" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const IndividualsService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Private Wealth, Investment & Bespoke Real Estate"
+      description="Orchid Island delivers white-glove real estate and investment advisory to private individuals, family offices, and ultra-high-net-worth clients — combining discretion, expertise, and exclusive market access to protect and grow private wealth."
+      url="https://www.orchidisland.immo/individuals"
+      serviceType="Private Wealth & Real Estate Advisory"
+    />
     <PageTransition>
     <Header />
     <main>

@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Building2,
 } from "lucide-react";
+import ServiceSchema from "@/components/ServicesSchema";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -105,6 +106,12 @@ const strategicBenefits = [
 const DataCentersPage = () => {
   return (
     <PageTransition>
+      <ServiceSchema
+          name="Sovereign AI & Data Center Infrastructure Investment In Morocco"
+          description="Sovereign data center investment and advisory services for AI infrastructure, cloud computing, and digital economy development across Africa and the Middle East."
+          url="https://www.orchidisland.immo/services/data-centers"
+          serviceType="Data Center Advisory"
+        />
     <Header />
       <div className="min-h-screen bg-background text-foreground font-lora">
 

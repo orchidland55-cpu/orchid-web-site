@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Factory, ArrowRight, CheckCircle, TrendingUp, Users, Globe, Building2, Briefcase, BarChart3, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: Building2,  label: "Grade-A Office Towers",    desc: "Institutional-grade corporate campuses and CBD office assets" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const IndustrialOfficesService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Institutional-Grade Industrial & Office Real Estate"
+      description="Orchid Island originates and manages high-quality industrial and office real estate investments across EMEA, delivering stable income, capital growth, and institutional-grade asset management for discerning investors."
+      url="https://www.orchidisland.immo/industrial-offices"
+      serviceType="Industrial & Office Real Estate Investment"
+    />
     <PageTransition>
     <Header />
     <main>

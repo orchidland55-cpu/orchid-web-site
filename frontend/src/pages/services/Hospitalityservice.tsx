@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Hotel, ArrowRight, CheckCircle, Star, TrendingUp, Users, Globe, Utensils, Music, Waves } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: Hotel,    label: "Luxury Hotels",          desc: "5-star and boutique hotel acquisitions, repositioning & development" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const HospitalityService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Luxury Hospitality Investment & Advisory"
+      description="Luxury hospitality investment and advisory services for hotels, resorts, restaurants, beach clubs, and nightlife venues across Europe, the Middle East, and Africa."
+      url="https://www.orchidisland.immo/services/hospitality"
+      serviceType="Hospitality Advisory"
+    />
     <PageTransition>
     <Header />
     <main>

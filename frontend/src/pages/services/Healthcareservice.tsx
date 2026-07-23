@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowRight, CheckCircle, TrendingUp, Users, Globe, Building2, ShieldCheck, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const highlights = [
   { icon: Building2,  label: "Hospitals & Clinics",        desc: "Acquisition, development & repositioning of private healthcare facilities" },
@@ -32,6 +33,12 @@ const whyUs = [
 
 const HealthcareService = () => (
   <div className="min-h-screen">
+    <ServiceSchema
+      name="Healthcare Real Estate Investment & Development"
+      description="Orchid Island invests in and develops high-performance healthcare real estate — hospitals, clinics, and integrated medical platforms — across Africa, the Middle East, and Europe, delivering resilient returns and lasting social impact."
+      url="https://www.orchidisland.immo/healthcare"
+      serviceType="Healthcare Real Estate Investment & Development"
+    />
     <PageTransition>
     <Header />
     <main>

@@ -184,6 +184,26 @@ def _build_article_record(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _build_career_record(document: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "mongo_id": str(document.get("_id") or ""),
+        "title": _normalize_text(_pick_first(document, "title")),
+        "description": _normalize_text(_pick_first(document, "description")),
+        "city": _normalize_text(_pick_first(document, "city")),
+        "contract_type": _normalize_text(_pick_first(document, "contractType")),
+        "salary": _normalize_text(_pick_first(document, "salary")),
+        "duration": _normalize_text(_pick_first(document, "duration")),
+        "stage_type": _normalize_text(_pick_first(document, "stageType")),
+        "status": _normalize_text(_pick_first(document, "status")) or "active",
+        "person": _normalize_text(_pick_first(document, "person")),
+        "deadline": _to_datetime(_pick_first(document, "deadline", "freelanceDeadline")),
+        "source_collection": "careers",
+        "raw_data": _sanitize_raw_data(document),
+        "created_at": _to_datetime(_pick_first(document, "createdAt", "created_at")),
+        "updated_at": _to_datetime(_pick_first(document, "updatedAt", "updated_at")),
+    }
+
+
 def _load_mongo_collection(client: MongoClient, database_name: str, collection_name: str) -> MongoCollection:
     return client[database_name][collection_name]
 
@@ -239,10 +259,32 @@ def _ensure_schema(cursor) -> None:
         );
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS chatbot_careers (
+            mongo_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            city TEXT NOT NULL DEFAULT '',
+            contract_type TEXT NOT NULL DEFAULT '',
+            salary TEXT NOT NULL DEFAULT '',
+            duration TEXT NOT NULL DEFAULT '',
+            stage_type TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            person TEXT NOT NULL DEFAULT '',
+            deadline TIMESTAMPTZ NULL,
+            source_collection TEXT NOT NULL DEFAULT 'careers',
+            raw_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ NULL,
+            updated_at TIMESTAMPTZ NULL,
+            synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """
+    )
 
 
 def _truncate_tables(cursor) -> None:
-    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles;")
+    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles, chatbot_careers;")
 
 
 def _upsert_record(cursor, table_name: str, record: dict[str, Any]) -> None:

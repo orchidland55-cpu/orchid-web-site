@@ -35,6 +35,23 @@ IMAGE_KEYS = {
     "additionalImages",
 }
 
+# Collections MongoDB de réglementation d'urbanisme jugées "semi-publiques"
+# (contenu textuel exploitable par le RAG) — volontairement exclues :
+# les collections purement géométriques/GIS (planningroads, planningroadpolygons,
+# zoningpolygons, planningequipments — quasi aucun texte narratif, juste des
+# coordonnées) et les collections privées (users, contacts, leads, postulations,
+# spaces, activities, *views).
+REGULATION_SOURCE_COLLECTIONS = [
+    "allzonings",
+    "communes",
+    "planningalloweduses",
+    "planningarticles",
+    "planningdocuments",
+    "planningprohibiteduses",
+    "planningrules",
+    "planningboundaries",
+]
+
 
 def _normalize_text(value: Any) -> str:
     if value is None:
@@ -204,6 +221,32 @@ def _build_career_record(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _build_regulation_record(document: dict[str, Any], source_collection: str) -> dict[str, Any]:
+    return {
+        "mongo_id": str(document.get("_id") or ""),
+        "title": _normalize_text(
+            _pick_first(document, "title", "article_title", "article_heading", "designation", "name")
+        ),
+        "name_secondary": _normalize_text(_pick_first(document, "name_ar")),
+        "category": _normalize_text(
+            _pick_first(document, "use_type", "prohibition_type", "rule_type", "document_type", "zoning_code")
+        ),
+        "location": _normalize_text(
+            _pick_first(document, "zone", "commune", "commune_id", "region", "prefecture", "agency")
+        ),
+        "reference_number": _normalize_text(
+            _pick_first(document, "article_number", "article", "approval_number")
+        ),
+        "body": _normalize_text(
+            _pick_first(document, "body", "raw_text", "text", "sentence", "summary", "observation")
+        ),
+        "source_collection": source_collection,
+        "raw_data": _sanitize_raw_data(document),
+        "created_at": _to_datetime(_pick_first(document, "createdAt", "created_at")),
+        "updated_at": _to_datetime(_pick_first(document, "updatedAt", "updated_at")),
+    }
+
+
 def _load_mongo_collection(client: MongoClient, database_name: str, collection_name: str) -> MongoCollection:
     return client[database_name][collection_name]
 
@@ -281,10 +324,28 @@ def _ensure_schema(cursor) -> None:
         );
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS chatbot_regulations (
+            mongo_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL DEFAULT '',
+            name_secondary TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL DEFAULT '',
+            location TEXT NOT NULL DEFAULT '',
+            reference_number TEXT NOT NULL DEFAULT '',
+            body TEXT NOT NULL DEFAULT '',
+            source_collection TEXT NOT NULL DEFAULT '',
+            raw_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ NULL,
+            updated_at TIMESTAMPTZ NULL,
+            synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """
+    )
 
 
 def _truncate_tables(cursor) -> None:
-    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles, chatbot_careers;")
+    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles, chatbot_careers, chatbot_regulations;")
 
 
 def _upsert_record(cursor, table_name: str, record: dict[str, Any]) -> None:

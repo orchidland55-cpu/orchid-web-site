@@ -402,3 +402,75 @@ def _sync_collection(
         table_name,
     )
     return count
+
+
+# ---------------------------------------------------------------------------
+# Point d'entrée
+# ---------------------------------------------------------------------------
+
+def run(reset: bool = False, limit: int | None = None, target: str = "all") -> None:
+    logger.info("=== Démarrage de la synchronisation MongoDB → PostgreSQL (reset=%s) ===", reset)
+
+    mongo_client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=10000)
+    pg_connection = psycopg2.connect(settings.database_url)
+    total = 0
+    try:
+        with pg_connection.cursor() as cursor:
+            _ensure_schema(cursor)
+            if reset:
+                _truncate_tables(cursor)
+            pg_connection.commit()
+
+            if target in ("all", "properties"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_properties_collection),
+                    cursor=cursor,
+                    table_name="chatbot_properties",
+                    builder=_build_property_record,
+                    limit=limit,
+                )
+            if target in ("all", "articles"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_articles_collection),
+                    cursor=cursor,
+                    table_name="chatbot_articles",
+                    builder=_build_article_record,
+                    limit=limit,
+                )
+            if target in ("all", "careers"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_careers_collection),
+                    cursor=cursor,
+                    table_name="chatbot_careers",
+                    builder=_build_career_record,
+                    limit=limit,
+                )
+            if target in ("all", "regulations"):
+                for source_collection_name in REGULATION_SOURCE_COLLECTIONS:
+                    total += _sync_collection(
+                        source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, source_collection_name),
+                        cursor=cursor,
+                        table_name="chatbot_regulations",
+                        builder=lambda document, name=source_collection_name: _build_regulation_record(document, name),
+                        limit=limit,
+                    )
+            pg_connection.commit()
+    finally:
+        mongo_client.close()
+        pg_connection.close()
+
+    logger.info("=== Synchronisation terminée — %d documents au total ===", total)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Synchronise MongoDB vers PostgreSQL")
+    parser.add_argument("--reset", action="store_true", help="Vide les tables avant de synchroniser")
+    parser.add_argument("--limit", type=int, default=None, help="Limite le nombre de documents par collection (debug)")
+    parser.add_argument(
+        "--target",
+        choices=["all", "properties", "articles", "careers", "regulations"],
+        default="all",
+        help="Restreindre la synchronisation à une seule cible",
+    )
+    args = parser.parse_args()
+    run(reset=args.reset, limit=args.limit, target=args.target)

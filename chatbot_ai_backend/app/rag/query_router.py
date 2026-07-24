@@ -7,7 +7,15 @@ import re
 from collections.abc import Sequence
 
 from app.rag.language import detect_language, normalize_language
-from app.rag.vectorstore import SearchResult, _embedding_fn, search_biens, search_faq, search_marche
+from app.rag.vectorstore import (
+    SearchResult,
+    _embedding_fn,
+    search_biens,
+    search_carrieres,
+    search_faq,
+    search_marche,
+    search_reglementation,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +100,42 @@ MARKET_KEYWORDS = {
     "mean": 2,
 }
 
+CAREER_KEYWORDS = {
+    "emploi": 3,
+    "job": 3,
+    "carrière": 3,
+    "carriere": 3,
+    "poste": 3,
+    "recrutement": 3,
+    "candidature": 3,
+    "cv": 2,
+    "stage": 2,
+    "embauche": 2,
+    "hiring": 3,
+    "vacancy": 3,
+    "apply": 2,
+    "position": 2,
+    "recrute": 3,
+    "recruiting": 3,
+}
+
+REGULATION_KEYWORDS = {
+    "règlement": 3,
+    "reglement": 3,
+    "réglementation": 3,
+    "reglementation": 3,
+    "urbanisme": 3,
+    "zonage": 3,
+    "zoning": 3,
+    "zone": 2,
+    "commune": 2,
+    "permis": 2,
+    "construire": 2,
+    "regulation": 3,
+    "planning": 2,
+    "article": 1,
+}
+
 INTENT_ANCHORS: dict[str, tuple[str, ...]] = {
     "property": (
         "Je cherche un appartement à Casablanca.",
@@ -117,6 +161,22 @@ INTENT_ANCHORS: dict[str, tuple[str, ...]] = {
         "How is the rental yield evolving?",
         "What are the current real estate market trends?",
     ),
+    "career": (
+        "Est-ce que vous recrutez actuellement ?",
+        "Je cherche un emploi ou un stage chez Orchid Island.",
+        "Quelles sont les offres d'emploi disponibles ?",
+        "Are you currently hiring?",
+        "I am looking for a job or internship at Orchid Island.",
+        "What career opportunities do you have open?",
+    ),
+    "regulation": (
+        "Quelles sont les règles d'urbanisme pour cette zone ?",
+        "Quel est le zonage de cette commune ?",
+        "Quels documents régissent le permis de construire ?",
+        "What are the zoning regulations for this area?",
+        "What is the planning code for this commune?",
+        "What rules apply to construction permits here?",
+    ),
 }
 
 
@@ -141,6 +201,8 @@ def _keyword_classify(text: str) -> tuple[str, dict[str, int]]:
         "property": _score(text, PROPERTY_KEYWORDS),
         "faq": _score(text, FAQ_KEYWORDS),
         "market": _score(text, MARKET_KEYWORDS),
+        "career": _score(text, CAREER_KEYWORDS),
+        "regulation": _score(text, REGULATION_KEYWORDS),
     }
 
     best_intent = max(scores, key=scores.get)
@@ -252,6 +314,12 @@ def build_search_plan(text: str, language: str | None = None) -> SearchPlan:
     elif intent == "market":
         primary = ("marche",)
         fallback = ("faq", "biens")
+    elif intent == "career":
+        primary = ("carrieres",)
+        fallback = ("faq",)
+    elif intent == "regulation":
+        primary = ("reglementation",)
+        fallback = ("faq",)
     else:
         primary = ("biens", "faq", "marche")
         fallback = ()
@@ -266,7 +334,9 @@ def build_search_plan(text: str, language: str | None = None) -> SearchPlan:
 
 def gather_search_results(text: str, language: str | None = None) -> tuple[dict[str, list[SearchResult]], SearchPlan, tuple[str, ...]]:
     plan = build_search_plan(text, language=language)
-    results: dict[str, list[SearchResult]] = {"biens": [], "faq": [], "marche": []}
+    results: dict[str, list[SearchResult]] = {
+        "biens": [], "faq": [], "marche": [], "carrieres": [], "reglementation": [],
+    }
     searched_collections: list[str] = []
 
     def search_collection(collection_name: str) -> None:
@@ -276,6 +346,10 @@ def gather_search_results(text: str, language: str | None = None) -> tuple[dict[
             results["faq"] = search_faq(text, language=plan.language, n_results=2)
         elif collection_name == "marche":
             results["marche"] = search_marche(text, n_results=2)
+        elif collection_name == "carrieres":
+            results["carrieres"] = search_carrieres(text, n_results=3)
+        elif collection_name == "reglementation":
+            results["reglementation"] = search_reglementation(text, n_results=3)
         searched_collections.append(collection_name)
 
     for collection_name in plan.primary_collections:

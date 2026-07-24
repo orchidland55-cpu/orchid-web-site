@@ -19,6 +19,7 @@ class Settings(BaseModel):
     mongo_db: str = os.getenv("MONGO_DB", "orchidDB")
     mongo_properties_collection: str = os.getenv("MONGO_PROPERTIES_COLLECTION", "properties")
     mongo_articles_collection: str = os.getenv("MONGO_ARTICLES_COLLECTION", "articles")
+    mongo_careers_collection: str = os.getenv("MONGO_CAREERS_COLLECTION", "careers")
     chroma_host: str = os.getenv("CHROMA_HOST", "localhost")
     chroma_port: int = int(os.getenv("CHROMA_PORT", "8001"))
     chroma_persist_directory: str = os.getenv("CHROMA_PERSIST_DIRECTORY", "./chroma")

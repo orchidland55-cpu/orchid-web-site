@@ -26,7 +26,9 @@ from psycopg2.extras import RealDictCursor
 from app.config import settings
 from app.rag.vectorstore import (
     COLLECTION_BIENS,
+    COLLECTION_CARRIERES,
     COLLECTION_MARCHE,
+    COLLECTION_REGLEMENTATION,
     collection_stats,
     get_chroma_client,
     get_or_create_collection,
@@ -122,6 +124,35 @@ def _build_article_text(row: dict[str, Any]) -> str:
     return "\n".join(line for line in lines if not line.endswith(": "))
 
 
+def _build_career_text(row: dict[str, Any]) -> str:
+    lines = [
+        f"Titre du poste: {row['title']}",
+        f"Ville: {row['city']}",
+        f"Type de contrat: {row['contract_type']}",
+        f"Stage: {row['stage_type']}",
+        f"Salaire: {row['salary']}",
+        f"Durée: {row['duration']}",
+        f"Statut: {row['status']}",
+        f"Date limite: {_normalize_text(row.get('deadline'))}",
+        f"Contact: {row['person']}",
+        f"Description: {_clean_long_text(row['description'])}",
+    ]
+    return "\n".join(line for line in lines if not line.endswith(": "))
+
+
+def _build_regulation_text(row: dict[str, Any]) -> str:
+    lines = [
+        f"Titre: {row['title']}",
+        f"Nom (arabe): {row['name_secondary']}",
+        f"Catégorie: {row['category']}",
+        f"Zone / commune: {row['location']}",
+        f"Référence: {row['reference_number']}",
+        f"Source: {row['source_collection']}",
+        f"Contenu: {_clean_long_text(row['body'])}",
+    ]
+    return "\n".join(line for line in lines if not line.endswith(": "))
+
+
 def _build_metadata(row: dict[str, Any], *, table_name: str, metadata_fields: list[str]) -> dict[str, Any]:
     metadata: dict[str, Any] = {"source": "postgresql", "source_table": table_name}
     for field in metadata_fields:
@@ -142,6 +173,8 @@ PROPERTY_METADATA_FIELDS = [
     "garden", "pool", "security", "furnished", "mongo_id",
 ]
 ARTICLE_METADATA_FIELDS = ["category", "author", "published_at", "mongo_id"]
+CAREER_METADATA_FIELDS = ["city", "contract_type", "status", "deadline", "mongo_id"]
+REGULATION_METADATA_FIELDS = ["category", "location", "source_collection", "mongo_id"]
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +233,18 @@ def _sync_table(
         documents.append(text)
         metadatas.append(_build_metadata(row, table_name=table_name, metadata_fields=metadata_fields))
 
-    target_collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
+    # Chroma Cloud refuse les upserts de plus de 1000 éléments par appel, et le
+    # plan gratuit limite en plus le quota à 300 enregistrements par requête —
+    # on découpe donc en lots pour les tables volumineuses (ex: reglementation).
+    batch_size = 250
+    for start in range(0, len(ids), batch_size):
+        end = start + batch_size
+        target_collection.upsert(
+            ids=ids[start:end],
+            documents=documents[start:end],
+            metadatas=metadatas[start:end],
+        )
+
     logger.info(
         "✓ %d ligne(s) synchronisée(s) depuis '%s' vers '%s'",
         len(ids),
@@ -237,6 +281,26 @@ def run(reset: bool = False, limit: int | None = None, target: str = "all") -> N
                     reset=reset,
                     limit=limit,
                 )
+            if target in ("all", "careers"):
+                total += _sync_table(
+                    cursor=cursor,
+                    table_name="chatbot_careers",
+                    target_collection_name=COLLECTION_CARRIERES,
+                    builder=_build_career_text,
+                    metadata_fields=CAREER_METADATA_FIELDS,
+                    reset=reset,
+                    limit=limit,
+                )
+            if target in ("all", "regulations"):
+                total += _sync_table(
+                    cursor=cursor,
+                    table_name="chatbot_regulations",
+                    target_collection_name=COLLECTION_REGLEMENTATION,
+                    builder=_build_regulation_text,
+                    metadata_fields=REGULATION_METADATA_FIELDS,
+                    reset=reset,
+                    limit=limit,
+                )
     finally:
         connection.close()
 
@@ -253,7 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=None, help="Limite le nombre de lignes par table (debug)")
     parser.add_argument(
         "--target",
-        choices=["all", "properties", "articles"],
+        choices=["all", "properties", "articles", "careers", "regulations"],
         default="all",
         help="Restreindre la synchronisation à une seule table",
     )

@@ -35,19 +35,32 @@ from psycopg2.extras import Json
 
 from app.config import settings
 from app.rag.sync_mongo_to_postgres import (
+    REGULATION_SOURCE_COLLECTIONS,
     _build_article_record,
+    _build_career_record,
     _build_property_record,
+    _build_regulation_record,
     _ensure_schema,
     _upsert_record,
 )
 from app.rag.sync_postgres_to_chroma import (
     ARTICLE_METADATA_FIELDS,
+    CAREER_METADATA_FIELDS,
     PROPERTY_METADATA_FIELDS,
+    REGULATION_METADATA_FIELDS,
     _build_article_text,
+    _build_career_text,
     _build_metadata,
     _build_property_text,
+    _build_regulation_text,
 )
-from app.rag.vectorstore import COLLECTION_BIENS, COLLECTION_MARCHE, get_or_create_collection
+from app.rag.vectorstore import (
+    COLLECTION_BIENS,
+    COLLECTION_CARRIERES,
+    COLLECTION_MARCHE,
+    COLLECTION_REGLEMENTATION,
+    get_or_create_collection,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s — %(message)s")
 logger = logging.getLogger(__name__)
@@ -112,7 +125,14 @@ def _clear_resume_token() -> None:
 # Traitement d'un événement
 # ---------------------------------------------------------------------------
 
-def _handle_change(change: dict, pg_connection, biens_collection, marche_collection) -> None:
+def _handle_change(
+    change: dict,
+    pg_connection,
+    biens_collection,
+    marche_collection,
+    carrieres_collection,
+    reglementation_collection,
+) -> None:
     collection_name = change["ns"]["coll"]
     operation = change["operationType"]
 
@@ -130,6 +150,18 @@ def _handle_change(change: dict, pg_connection, biens_collection, marche_collect
             pg_connection.commit()
             marche_collection.delete(ids=[mongo_id])
             logger.info("✗ Article supprimé : %s", mongo_id)
+        elif collection_name == settings.mongo_careers_collection:
+            with pg_connection.cursor() as cursor:
+                cursor.execute("DELETE FROM chatbot_careers WHERE mongo_id = %s", (mongo_id,))
+            pg_connection.commit()
+            carrieres_collection.delete(ids=[mongo_id])
+            logger.info("✗ Offre d'emploi supprimée : %s", mongo_id)
+        elif collection_name in REGULATION_SOURCE_COLLECTIONS:
+            with pg_connection.cursor() as cursor:
+                cursor.execute("DELETE FROM chatbot_regulations WHERE mongo_id = %s", (mongo_id,))
+            pg_connection.commit()
+            reglementation_collection.delete(ids=[mongo_id])
+            logger.info("✗ Règlement supprimé (%s) : %s", collection_name, mongo_id)
         return
 
     document = change.get("fullDocument")
@@ -178,6 +210,44 @@ def _handle_change(change: dict, pg_connection, biens_collection, marche_collect
             marche_collection.upsert(ids=[record["mongo_id"]], documents=[text], metadatas=[metadata])
         logger.info("✓ Article synchronisé (%s) : %s", operation, record["mongo_id"])
 
+    elif collection_name == settings.mongo_careers_collection:
+        record = _build_career_record(document)
+        if not record["mongo_id"]:
+            return
+
+        with pg_connection.cursor() as cursor:
+            _upsert_record(cursor, "chatbot_careers", record)
+        pg_connection.commit()
+
+        text = _build_career_text(record)
+        if text.strip():
+            metadata = _build_metadata(
+                record,
+                table_name="chatbot_careers",
+                metadata_fields=CAREER_METADATA_FIELDS,
+            )
+            carrieres_collection.upsert(ids=[record["mongo_id"]], documents=[text], metadatas=[metadata])
+        logger.info("✓ Offre d'emploi synchronisée (%s) : %s", operation, record["mongo_id"])
+
+    elif collection_name in REGULATION_SOURCE_COLLECTIONS:
+        record = _build_regulation_record(document, collection_name)
+        if not record["mongo_id"]:
+            return
+
+        with pg_connection.cursor() as cursor:
+            _upsert_record(cursor, "chatbot_regulations", record)
+        pg_connection.commit()
+
+        text = _build_regulation_text(record)
+        if text.strip():
+            metadata = _build_metadata(
+                record,
+                table_name="chatbot_regulations",
+                metadata_fields=REGULATION_METADATA_FIELDS,
+            )
+            reglementation_collection.upsert(ids=[record["mongo_id"]], documents=[text], metadatas=[metadata])
+        logger.info("✓ Règlement synchronisé (%s, %s) : %s", operation, collection_name, record["mongo_id"])
+
 
 # ---------------------------------------------------------------------------
 # Boucle d'écoute
@@ -202,8 +272,15 @@ def _watch_forever() -> None:
 
         biens_collection = get_or_create_collection(COLLECTION_BIENS)
         marche_collection = get_or_create_collection(COLLECTION_MARCHE)
+        carrieres_collection = get_or_create_collection(COLLECTION_CARRIERES)
+        reglementation_collection = get_or_create_collection(COLLECTION_REGLEMENTATION)
 
-        watched_collections = [settings.mongo_properties_collection, settings.mongo_articles_collection]
+        watched_collections = [
+            settings.mongo_properties_collection,
+            settings.mongo_articles_collection,
+            settings.mongo_careers_collection,
+            *REGULATION_SOURCE_COLLECTIONS,
+        ]
         pipeline = [{"$match": {"ns.coll": {"$in": watched_collections}}}]
 
         watch_kwargs: dict = {"pipeline": pipeline, "full_document": "updateLookup"}
@@ -214,7 +291,14 @@ def _watch_forever() -> None:
         database = mongo_client[settings.mongo_db]
         with database.watch(**watch_kwargs) as stream:
             for change in stream:
-                _handle_change(change, pg_connection, biens_collection, marche_collection)
+                _handle_change(
+                    change,
+                    pg_connection,
+                    biens_collection,
+                    marche_collection,
+                    carrieres_collection,
+                    reglementation_collection,
+                )
                 with pg_connection.cursor() as cursor:
                     _save_resume_token(cursor, change["_id"])
                 pg_connection.commit()

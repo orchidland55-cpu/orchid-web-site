@@ -182,7 +182,7 @@ async function syncLeadToOdoo(visitorId) {
     const totalMinutes =
         totalSeconds / 60;
 
-    const MAX_REFERENCE_TIME = 204;
+    const MAX_REFERENCE_TIME = 20;
 
     const timeScore =
         30 *

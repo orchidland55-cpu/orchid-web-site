@@ -186,6 +186,7 @@ async function createOdooLead({
 
                                 email_from: email,
                                 phone: phone,
+                                name: name,
                                 contact_name: name,
 
                                 ...(subject ? { x_subject: subject } : {}),
@@ -238,7 +239,7 @@ async function createOdooLead({
                         "crm.lead",
                         "create",
                         [{
-                            name: `Website Lead - ${name}`,
+                            name: name,
                             contact_name: name,
                             email_from: email,
                             phone: phone,

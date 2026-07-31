@@ -162,7 +162,7 @@ async function syncLeadToOdoo(visitorId) {
 
     // Property Engagement
 
-    const TOTAL_PROPERTIES = 102;
+    const TOTAL_PROPERTIES = 30;
 
     const uniquePropertiesViewed =
         Object.keys(propertyViewCounts).length;
@@ -285,6 +285,8 @@ ${service}
         longitude: lead.longitude
     });
 
+    const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
     await createOdooLead({
         name: contact.name,
         email: contact.email,
@@ -304,7 +306,9 @@ ${service}
         scheduleVisits,
 
         propertyList: odooPropertyList,
-        servicesList
+        servicesList,
+
+        ...aiAnalytics
     });
 
     console.log("✅ Odoo auto-sync completed");
@@ -318,7 +322,9 @@ const trackPropertyView = async (req, res) => {
             city,
             latitude,
             longitude,
-            locationSource
+            locationSource,
+            trafficSource,
+            trafficMedium
         } = req.body;
 
         let detectedCountry = country;
@@ -403,7 +409,10 @@ const trackPropertyView = async (req, res) => {
             latitude,
             longitude,
 
-            locationSource
+            locationSource,
+
+            trafficSource,
+            trafficMedium
         });
 
         console.log("CREATED ACTIVITY:", createdActivity);

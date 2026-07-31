@@ -1,0 +1,11 @@
+google-analytics-data
+google-auth
+pandas
+numpy
+scikit-learn
+matplotlib
+joblib
+python-dotenv
+requests
+tqdm
+openpyxl

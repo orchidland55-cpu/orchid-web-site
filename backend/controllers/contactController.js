@@ -16,6 +16,8 @@ const {
   sendVisitRequestEmail
 } = require("../services/emailService");
 
+const { getLeadAIAnalytics } = require("../services/aiAnalyticsService");
+
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -292,7 +294,7 @@ ${property.title}
 
 
         //here
-
+        const aiAnalytics = await getLeadAIAnalytics(visitorId);
         await createOdooLead({
           name,
           email,
@@ -311,7 +313,9 @@ ${property.title}
           scheduleVisits,
           whatsappClicks,
           propertyList: odooPropertyList,
-          servicesList
+          servicesList,
+
+          ...aiAnalytics
         });
 
         console.log("✅ Lead sent to Odoo");
@@ -897,6 +901,8 @@ ${service}
         })
         .join("\n\n");
 
+      const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
       await createOdooLead({
         name,
         email,
@@ -916,7 +922,9 @@ ${service}
         propertyList,
         servicesList,
         scheduleVisits,
-        visitDetails
+        visitDetails,
+
+        ...aiAnalytics
       });
 
       console.log("📈 Lead score updated:", lead.leadScore);
@@ -1163,6 +1171,8 @@ ${service}
       const latitude = latestActivity?.latitude || null;
       const longitude = latestActivity?.longitude || null;
 
+      const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
       await createOdooLead({
 
         name,
@@ -1190,7 +1200,9 @@ ${service}
 
         scheduleVisits,
 
-        visitDetails
+        visitDetails,
+
+        ...aiAnalytics
 
       });
 

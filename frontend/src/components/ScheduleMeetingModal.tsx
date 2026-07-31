@@ -62,6 +62,49 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
       localStorage.getItem("visitorLocation") || "{}"
     );
 
+    const params = new URLSearchParams(window.location.search);
+
+    let trafficSource = params.get("utm_source") || "";
+    let trafficMedium = params.get("utm_medium") || "";
+
+    if (!trafficSource) {
+
+      const referrer = document.referrer.toLowerCase();
+
+      if (!referrer) {
+        trafficSource = "(direct)";
+        trafficMedium = "(none)";
+      }
+
+      else if (referrer.includes("google")) {
+        trafficSource = "google";
+        trafficMedium = "organic";
+      }
+
+      else if (referrer.includes("bing")) {
+        trafficSource = "bing";
+        trafficMedium = "organic";
+      }
+
+      else if (referrer.includes("facebook")) {
+        trafficSource = "facebook.com";
+        trafficMedium = "referral";
+      }
+
+      else if (referrer.includes("instagram")) {
+        trafficSource = "l.instagram.com";
+        trafficMedium = "referral";
+      }
+
+      else {
+
+        trafficSource = new URL(document.referrer).hostname;
+        trafficMedium = "referral";
+
+      }
+
+    }
+
     const meetingData = {
       ...formData,
       date: selectedDate?.toISOString().split("T")[0],
@@ -71,7 +114,9 @@ const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({ isOpen, onC
 
       latitude: locationData.latitude,
       longitude: locationData.longitude,
-      locationSource: locationData.locationSource
+      locationSource: locationData.locationSource,
+      trafficSource,
+      trafficMedium
     };
 
     console.log("📤 Envoi au backend:");

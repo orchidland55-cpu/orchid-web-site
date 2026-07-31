@@ -532,7 +532,9 @@ app.post('/api/analytics/track-page', async (req, res) => {
       visitorId,
       latitude,
       longitude,
-      locationSource
+      locationSource,
+      trafficSource,
+      trafficMedium
     } = req.body;
 
     if (!page || typeof page !== 'string' || page.length > 200) {
@@ -646,6 +648,9 @@ app.post('/api/analytics/track-page', async (req, res) => {
         latitude,
         longitude,
         locationSource,
+
+        trafficSource,
+        trafficMedium,
 
         activityType: "SERVICE_VIEW",
         details: servicePages[page]

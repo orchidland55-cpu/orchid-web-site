@@ -159,6 +159,47 @@ function App() {
         maximumAge: 60000,         // ✅ Accepter un cache de 1 minute
       }
     );
+    const savedTraffic = localStorage.getItem("trafficInfo");
+
+    if (!savedTraffic) {
+      let trafficSource = "(direct)";
+      let trafficMedium = "(none)";
+
+      const params = new URLSearchParams(window.location.search);
+
+      const utmSource = params.get("utm_source");
+      const utmMedium = params.get("utm_medium");
+
+      if (utmSource) {
+        trafficSource = utmSource;
+        trafficMedium = utmMedium || "(none)";
+      } else if (document.referrer) {
+        const referrer = new URL(document.referrer);
+
+        trafficSource = referrer.hostname.replace("www.", "");
+
+        if (trafficSource.includes("google")) {
+          trafficMedium = "organic";
+        } else if (trafficSource.includes("bing")) {
+          trafficMedium = "organic";
+        } else {
+          trafficMedium = "referral";
+        }
+      }
+
+      localStorage.setItem(
+        "trafficInfo",
+        JSON.stringify({
+          trafficSource,
+          trafficMedium,
+        })
+      );
+
+      console.log("Traffic saved:", {
+        trafficSource,
+        trafficMedium,
+      });
+    }
   }, []);
 
   return (

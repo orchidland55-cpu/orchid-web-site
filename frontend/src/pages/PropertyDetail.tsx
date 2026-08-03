@@ -368,8 +368,15 @@ const PropertyDetail = () => {
           const location = JSON.parse(
             localStorage.getItem("visitorLocation") || "{}"
           );
-          let trafficSource = "(direct)";
-          let trafficMedium = "(none)";
+          const savedTraffic = JSON.parse(
+            localStorage.getItem("trafficInfo") || "{}"
+          );
+
+          let trafficSource =
+            savedTraffic.trafficSource || "(direct)";
+
+          let trafficMedium =
+            savedTraffic.trafficMedium || "(none)";
 
           const params = new URLSearchParams(window.location.search);
 
@@ -380,6 +387,14 @@ const PropertyDetail = () => {
 
             trafficSource = utmSource;
             trafficMedium = utmMedium || "(none)";
+
+            localStorage.setItem(
+              "trafficInfo",
+              JSON.stringify({
+                trafficSource,
+                trafficMedium,
+              })
+            );
 
           }
           else if (document.referrer) {
@@ -404,7 +419,17 @@ const PropertyDetail = () => {
               trafficMedium = "referral";
             }
 
+            localStorage.setItem(
+              "trafficInfo",
+              JSON.stringify({
+                trafficSource,
+                trafficMedium,
+              })
+            );
+
           }
+          console.log("Traffic Source:", trafficSource);
+          console.log("Traffic Medium:", trafficMedium);
           await fetch(
             "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/view-property",
             {

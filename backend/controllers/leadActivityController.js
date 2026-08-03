@@ -399,6 +399,11 @@ const trackPropertyView = async (req, res) => {
             longitude,
             locationSource
         });
+
+        console.log("TRAFFIC RECEIVED:", {
+            trafficSource,
+            trafficMedium
+        });
         const createdActivity = await LeadActivity.create({
             visitorId,
             activityType: "VIEW_PROPERTY",

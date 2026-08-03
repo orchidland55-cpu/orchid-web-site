@@ -70,6 +70,8 @@ function loadAnalyticsFiles() {
 
         }
 
+        console.log("Traffic scores:", trafficScores.length);
+        console.log("Property clusters:", propertyClusters.size);
         console.log("✅ AI analytics loaded.");
 
     }

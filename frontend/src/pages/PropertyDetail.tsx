@@ -368,7 +368,43 @@ const PropertyDetail = () => {
           const location = JSON.parse(
             localStorage.getItem("visitorLocation") || "{}"
           );
+          let trafficSource = "(direct)";
+          let trafficMedium = "(none)";
 
+          const params = new URLSearchParams(window.location.search);
+
+          const utmSource = params.get("utm_source");
+          const utmMedium = params.get("utm_medium");
+
+          if (utmSource) {
+
+            trafficSource = utmSource;
+            trafficMedium = utmMedium || "(none)";
+
+          }
+          else if (document.referrer) {
+
+            const referrer = new URL(document.referrer);
+
+            trafficSource = referrer.hostname.replace("www.", "");
+
+            if (trafficSource.includes("google")) {
+              trafficMedium = "organic";
+            }
+            else if (trafficSource.includes("bing")) {
+              trafficMedium = "organic";
+            }
+            else if (trafficSource.includes("facebook")) {
+              trafficMedium = "referral";
+            }
+            else if (trafficSource.includes("instagram")) {
+              trafficMedium = "referral";
+            }
+            else {
+              trafficMedium = "referral";
+            }
+
+          }
           await fetch(
             "https://orchid-web-site-production-1f73.up.railway.app/lead-activity/view-property",
             {
@@ -379,11 +415,16 @@ const PropertyDetail = () => {
               body: JSON.stringify({
                 propertyId: data._id,
                 visitorId,
+
                 country: location.country || "",
                 city: location.city || "",
+
                 latitude: location.latitude || null,
                 longitude: location.longitude || null,
                 locationSource: location.locationSource || "unknown",
+
+                trafficSource,
+                trafficMedium
               }),
             }
           );
@@ -676,33 +717,33 @@ const PropertyDetail = () => {
               {/* Vidéo active */}
               <div className="relative rounded-2xl overflow-hidden shadow-luxury bg-black aspect-video max-w-4xl mx-auto">
                 {videoLoaded ? (
-                <video
-                  key={videos[currentVideoIndex]}
-                  className="w-full h-full object-contain"
-                  controls
-                  autoPlay
-                  playsInline
-                >
-                  <source src={getCloudinaryVideoUrl(videos[currentVideoIndex])} />
-                </video>
+                  <video
+                    key={videos[currentVideoIndex]}
+                    className="w-full h-full object-contain"
+                    controls
+                    autoPlay
+                    playsInline
+                  >
+                    <source src={getCloudinaryVideoUrl(videos[currentVideoIndex])} />
+                  </video>
                 ) : (
-                <button
-                 onClick={() => setVideoLoaded(true)}
-                  className="relative w-full h-full"
-                  aria-label="Lancer la vidéo"
-                >
-                  {/* ✅ FIX PERFORMANCE : width/height ajoutés pour éviter le CLS */}
-                  <img
-                   src={optimizedImages[1] ?? optimizedImages[0]}
-                   alt="Aperçu vidéo"
-                   width={1200}
-                   height={800}
-                   className="w-full h-full object-contain"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                   <Play className="w-16 h-16 text-white fill-white/90" />
-                  </div>
-                </button>
+                  <button
+                    onClick={() => setVideoLoaded(true)}
+                    className="relative w-full h-full"
+                    aria-label="Lancer la vidéo"
+                  >
+                    {/* ✅ FIX PERFORMANCE : width/height ajoutés pour éviter le CLS */}
+                    <img
+                      src={optimizedImages[1] ?? optimizedImages[0]}
+                      alt="Aperçu vidéo"
+                      width={1200}
+                      height={800}
+                      className="w-full h-full object-contain"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Play className="w-16 h-16 text-white fill-white/90" />
+                    </div>
+                  </button>
                 )}
               </div>
 

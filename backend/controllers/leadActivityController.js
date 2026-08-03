@@ -2,6 +2,9 @@ const Lead = require("../models/Lead");
 const LeadActivity = require("../models/LeadActivity");
 const Property = require("../models/Property");
 const { createOdooLead } = require("../services/odooService");
+const {
+    getLeadAIAnalytics
+} = require("../services/aiAnalyticsService");
 const mongoose = require("mongoose");
 
 async function syncLeadToOdoo(visitorId) {

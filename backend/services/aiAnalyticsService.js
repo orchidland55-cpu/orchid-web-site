@@ -34,6 +34,9 @@ function loadAnalyticsFiles() {
 
     try {
 
+        console.log("process.cwd():", process.cwd());
+        console.log("__dirname:", __dirname);
+
         const trafficFile = path.join(
             __dirname,
             "../../orchid-analytics/data/results/traffic_engagement_scores.csv"

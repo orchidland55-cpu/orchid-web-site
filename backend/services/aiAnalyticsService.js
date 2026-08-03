@@ -39,12 +39,12 @@ function loadAnalyticsFiles() {
 
         const trafficFile = path.join(
             __dirname,
-            "../../orchid-analytics/data/results/traffic_engagement_scores.csv"
+            "../orchid-analytics/data/results/traffic_engagement_scores.csv"
         );
 
         const clusterFile = path.join(
             __dirname,
-            "../../orchid-analytics/data/results/property_clusters.csv"
+            "../orchid-analytics/data/results/property_clusters.csv"
         );
 
         console.log("Traffic file:", trafficFile);

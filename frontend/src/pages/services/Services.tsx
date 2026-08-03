@@ -24,6 +24,8 @@ import {
   CheckCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import ServicesSchema from "@/components/ServicesSchema";
+import ServiceSchema from "@/components/ServicesSchema";
 
 const services = [
   {
@@ -112,6 +114,12 @@ const pillars = [
 const Services = () => {
   return (
     <div className="min-h-screen">
+      <ServiceSchema
+        name="Real Estate Investment & Advisory Services"
+        description="Orchid Island provides luxury real estate investment, consulting, capital raising, mergers and acquisitions, hospitality advisory, and investment structuring services across Europe, the Middle East and Africa."
+        url="https://www.orchidisland.immo/services"
+        serviceType="Real Estate Investment & Advisory"
+      />
       <Header />
       <main>
         {/* ── Hero ── */}

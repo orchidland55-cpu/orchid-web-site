@@ -552,36 +552,54 @@ const PropertyDetail = () => {
 
   /* ── JSON-LD ── */
 
-  const jsonLd = {
+  const propertyJsonLd = {
     "@context": "https://schema.org",
-    "@type": ["Offer", "WebPage"],
-    "@id": `${SITE_URL}/property/${property.slug || property._id}#offer`,
-    "url": `${SITE_URL}/property/${property.slug || property._id}`,
-    "isPartOf": WEBSITE_REF,
-    "price": property.price,
-    "priceCurrency": property.currency || "MAD",
-    "itemOffered": {
-      "@type": "Residence",
-      "@id": `${SITE_URL}/property/${property.slug || property._id}#property`,
-      "name": property.title,
-      "description": property.description?.replace(/<[^>]*>/g, "").substring(0, 500),
-      "image": property.mainImage,
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": property.city,
-        "addressRegion": property.location,
-        "addressCountry": "MA",
-      },
-      "amenityFeature": property.amenities?.map(a => ({
-        "@type": "LocationFeatureSpecification",
-        "name": a,
-        "value": true
-      }))
+    "@type": "RealEstateListing",
+    "@id": `${SITE_URL}/property/${property.slug}#listing`,
+    url: `${SITE_URL}/property/${property.slug}`,
+    name: property.seoTitle || property.title,
+    description: property.metaDescription || property.description,
+    image: [
+      property.mainImage,
+      ...property.additionalImages,
+    ],
+    datePublished: property.createdAt,
+    dateModified: property.updatedAt,
+    isPartOf: WEBSITE_REF,
+    publisher: ORGANIZATION_REF,
+    offers: {
+      "@type": "Offer",
+      price: property.price,
+      priceCurrency: property.currency,
+      availability:
+        property.status === "available"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/SoldOut",
+      url: `${SITE_URL}/property/${property.slug}`,
     },
-    "seller": ORGANIZATION_REF,
-    "mainEntityOfPage": {
-      "@id": `${SITE_URL}/property/${property.slug || property._id}#webpage`
-    }
+    mainEntity: {
+      "@type":
+        property.type === "Villa"
+          ? "House"
+          : "Residence",
+      name: property.title,
+      floorSize: {
+        "@type": "QuantitativeValue",
+        value: property.area,
+        unitCode: "MTK",
+      },
+      numberOfBedrooms: property.bedrooms,
+      numberOfBathroomsTotal:
+        property.bathrooms,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality:
+          property.city,
+        streetAddress:
+          property.location,
+        addressCountry: "MA",
+      },
+    },
   };
 
   /* ── Construire la liste d'images ── */
@@ -680,16 +698,78 @@ const PropertyDetail = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>{property.title} | Orchid Immobilier</title>
+        {/* Title */}
+        <title>
+          {property.seoTitle || `${property.title} | Orchid Island Real Estate`}
+        </title>
+
+        {/* Canonical */}
         <link rel="canonical" href={baseUrl} />
 
+        {/* Meta Description */}
         <meta
           name="description"
-          content={property.description
-            ?.replace(/<[^>]*>/g, "")
-            .substring(0, 160)}
+          content={
+            property.metaDescription ||
+            property.description.replace(/<[^>]*>/g, "").substring(0, 160)
+          }
         />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+
+        {/* Keywords */}
+        {property.focusKeyword && (
+          <meta name="keywords" content={property.focusKeyword} />
+        )}
+
+        {/* Robots */}
+        <meta name="robots" content="index, follow" />
+
+        {/* Open Graph */}
+        <meta
+          property="og:title"
+          content={property.ogTitle || property.seoTitle || property.title}
+        />
+
+        <meta
+          property="og:description"
+          content={
+            property.metaDescription ||
+            property.description.replace(/<[^>]*>/g, "").substring(0, 160)
+          }
+        />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={baseUrl} />
+        <meta property="og:image" content={property.mainImage} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content={
+            property.twitterTitle ||
+            property.ogTitle ||
+            property.seoTitle ||
+            property.title
+          }
+        />
+        <meta
+          name="twitter:description"
+          content={
+            property.metaDescription ||
+            property.description.replace(/<[^>]*>/g, "").substring(0, 160)
+          }
+        />
+        <meta name="twitter:image" content={property.mainImage} />
+
+        {/* Image Alt */}
+        {property.imageAlt && (
+          <meta property="og:image:alt" content={property.imageAlt} />
+        )}
+
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify(propertyJsonLd)}
+        </script>
       </Helmet>
 
       <Header />

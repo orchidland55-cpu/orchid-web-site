@@ -12,6 +12,8 @@ import PropertyCategories from "@/components/PropertyCategories";
 import { useRef, useState } from "react";
 import HeroSearchBar, { HeroFilters } from "@/components/HeroSearchBar";
 import AnimatedSection from "@/components/AnimatedSection";
+import { Helmet } from "react-helmet-async";
+import { SITE_URL, ORGANIZATION_REF, WEBSITE_REF, LOGO_URL} from "@/config/schema";
 
 const Index = () => {
   const [heroFilters, setHeroFilters] = useState<HeroFilters>({
@@ -25,8 +27,46 @@ const Index = () => {
     propertiesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${SITE_URL}/#home`,
+    url: `${SITE_URL}/`,
+    name: "Orchid Island Real Estate | Luxury Real Estate & Investment",
+    description:
+      "Discover luxury real estate opportunities with Orchid Island Real Estate. Explore premium properties, investment opportunities, and expert real estate services across Morocco.",
+    isPartOf: WEBSITE_REF,
+    about: ORGANIZATION_REF,
+    publisher: ORGANIZATION_REF,
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: LOGO_URL,
+    },
+    inLanguage: "en",
+  };
+
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Orchid Island Real Estate | Luxury Real Estate & Investment</title>
+        <meta
+          name="description"
+          content="Discover luxury real estate opportunities with Orchid Island Real Estate. Explore premium properties, investment opportunities, and expert real estate services across Morocco."
+        />
+        <link rel="canonical" href={`${SITE_URL}/`} />
+        <meta property="og:title" content="Orchid Island Real Estate | Luxury Real Estate & Investment" />
+        <meta property="og:description" content="Discover luxury real estate opportunities with Orchid Island Real Estate. Explore premium properties, investment opportunities, and expert real estate services across Morocco." />
+        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:image"
+          content="https://res.cloudinary.com/drgg2rocc/image/upload/q_auto/f_auto/v1777289701/logopng_j3hjit.png"
+        />
+        <meta property="og:site_name" content="Orchid Island Real Estate" />
+        <script type="application/ld+json">
+          {JSON.stringify(homeJsonLd)}
+        </script>
+      </Helmet>
       <Header />
       <main>
         <div className="relative">

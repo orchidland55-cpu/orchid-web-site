@@ -329,6 +329,12 @@ const trackPropertyView = async (req, res) => {
             trafficMedium
         } = req.body;
 
+        console.log("=== TRACK PROPERTY VIEW ===");
+        console.log("visitorId:", visitorId);
+        console.log("propertyId:", propertyId);
+        console.log("trafficSource:", trafficSource);
+        console.log("trafficMedium:", trafficMedium);
+
         let detectedCountry = country;
         let detectedCity = city;
 

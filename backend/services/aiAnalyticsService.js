@@ -44,6 +44,12 @@ function loadAnalyticsFiles() {
             "../../orchid-analytics/data/results/property_clusters.csv"
         );
 
+        console.log("Traffic file:", trafficFile);
+        console.log("Traffic exists:", fs.existsSync(trafficFile));
+
+        console.log("Cluster file:", clusterFile);
+        console.log("Cluster exists:", fs.existsSync(clusterFile));
+
         if (fs.existsSync(trafficFile)) {
 
             const rows = parseCSV(trafficFile);

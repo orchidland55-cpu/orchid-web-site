@@ -50,6 +50,49 @@ const Contact = () => {
         localStorage.getItem("visitorLocation") || "{}"
       );
 
+      const params = new URLSearchParams(window.location.search);
+
+      let trafficSource = params.get("utm_source") || "";
+      let trafficMedium = params.get("utm_medium") || "";
+
+      if (!trafficSource) {
+
+        const referrer = document.referrer.toLowerCase();
+
+        if (!referrer) {
+          trafficSource = "(direct)";
+          trafficMedium = "(none)";
+        }
+
+        else if (referrer.includes("google")) {
+          trafficSource = "google";
+          trafficMedium = "organic";
+        }
+
+        else if (referrer.includes("bing")) {
+          trafficSource = "bing";
+          trafficMedium = "organic";
+        }
+
+        else if (referrer.includes("facebook")) {
+          trafficSource = "facebook.com";
+          trafficMedium = "referral";
+        }
+
+        else if (referrer.includes("instagram")) {
+          trafficSource = "l.instagram.com";
+          trafficMedium = "referral";
+        }
+
+        else {
+
+          trafficSource = new URL(document.referrer).hostname;
+          trafficMedium = "referral";
+
+        }
+
+      }
+
       const response = await fetch(
         "https://orchid-web-site-production-1f73.up.railway.app/contact",
         {
@@ -63,6 +106,8 @@ const Contact = () => {
             latitude: locationData.latitude,
             longitude: locationData.longitude,
             locationSource: locationData.locationSource,
+            trafficSource,
+            trafficMedium,
           }),
         }
       );

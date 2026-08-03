@@ -38,6 +38,16 @@ const LeadActivitySchema = new mongoose.Schema(
             default: ""
         },
 
+        trafficSource: {
+            type: String,
+            default: ""
+        },
+
+        trafficMedium: {
+            type: String,
+            default: ""
+        },
+
         activityType: {
             type: String,
             enum: [

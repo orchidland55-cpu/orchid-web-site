@@ -676,6 +676,25 @@ class ApiService {
     return this.request<any>('/dashboard/stats');
   }
 
+  // ============================================================
+  // DUE DILIGENCE
+  // ============================================================
+
+  async analyzeLocation(latitude: number, longitude: number): Promise<any> {
+
+    return this.request<any>("/api/due-diligence/analyze", {
+
+      method: "POST",
+
+      body: JSON.stringify({
+        latitude,
+        longitude,
+      }),
+
+    });
+
+  }
+
   async getDetailedStats(type: string): Promise<any> {
     return this.request<any>(`/dashboard/details/${type}`);
   }
@@ -808,6 +827,115 @@ class ApiService {
       localStorage.getItem("visitorLocation") || "{}"
     );
 
+    // Detect traffic source
+    const params = new URLSearchParams(window.location.search);
+
+    let trafficSource =
+      params.get("utm_source") || "";
+
+    let trafficMedium =
+      params.get("utm_medium") || "";
+
+    if (!trafficSource) {
+
+      const referrer = document.referrer.toLowerCase();
+
+      if (!referrer) {
+
+        trafficSource = "(direct)";
+        trafficMedium = "(none)";
+
+      }
+
+      else if (referrer.includes("google")) {
+
+        trafficSource = "google";
+        trafficMedium = "organic";
+
+      }
+
+      else if (referrer.includes("bing")) {
+
+        trafficSource = "bing";
+        trafficMedium = "organic";
+
+      }
+
+      else if (referrer.includes("duckduckgo")) {
+
+        trafficSource = "duckduckgo";
+        trafficMedium = "organic";
+
+      }
+
+      else if (referrer.includes("yahoo")) {
+
+        trafficSource = "yahoo";
+        trafficMedium = "organic";
+
+      }
+
+      else if (referrer.includes("facebook")) {
+
+        trafficSource = "facebook.com";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("instagram")) {
+
+        trafficSource = "l.instagram.com";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("linkedin")) {
+
+        trafficSource = "linkedin.com";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("chatgpt")) {
+
+        trafficSource = "chatgpt.com";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("perplexity")) {
+
+        trafficSource = "perplexity.ai";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("claude")) {
+
+        trafficSource = "claude.ai";
+        trafficMedium = "referral";
+
+      }
+
+      else if (referrer.includes("gemini")) {
+
+        trafficSource = "gemini.google.com";
+        trafficMedium = "referral";
+
+      }
+
+      else {
+
+        trafficSource = new URL(document.referrer).hostname;
+        trafficMedium = "referral";
+
+      }
+
+    }
+
+    console.log("Traffic Source:", trafficSource);
+    console.log("Traffic Medium:", trafficMedium);
+
     console.log(
       "visitorLocation (parsed):",
       locationData
@@ -824,7 +952,9 @@ class ApiService {
 
         latitude: locationData.latitude,
         longitude: locationData.longitude,
-        locationSource: locationData.locationSource
+        locationSource: locationData.locationSource,
+        trafficSource,
+        trafficMedium
       })
     });
   }

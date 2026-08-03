@@ -21,3 +21,6 @@ node_modules/
 # Ignorer les fichiers environnement spécifiques
 frontend/.env
 backend/.env
+
+#ignore google analytics credentials
+orchid-analytics/config/credentials.json

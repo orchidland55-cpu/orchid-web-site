@@ -23,6 +23,7 @@ const {
 const propertyController = require('./controllers/propertyController');
 const articleController = require('./controllers/articleController');
 const contactController = require('./controllers/contactController');
+const dueDiligenceController = require("./controllers/dueDiligenceController");
 const dashboardController = require('./controllers/dashboardController');
 const careerController = require('./controllers/careerController');
 const { sendPostulation } = require('./controllers/postulationController');
@@ -440,6 +441,14 @@ app.post(
   "/lead-activity/service-time",
   trackServiceTime
 );
+
+app.post(
+  "/api/due-diligence/analyze",
+  verifyJWT,
+  requireAdminOrEditor,
+  dueDiligenceController.analyzeLocation
+);
+
 // ===== Dashboard routes =====
 app.get('/dashboard/stats', verifyJWT, requireAdminOrEditor, dashboardController.getDashboardStats);
 app.get('/dashboard/details/:type', verifyJWT, requireAdminOrEditor, dashboardController.getDetailedStats);
@@ -523,7 +532,9 @@ app.post('/api/analytics/track-page', async (req, res) => {
       visitorId,
       latitude,
       longitude,
-      locationSource
+      locationSource,
+      trafficSource,
+      trafficMedium
     } = req.body;
 
     if (!page || typeof page !== 'string' || page.length > 200) {
@@ -637,6 +648,9 @@ app.post('/api/analytics/track-page', async (req, res) => {
         latitude,
         longitude,
         locationSource,
+
+        trafficSource,
+        trafficMedium,
 
         activityType: "SERVICE_VIEW",
         details: servicePages[page]

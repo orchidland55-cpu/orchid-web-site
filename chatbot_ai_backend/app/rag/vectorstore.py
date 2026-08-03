@@ -25,6 +25,8 @@ COLLECTION_BIENS = "biens"
 COLLECTION_FAQ_EN = "faq_en"
 COLLECTION_FAQ_FR = "faq_fr"
 COLLECTION_MARCHE = "marche"
+COLLECTION_CARRIERES = "carrieres"
+COLLECTION_REGLEMENTATION = "reglementation"
 
 # ---------------------------------------------------------------------------
 # Client ChromaDB (lazy init, singleton)
@@ -262,6 +264,17 @@ def search_marche(query: str, n_results: int = 3) -> list[SearchResult]:
     return search(COLLECTION_MARCHE, query, n_results=n_results)
 
 
+def search_carrieres(query: str, n_results: int = 3) -> list[SearchResult]:
+    """Recherche dans la collection des offres d'emploi (Career)."""
+    return search(COLLECTION_CARRIERES, query, n_results=n_results)
+
+
+def search_reglementation(query: str, n_results: int = 3) -> list[SearchResult]:
+    """Recherche dans la collection de réglementation d'urbanisme (zones,
+    communes, articles et règles issus des collections Planning* / AllZoning)."""
+    return search(COLLECTION_REGLEMENTATION, query, n_results=n_results)
+
+
 # ---------------------------------------------------------------------------
 # Utilitaires
 # ---------------------------------------------------------------------------
@@ -269,7 +282,10 @@ def search_marche(query: str, n_results: int = 3) -> list[SearchResult]:
 def collection_stats() -> dict[str, int]:
     """Retourne le nombre de documents dans chaque collection."""
     stats = {}
-    for name in [COLLECTION_BIENS, COLLECTION_FAQ_EN, COLLECTION_FAQ_FR, COLLECTION_MARCHE]:
+    for name in [
+        COLLECTION_BIENS, COLLECTION_FAQ_EN, COLLECTION_FAQ_FR, COLLECTION_MARCHE,
+        COLLECTION_CARRIERES, COLLECTION_REGLEMENTATION,
+    ]:
         try:
             col = get_collection(name)
             stats[name] = col.count()

@@ -139,6 +139,107 @@ async function syncLeadToOdoo(visitorId) {
         })
         .join("\n\n");
 
+
+    //will see
+    // ===============================
+    // LEAD SCORE CALCULATION
+    // ===============================
+
+    let score = 0;
+
+    // Contact Form
+
+    if (contact.name) score += 2;
+    if (contact.email) score += 2;
+    if (contact.phone) score += 2;
+    if (contact.message) score += 2;
+
+    // Visit Request
+
+    if (scheduleVisits > 0) {
+        score += 8;
+    }
+
+    // Property Engagement
+
+    const TOTAL_PROPERTIES = 30;
+
+    const uniquePropertiesViewed =
+        Object.keys(propertyViewCounts).length;
+
+    const propertyScore =
+        30 *
+        Math.sqrt(uniquePropertiesViewed / TOTAL_PROPERTIES);
+
+    score += Math.min(propertyScore, 30);
+
+    // Property Reading Time
+
+    const totalSeconds =
+        Object.values(propertyTimeTotals)
+            .reduce((a, b) => a + b, 0);
+
+    const totalMinutes =
+        totalSeconds / 60;
+
+    const MAX_REFERENCE_TIME = 20;
+
+    const timeScore =
+        30 *
+        Math.sqrt(totalMinutes / MAX_REFERENCE_TIME);
+
+    score += Math.min(timeScore, 30);
+
+    // Services
+
+    const TOTAL_SERVICES = 7;
+
+    const uniqueServices =
+        Object.keys(serviceViewCounts).length;
+
+    const serviceScore =
+        8 *
+        Math.sqrt(uniqueServices / TOTAL_SERVICES);
+
+    score += Math.min(serviceScore, 8);
+
+    // WhatsApp
+
+    if (whatsappClicks > 0)
+        score += 8;
+
+    // Returning visitor
+
+    const activityCount =
+        await LeadActivity.countDocuments({
+            visitorId
+        });
+
+    if (activityCount > 1)
+        score += 8;
+
+    score =
+        Math.min(Math.round(score), 100);
+
+    // Category
+
+    lead.leadScore = score;
+
+    lead.leadCategory =
+        score >= 80
+            ? "Hot"
+            : score >= 40
+                ? "Warm"
+                : "Cold";
+
+    await lead.save();
+
+    console.log("Lead Score:", score);
+
+    //ends here
+
+
+
     console.log("=== ODOO DATA ===");
     console.log({
         propertyViews,
@@ -184,6 +285,8 @@ ${service}
         longitude: lead.longitude
     });
 
+    const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
     await createOdooLead({
         name: contact.name,
         email: contact.email,
@@ -203,7 +306,9 @@ ${service}
         scheduleVisits,
 
         propertyList: odooPropertyList,
-        servicesList
+        servicesList,
+
+        ...aiAnalytics
     });
 
     console.log("✅ Odoo auto-sync completed");
@@ -217,7 +322,9 @@ const trackPropertyView = async (req, res) => {
             city,
             latitude,
             longitude,
-            locationSource
+            locationSource,
+            trafficSource,
+            trafficMedium
         } = req.body;
 
         let detectedCountry = country;
@@ -302,7 +409,10 @@ const trackPropertyView = async (req, res) => {
             latitude,
             longitude,
 
-            locationSource
+            locationSource,
+
+            trafficSource,
+            trafficMedium
         });
 
         console.log("CREATED ACTIVITY:", createdActivity);
@@ -344,27 +454,8 @@ const trackPropertyView = async (req, res) => {
 
             console.log("Property views:", views);
 
-            if (views === 3) {
-                lead.leadScore += 10;
-            }
-
-            if (views === 6) {
-                lead.leadScore += 20;
-            }
-
-            if (lead.leadScore >= 70) {
-                lead.leadCategory = "Hot";
-            } else if (lead.leadScore >= 40) {
-                lead.leadCategory = "Warm";
-            } else {
-                lead.leadCategory = "Cold";
-            }
-
-            await lead.save();
-
-            console.log("Lead score updated:", lead.leadScore);
-
             await syncLeadToOdoo(visitorId);
+
         }
 
         res.status(201).json({
@@ -396,20 +487,6 @@ const trackWhatsAppClick = async (req, res) => {
         const lead = await Lead.findOne({ visitorId });
 
         if (lead) {
-
-            lead.leadScore += 30;
-
-            if (lead.leadScore >= 70) {
-                lead.leadCategory = "Hot";
-            } else if (lead.leadScore >= 40) {
-                lead.leadCategory = "Warm";
-            } else {
-                lead.leadCategory = "Cold";
-            }
-
-            await lead.save();
-
-            console.log("SYNCING ODOO AFTER WHATSAPP CLICK");
 
             await syncLeadToOdoo(visitorId);
         }

@@ -1,112 +1,365 @@
 import { useState } from "react";
+
+import PropertyMap from "./components/PropertyMap";
+import CoordinateInputs from "./components/CoordinateInputs";
+
 import {
-    MapContainer,
-    TileLayer,
-    Marker,
-    useMapEvents,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Fix Leaflet marker icons for Vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
-function LocationMarker({
-    position,
-    setPosition,
-}: {
-    position: [number, number] | null;
-    setPosition: (pos: [number, number]) => void;
-}) {
-    useMapEvents({
-        click(e) {
-            setPosition([e.latlng.lat, e.latlng.lng]);
-        },
-    });
-
-    return position ? <Marker position={position} /> : null;
-}
+    analyzeLocation,
+    type AnalysisResult,
+} from "./services/dueDiligenceService";
 
 export default function DueDiligencePage() {
+
     const [position, setPosition] =
         useState<[number, number] | null>(null);
 
+    const [latitude, setLatitude] = useState("");
+
+    const [longitude, setLongitude] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
+    const [analysis, setAnalysis] =
+        useState<AnalysisResult | null>(null);
+
+    const [error, setError] = useState("");
+
+    const handlePositionChange = (pos: [number, number]) => {
+
+        setPosition(pos);
+
+        setLatitude(pos[0].toString());
+
+        setLongitude(pos[1].toString());
+
+        // Clear previous analysis whenever the user picks a new location
+        setAnalysis(null);
+
+        setError("");
+
+    };
+
     return (
+
         <div className="space-y-6">
+
             <div>
-                <h1 className="text-3xl font-bold text-slate-800">
+
+                <h1 className="text-3xl font-bold">
                     Due Diligence
                 </h1>
 
                 <p className="text-gray-500 mt-2">
-                    Click anywhere on the map to choose a property location.
+
+                    Click anywhere on the map or manually enter coordinates.
+
                 </p>
+
             </div>
 
-            <div className="rounded-xl border bg-white shadow overflow-hidden">
-                <MapContainer
-                    center={[31.6295, -7.9811]}
-                    zoom={11}
-                    style={{
-                        height: "600px",
-                        width: "100%",
+            <PropertyMap
+                position={position}
+                setPosition={handlePositionChange}
+            />
+
+            <CoordinateInputs
+                position={position}
+                setPosition={handlePositionChange}
+            />
+
+            <div className="flex justify-end">
+
+                <button
+
+                    disabled={!position || loading}
+
+                    onClick={async () => {
+
+                        if (!position) return;
+
+                        setLoading(true);
+
+                        setError("");
+
+                        setAnalysis(null);
+
+                        try {
+
+                            const result = await analyzeLocation(
+
+                                position[0],
+
+                                position[1]
+
+                            );
+
+                            if (result.success === false) {
+
+                                setError(result.message);
+
+                            } else {
+
+                                setAnalysis(result.data);
+
+                            }
+
+                        } catch {
+
+                            setError("Unable to contact the server.");
+
+                        }
+
+                        setLoading(false);
+
                     }}
-                >
-                    <TileLayer
-                        attribution="&copy; OpenStreetMap contributors"
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
 
-                    <LocationMarker
-                        position={position}
-                        setPosition={setPosition}
-                    />
-                </MapContainer>
+                    className={`px-6 py-3 rounded-lg font-semibold transition ${position
+                        ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+
+                >
+
+                    {loading
+                        ? "Analyzing..."
+                        : "🔍 Analyze Selected Location"}
+
+                </button>
+
             </div>
 
-            <div className="rounded-xl border bg-white shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    Selected Location
-                </h2>
+            {error && (
 
-                {position ? (
-                    <>
-                        <div className="space-y-2">
-                            <p>
-                                <strong>Latitude:</strong>{" "}
-                                {position[0].toFixed(6)}
+                <div className="rounded-xl border border-red-300 bg-red-50 p-5">
+
+                    <h2 className="font-bold text-red-700">
+
+                        Region Not Supported
+
+                    </h2>
+
+                    <p className="mt-2 text-red-600">
+
+                        {error}
+
+                    </p>
+
+                </div>
+
+            )}
+
+            {analysis && (
+
+                <div className="rounded-xl border bg-white shadow p-6">
+
+                    <h2 className="text-2xl font-semibold mb-5">
+
+                        Selected Location
+
+                    </h2>
+
+                    <div className="space-y-4">
+
+                        <div>
+
+                            <p className="text-gray-500">
+
+                                Commune
+
                             </p>
 
-                            <p>
-                                <strong>Longitude:</strong>{" "}
-                                {position[1].toFixed(6)}
+                            <p className="font-semibold">
+
+                                {analysis.commune}
+
                             </p>
+
                         </div>
 
-                        <button
-                            className="mt-6 px-5 py-3 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition"
-                            onClick={() => {
-                                console.log(position);
-                            }}
-                        >
-                            Use this location
-                        </button>
-                    </>
-                ) : (
-                    <p className="text-gray-500">
-                        No location selected yet.
-                    </p>
-                )}
-            </div>
+                        <div>
+
+                            <p className="text-gray-500">
+
+                                Province
+
+                            </p>
+
+                            <p className="font-semibold">
+
+                                {analysis.province}
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <p className="text-gray-500">
+
+                                Region
+
+                            </p>
+
+                            <p className="font-semibold">
+
+                                {analysis.region}
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <p className="text-gray-500">
+
+                                Status
+
+                            </p>
+
+                            <p className="text-green-600 font-semibold">
+
+                                ✓ Location identified
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            )}
+
+            {analysis && (
+
+                <div className="rounded-xl border bg-white shadow p-6">
+
+                    <h2 className="text-2xl font-semibold mb-5">
+
+                        Planning Analysis
+
+                    </h2>
+
+                    {
+
+                        analysis.planning.available ? (
+
+                            <div className="space-y-5">
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Planning Status
+
+                                    </p>
+
+                                    <p className="text-green-600 font-semibold">
+
+                                        ✓ Planning data available
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Planning Document
+
+                                    </p>
+
+                                    <p className="font-semibold">
+
+                                        {analysis.planning.planningDocument}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Approval Date
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.approvalDate}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Zoning Code
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.zoningCode}
+
+                                    </p>
+
+                                </div>
+
+                                <div>
+
+                                    <p className="text-gray-500">
+
+                                        Zone
+
+                                    </p>
+
+                                    <p>
+
+                                        {analysis.planning.zoningDesignation}
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+
+                                <p className="font-semibold text-yellow-700">
+
+                                    ⚠ Planning information is still being integrated.
+
+                                </p>
+
+                                <p className="mt-2 text-sm text-yellow-700">
+
+                                    Detailed planning rules are currently available
+                                    for Marrakech Ouest and Mhamid Sud.
+
+                                    Additional planning documents will be added
+                                    progressively for the remaining communes.
+
+                                </p>
+
+                            </div>
+
+                        )
+
+                    }
+
+                </div>
+
+            )}
+
         </div>
+
     );
+
 }

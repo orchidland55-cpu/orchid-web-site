@@ -35,6 +35,23 @@ IMAGE_KEYS = {
     "additionalImages",
 }
 
+# Collections MongoDB de réglementation d'urbanisme jugées "semi-publiques"
+# (contenu textuel exploitable par le RAG) — volontairement exclues :
+# les collections purement géométriques/GIS (planningroads, planningroadpolygons,
+# zoningpolygons, planningequipments — quasi aucun texte narratif, juste des
+# coordonnées) et les collections privées (users, contacts, leads, postulations,
+# spaces, activities, *views).
+REGULATION_SOURCE_COLLECTIONS = [
+    "allzonings",
+    "communes",
+    "planningalloweduses",
+    "planningarticles",
+    "planningdocuments",
+    "planningprohibiteduses",
+    "planningrules",
+    "planningboundaries",
+]
+
 
 def _normalize_text(value: Any) -> str:
     if value is None:
@@ -184,6 +201,52 @@ def _build_article_record(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _build_career_record(document: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "mongo_id": str(document.get("_id") or ""),
+        "title": _normalize_text(_pick_first(document, "title")),
+        "description": _normalize_text(_pick_first(document, "description")),
+        "city": _normalize_text(_pick_first(document, "city")),
+        "contract_type": _normalize_text(_pick_first(document, "contractType")),
+        "salary": _normalize_text(_pick_first(document, "salary")),
+        "duration": _normalize_text(_pick_first(document, "duration")),
+        "stage_type": _normalize_text(_pick_first(document, "stageType")),
+        "status": _normalize_text(_pick_first(document, "status")) or "active",
+        "person": _normalize_text(_pick_first(document, "person")),
+        "deadline": _to_datetime(_pick_first(document, "deadline", "freelanceDeadline")),
+        "source_collection": "careers",
+        "raw_data": _sanitize_raw_data(document),
+        "created_at": _to_datetime(_pick_first(document, "createdAt", "created_at")),
+        "updated_at": _to_datetime(_pick_first(document, "updatedAt", "updated_at")),
+    }
+
+
+def _build_regulation_record(document: dict[str, Any], source_collection: str) -> dict[str, Any]:
+    return {
+        "mongo_id": str(document.get("_id") or ""),
+        "title": _normalize_text(
+            _pick_first(document, "title", "article_title", "article_heading", "designation", "name")
+        ),
+        "name_secondary": _normalize_text(_pick_first(document, "name_ar")),
+        "category": _normalize_text(
+            _pick_first(document, "use_type", "prohibition_type", "rule_type", "document_type", "zoning_code")
+        ),
+        "location": _normalize_text(
+            _pick_first(document, "zone", "commune", "commune_id", "region", "prefecture", "agency")
+        ),
+        "reference_number": _normalize_text(
+            _pick_first(document, "article_number", "article", "approval_number")
+        ),
+        "body": _normalize_text(
+            _pick_first(document, "body", "raw_text", "text", "sentence", "summary", "observation")
+        ),
+        "source_collection": source_collection,
+        "raw_data": _sanitize_raw_data(document),
+        "created_at": _to_datetime(_pick_first(document, "createdAt", "created_at")),
+        "updated_at": _to_datetime(_pick_first(document, "updatedAt", "updated_at")),
+    }
+
+
 def _load_mongo_collection(client: MongoClient, database_name: str, collection_name: str) -> MongoCollection:
     return client[database_name][collection_name]
 
@@ -239,10 +302,50 @@ def _ensure_schema(cursor) -> None:
         );
         """
     )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS chatbot_careers (
+            mongo_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL DEFAULT '',
+            description TEXT NOT NULL DEFAULT '',
+            city TEXT NOT NULL DEFAULT '',
+            contract_type TEXT NOT NULL DEFAULT '',
+            salary TEXT NOT NULL DEFAULT '',
+            duration TEXT NOT NULL DEFAULT '',
+            stage_type TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'active',
+            person TEXT NOT NULL DEFAULT '',
+            deadline TIMESTAMPTZ NULL,
+            source_collection TEXT NOT NULL DEFAULT 'careers',
+            raw_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ NULL,
+            updated_at TIMESTAMPTZ NULL,
+            synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS chatbot_regulations (
+            mongo_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL DEFAULT '',
+            name_secondary TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL DEFAULT '',
+            location TEXT NOT NULL DEFAULT '',
+            reference_number TEXT NOT NULL DEFAULT '',
+            body TEXT NOT NULL DEFAULT '',
+            source_collection TEXT NOT NULL DEFAULT '',
+            raw_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ NULL,
+            updated_at TIMESTAMPTZ NULL,
+            synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        """
+    )
 
 
 def _truncate_tables(cursor) -> None:
-    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles;")
+    cursor.execute("TRUNCATE TABLE chatbot_properties, chatbot_articles, chatbot_careers, chatbot_regulations;")
 
 
 def _upsert_record(cursor, table_name: str, record: dict[str, Any]) -> None:
@@ -299,3 +402,75 @@ def _sync_collection(
         table_name,
     )
     return count
+
+
+# ---------------------------------------------------------------------------
+# Point d'entrée
+# ---------------------------------------------------------------------------
+
+def run(reset: bool = False, limit: int | None = None, target: str = "all") -> None:
+    logger.info("=== Démarrage de la synchronisation MongoDB → PostgreSQL (reset=%s) ===", reset)
+
+    mongo_client = MongoClient(settings.mongo_uri, serverSelectionTimeoutMS=10000)
+    pg_connection = psycopg2.connect(settings.database_url)
+    total = 0
+    try:
+        with pg_connection.cursor() as cursor:
+            _ensure_schema(cursor)
+            if reset:
+                _truncate_tables(cursor)
+            pg_connection.commit()
+
+            if target in ("all", "properties"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_properties_collection),
+                    cursor=cursor,
+                    table_name="chatbot_properties",
+                    builder=_build_property_record,
+                    limit=limit,
+                )
+            if target in ("all", "articles"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_articles_collection),
+                    cursor=cursor,
+                    table_name="chatbot_articles",
+                    builder=_build_article_record,
+                    limit=limit,
+                )
+            if target in ("all", "careers"):
+                total += _sync_collection(
+                    source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, settings.mongo_careers_collection),
+                    cursor=cursor,
+                    table_name="chatbot_careers",
+                    builder=_build_career_record,
+                    limit=limit,
+                )
+            if target in ("all", "regulations"):
+                for source_collection_name in REGULATION_SOURCE_COLLECTIONS:
+                    total += _sync_collection(
+                        source_collection=_load_mongo_collection(mongo_client, settings.mongo_db, source_collection_name),
+                        cursor=cursor,
+                        table_name="chatbot_regulations",
+                        builder=lambda document, name=source_collection_name: _build_regulation_record(document, name),
+                        limit=limit,
+                    )
+            pg_connection.commit()
+    finally:
+        mongo_client.close()
+        pg_connection.close()
+
+    logger.info("=== Synchronisation terminée — %d documents au total ===", total)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Synchronise MongoDB vers PostgreSQL")
+    parser.add_argument("--reset", action="store_true", help="Vide les tables avant de synchroniser")
+    parser.add_argument("--limit", type=int, default=None, help="Limite le nombre de documents par collection (debug)")
+    parser.add_argument(
+        "--target",
+        choices=["all", "properties", "articles", "careers", "regulations"],
+        default="all",
+        help="Restreindre la synchronisation à une seule cible",
+    )
+    args = parser.parse_args()
+    run(reset=args.reset, limit=args.limit, target=args.target)

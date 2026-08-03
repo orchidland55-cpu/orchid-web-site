@@ -16,6 +16,8 @@ const {
   sendVisitRequestEmail
 } = require("../services/emailService");
 
+const { getLeadAIAnalytics } = require("../services/aiAnalyticsService");
+
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -46,20 +48,21 @@ const addContact = async (req, res) => {
 
     // Lead Scoring Logic
     let score = 0;
+    if (name) score += 2;
+    if (email) score += 2;
+    if (phone) score += 2;
+    if (message) score += 2;
 
-    if (phone && phone.trim() !== "") score += 20;
-    if (propertyType && propertyType.trim() !== "") score += 15;
-    if (subject && subject.trim() !== "") score += 10;
-    if (message && message.length > 30) score += 10;
+    score = Math.min(Math.round(score), 100);
 
     // Determine category
     let category = "Cold";
 
-    if (score >= 40) {
+    if (score >= 30) {
       category = "Warm";
     }
 
-    if (score >= 70) {
+    if (score >= 80) {
       category = "Hot";
     }
 
@@ -116,7 +119,15 @@ const addContact = async (req, res) => {
 
       console.log("=== LEAD CREATED ===");
       console.log(lead);
+      //will see
+      const { syncLeadToOdoo } = require("./leadActivityController");
 
+      await syncLeadToOdoo(visitorId);
+      const updatedLead =
+        await Lead.findOne({ visitorId }).lean();
+
+      console.log("✅ Lead synchronized.");
+      //ends here
 
       try {
 
@@ -207,9 +218,6 @@ ${service}
         console.log("SERVICES LIST:");
         console.log(servicesList);
 
-        console.log("SERVICES LIST:");
-        console.log(servicesList);
-
         const propertyTimeActivities = await LeadActivity.find({
           visitorId,
           activityType: "PROPERTY_TIME"
@@ -222,10 +230,6 @@ ${service}
         const properties = await Property.find({
           _id: { $in: propertyIds }
         }).select("title");
-
-        const whatsappPropertyList = properties
-          .map(p => `• ${p.title}`)
-          .join(" ; ");
 
         const propertyViewCounts = {};
         const propertyTimeTotals = {};
@@ -288,25 +292,9 @@ ${property.title}
           activityType: "WHATSAPP_CLICK"
         });
 
-        score += Math.min(propertyViews * 5, 25);
-        score += whatsappClicks * 10;
-        score += scheduleVisits * 25;
 
-        category = "Cold";
-
-        if (score >= 40) {
-          category = "Warm";
-        }
-
-        if (score >= 80) {
-          category = "Hot";
-        }
-
-        await Lead.findByIdAndUpdate(lead._id, {
-          leadScore: score,
-          leadCategory: category
-        });
-
+        //here
+        const aiAnalytics = await getLeadAIAnalytics(visitorId);
         await createOdooLead({
           name,
           email,
@@ -319,13 +307,15 @@ ${property.title}
           latitude: latestActivity?.latitude || null,
           longitude: latestActivity?.longitude || null,
 
-          leadScore: score,
+          leadScore: updatedLead.leadScore,
           visitorId,
           propertyViews,
           scheduleVisits,
           whatsappClicks,
           propertyList: odooPropertyList,
-          servicesList
+          servicesList,
+
+          ...aiAnalytics
         });
 
         console.log("✅ Lead sent to Odoo");
@@ -342,7 +332,7 @@ ${property.title}
 • Email: ${email}
 • Phone: ${phone || "N/A"}
 
-• Lead Score: ${score}
+• Lead Score: ${updatedLead.leadScore}
 
 • Subject: ${subject || "N/A"}
 
@@ -394,7 +384,7 @@ ${new Date().toLocaleString()}
           subject,
           message,
 
-          leadScore: score,
+          leadScore: updatedLead.leadScore,
 
           country: latestActivity?.country,
           city: latestActivity?.city,
@@ -761,6 +751,10 @@ Message: ${message || "No message"}
         activityType: "SCHEDULE_VISIT",
         details: `Visit requested for ${date} at ${timeSlot}`
       });
+
+      await syncLeadToOdoo(visitorId);
+      lead = await Lead.findOne({ visitorId });
+
       const propertyViews = await LeadActivity.countDocuments({
         visitorId,
         activityType: "VIEW_PROPERTY"
@@ -799,14 +793,6 @@ Message: ${message || "No message"}
 
         if (!activity.propertyId) return;
 
-        const id = activity.propertyId.toString();
-
-        propertyTimeTotals[id] =
-          (propertyTimeTotals[id] || 0) +
-          (activity.timeSpentSeconds || 0);
-      });
-
-      propertyTimeActivities.forEach(activity => {
         const id = activity.propertyId.toString();
 
         propertyTimeTotals[id] =
@@ -853,17 +839,10 @@ ${property.title}
         activityType: "SCHEDULE_VISIT"
       });
       // Increase score
-      if (leadAlreadyExists) {
-        lead.leadScore += 40;
-      }
 
-      if (lead.leadScore >= 70) {
-        lead.leadCategory = "Hot";
-      } else if (lead.leadScore >= 40) {
-        lead.leadCategory = "Warm";
-      }
+      // ---------- Visit Request Score ----------
 
-      await lead.save();
+
 
       const contactRecord = await mongoose.connection.db
         .collection("contacts")
@@ -922,6 +901,8 @@ ${service}
         })
         .join("\n\n");
 
+      const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
       await createOdooLead({
         name,
         email,
@@ -941,7 +922,9 @@ ${service}
         propertyList,
         servicesList,
         scheduleVisits,
-        visitDetails
+        visitDetails,
+
+        ...aiAnalytics
       });
 
       console.log("📈 Lead score updated:", lead.leadScore);
@@ -1070,6 +1053,7 @@ ${new Date().toLocaleString()}
 
       });
 
+
       propertyTimeActivities.forEach(activity => {
 
         if (!activity.propertyId) return;
@@ -1187,6 +1171,8 @@ ${service}
       const latitude = latestActivity?.latitude || null;
       const longitude = latestActivity?.longitude || null;
 
+      const aiAnalytics = await getLeadAIAnalytics(visitorId);
+
       await createOdooLead({
 
         name,
@@ -1214,7 +1200,9 @@ ${service}
 
         scheduleVisits,
 
-        visitDetails
+        visitDetails,
+
+        ...aiAnalytics
 
       });
 

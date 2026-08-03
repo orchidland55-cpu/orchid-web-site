@@ -61,7 +61,13 @@ async function createOdooLead({
     visitDetails = "",
     whatsappClicks = 0,
     propertyList = "",
-    servicesList = ""
+    servicesList = "",
+
+    aiTrafficSource = "",
+    aiTrafficScore = 0,
+    aiHighPages = "",
+    aiMediumPages = "",
+    aiLowPages = ""
 }) {
 
     console.log("ODOO LOCATION:", {
@@ -186,6 +192,7 @@ async function createOdooLead({
 
                                 email_from: email,
                                 phone: phone,
+                                name: name,
                                 contact_name: name,
 
                                 ...(subject ? { x_subject: subject } : {}),
@@ -205,7 +212,12 @@ async function createOdooLead({
                                 x_city: city,
                                 x_latitude: latitude,
                                 x_longitude: longitude,
-                                x_google_maps_url: mapUrl
+                                x_google_maps_url: mapUrl,
+                                x_ai_traffic_source: aiTrafficSource,
+                                x_ai_traffic_score: aiTrafficScore,
+                                x_ai_high_pages: aiHighPages,
+                                x_ai_medium_pages: aiMediumPages,
+                                x_ai_low_pages: aiLowPages
                             }
                         ]
                     ]
@@ -238,7 +250,7 @@ async function createOdooLead({
                         "crm.lead",
                         "create",
                         [{
-                            name: `Website Lead - ${name}`,
+                            name: name,
                             contact_name: name,
                             email_from: email,
                             phone: phone,
@@ -260,6 +272,12 @@ async function createOdooLead({
                             x_latitude: latitude,
                             x_longitude: longitude,
                             x_google_maps_url: mapUrl,
+
+                            x_ai_traffic_source: aiTrafficSource,
+                            x_ai_traffic_score: aiTrafficScore,
+                            x_ai_high_pages: aiHighPages,
+                            x_ai_medium_pages: aiMediumPages,
+                            x_ai_low_pages: aiLowPages,
 
                             description: note
                         }]
